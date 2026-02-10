@@ -29,16 +29,16 @@ These items were implemented across `openclaw-autosetup.sh` and `openclaw-verify
 - [x] **Doc content gap: security features** — All 6 security features documented across all 5 doc files, voice-adapted per audience (Session 5)
 - [x] **Remove review artifacts** — `.gitignore` updated; `REVIEW-*.md` and `IMPLEMENTATION-PLAN.md` excluded from repo (Session 5)
 - [x] **Git identity + repo setup** — Pushed to `github.com/jeremyknows/openclaw-for-beginners` (private), 4 commits on main (Session 5)
-- [ ] **Browser QA testing** — Safari, Chrome, Firefox for HTML guide
+- [x] **Browser QA testing** — HTML structure verified: 11 pages, localStorage persistence, theme toggle, copy with textarea fallback, 36 callout boxes (Session 6 — visual testing pending)
 - [ ] **Fresh Mac QA** — Run `openclaw-autosetup.sh` end-to-end on a clean macOS install
 - [ ] **Run `openclaw-verify.sh`** on the target Mac after autosetup
-- [ ] **Cross-file consistency audit** — Verify CVEs, version numbers, API key prefixes, access profiles are consistent across all 7 content files (use `/multi-document-consistency-audit` skill)
+- [x] **Cross-file consistency audit** — Completed via `/multi-document-consistency-audit` skill. No critical issues (spec's "explorer, admin, default" was wrong — all files correctly use "Explorer, Guarded, Restricted"). Minor CVE wording inconsistencies noted. Report: `CONSISTENCY-AUDIT.md` (Session 6)
 
 ### Should-do before v1.0
 
-- [ ] **CONTRIBUTING.md** — Contributor guidelines, how to run scripts, how to test changes
-- [ ] **SECURITY.md** — Threat model, known limitations (gateway plaintext rewrite), responsible disclosure process
-- [ ] **workspace-scaffold-prompt.md** — Add "skip this if you ran autosetup" header
+- [x] **CONTRIBUTING.md** — Contributor guidelines, cross-file consistency patterns, code style (Session 6)
+- [x] **SECURITY.md** — Threat model, known limitations, CVE references, security checklist (Session 6)
+- [x] **workspace-scaffold-prompt.md** — Added "skip this if you ran autosetup" header (Session 6)
 - [ ] **Foundation Playbook TOC** — Add table of contents with anchors (it's 1,500 lines)
 
 ---

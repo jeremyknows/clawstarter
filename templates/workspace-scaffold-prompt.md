@@ -4,6 +4,13 @@
 
 # Workspace Scaffold + First-Run Setup
 
+> **⏭️ Skip this if you ran `openclaw-autosetup.sh`**
+>
+> The autosetup script already created your workspace files and directories.
+> You can proceed directly to first-run personalization by asking your bot
+> to "walk me through first-run personalization" — it will read BOOTSTRAP.md
+> and guide you through the process.
+
 Please set up my workspace with the standard template files and then walk me through first-run personalization. Follow these steps exactly:
 
 ## Step 1: Create Workspace Subdirectories
