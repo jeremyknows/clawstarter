@@ -34,8 +34,8 @@ The HTML guide also generates a customized version of the Claude.ai prompt on it
 
 | File | What it is | Best for |
 |------|-----------|----------|
-| `openclaw-autosetup.sh` | Automated setup script — handles ~80% of the work | "Just do it for me" people |
-| `openclaw-verify.sh` | Post-setup diagnostic — checks for common issues | Verifying everything is working |
+| `openclaw-autosetup.sh` | Automated setup script (19 steps) — handles ~80% of the work | "Just do it for me" people |
+| `openclaw-verify.sh` | Post-setup diagnostic (18 checks) — checks for common issues | Verifying everything is working |
 
 ### After Setup
 
@@ -109,13 +109,15 @@ Then open `OPENCLAW-FOUNDATION-PLAYBOOK-TEMPLATE.md` — it's an optional harden
 
 ## Version
 
-**Recommended: v2026.2.9** (latest). Minimum: v2026.1.29 (security patches). The guide checks your version automatically.
+**Recommended: v2026.2.9** (latest). Minimum: v2026.1.29 (security patches). The guide and scripts check your version automatically.
 
 ## Security Notes
 
 - OpenClaw runs AI agents that execute code. The guide creates a **dedicated Mac user** so the agent can't access your personal files.
-- API keys are stored in `~/.openclaw/openclaw.json`. The guide locks this down with file permissions.
-- Older versions (before 2026.1.29) had serious security bugs that are now fixed. The guide checks your version automatically.
+- The autosetup script migrates secrets from plaintext to **environment variable references** (`${VAR_NAME}` syntax), storing actual values in the LaunchAgent plist.
+- File permissions are locked down to 600 (config) and 700 (home directory).
+- mDNS/Bonjour network discovery is disabled to prevent the gateway from being visible on the local network.
+- Older versions (before 2026.1.29) had serious security bugs that are now fixed. The scripts check your version automatically.
 - Never install skills from ClawHub without reviewing the code yourself.
 
 ## License

@@ -377,6 +377,28 @@ find ~/ -name ".env*" -not -path "*/node_modules/*" -exec ls -la {} \; 2>/dev/nu
 - [ ] Discord bot token is not exposed in any plaintext file
 - [ ] Embedding provider API key is not exposed outside `openclaw.json`
 
+**Verify secrets are in environment variables, not plaintext config:**
+
+Check if `openclaw.json` contains actual API keys or `${VAR_NAME}` references:
+```bash
+grep -E '(sk-or-v1-|sk-ant-|pa-)' ~/.openclaw/openclaw.json
+```
+
+If you see actual keys (not `${...}` references), the autosetup script's secrets migration step was skipped or didn't run. The keys are still protected by file permissions (chmod 600), but migrating to env vars adds defense in depth.
+
+**Known limitation:** The gateway resolves `${VAR_NAME}` references and may write plaintext values back to `openclaw.json` on restart. The LaunchAgent plist (`~/Library/LaunchAgents/ai.openclaw.gateway.plist`) is the canonical secret store.
+
+The autosetup script migrates these secrets from plaintext to `${VAR_NAME}` references in `openclaw.json`, with actual values stored in LaunchAgent plist `EnvironmentVariables`:
+- `gateway.auth.token` → `${OPENCLAW_GATEWAY_TOKEN}`
+- `channels.discord.token` → `${DISCORD_BOT_TOKEN}`
+- `channels.telegram.botToken` → `${TELEGRAM_BOT_TOKEN}`
+- `env.vars.OPENAI_API_KEY` → `${OPENAI_API_KEY}`
+- `env.vars.GEMINI_API_KEY` → `${GEMINI_API_KEY}`
+- `tools.web.search.apiKey` → `${WEB_SEARCH_API_KEY}`
+- `agents.defaults.memorySearch.remote.apiKey` → `${VOYAGE_API_KEY}`
+
+- [ ] Verified secrets use `${VAR_NAME}` references in config (or documented as plaintext with 600 perms)
+
 **Credential rotation (set a calendar reminder):**
 API keys should be rotated every 90 days. Longer they live, higher the risk if compromised.
 
@@ -424,6 +446,47 @@ openclaw security audit --deep | grep -i "gateway\|exposed\|network\|binding"
 - [ ] No browser control endpoints (CDP) exposed
 - [ ] If using a reverse proxy: authentication is required (CVE-2026-25253 exploit
       chain includes authentication bypass via reverse proxy misconfiguration)
+
+**Verify mDNS/Bonjour is disabled:**
+
+The gateway should not advertise itself on the local network:
+```bash
+/usr/libexec/PlistBuddy -c "Print :EnvironmentVariables:OPENCLAW_DISABLE_BONJOUR" ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+```
+
+Should print `1`. If not set, add it:
+```bash
+/usr/libexec/PlistBuddy -c "Add :EnvironmentVariables:OPENCLAW_DISABLE_BONJOUR string 1" ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+```
+
+Then restart the gateway:
+```bash
+launchctl unload ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+launchctl load ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+```
+
+- [ ] mDNS/Bonjour disabled via `OPENCLAW_DISABLE_BONJOUR=1` environment variable
+
+**Verify gateway token is cryptographically strong:**
+
+The token should be at least 32 characters of random hex:
+```bash
+TOKEN=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('gateway',{}).get('auth',{}).get('token',''))" ~/.openclaw/openclaw.json)
+echo "Token length: ${#TOKEN}"
+```
+
+If shorter than 32 characters, generate a new one:
+```bash
+openssl rand -hex 32
+```
+
+Then update both `openclaw.json` (replace the value for `gateway.auth.token` or the `${OPENCLAW_GATEWAY_TOKEN}` env var reference) and the LaunchAgent plist if using env var substitution:
+```bash
+# Update the plist with new token
+/usr/libexec/PlistBuddy -c "Set :EnvironmentVariables:OPENCLAW_GATEWAY_TOKEN NEW_TOKEN_HERE" ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+```
+
+- [ ] Gateway token is at least 32 characters of cryptographically random data
 
 ---
 
@@ -501,6 +564,26 @@ at 2 AM if auto-updates are enabled.
 
 ---
 
+### 1.11b Verify FileVault (Disk Encryption)
+
+**Why:** FileVault encrypts the entire disk, protecting API keys and agent data if the Mac is physically stolen or accessed by unauthorized users. This is especially important for a Mac Mini that stays powered on 24/7.
+
+```bash
+fdesetup status
+```
+
+Should report "FileVault is On." If off, enable it:
+1. System Settings → Privacy & Security → FileVault → Turn On
+2. Choose to save recovery key to iCloud or write it down and store it securely
+3. Restart required for encryption to begin
+
+**Trade-off:** FileVault adds minimal performance overhead on modern Apple Silicon Macs. The encryption/decryption happens in hardware. The main downside is that the Mac requires the login password to boot (can't auto-login on restart), but this is also a security feature.
+
+- [ ] FileVault is enabled
+- [ ] Recovery key is saved to iCloud or stored in a secure location (1Password, physical safe)
+
+---
+
 ### 1.12 Configure Access Profile (From Q2b)
 
 **Why:** This is where you set the boundaries on what your bot can physically do.
@@ -514,9 +597,12 @@ making the environment safe for exploration.
   "workspaceAccess": "rw"
 },
 "tools": {
-  "notes": "All tools enabled. Monitor via logs channel."
+  "deny": ["browser"],
+  "notes": "All tools enabled except browser. Browser re-enabled on request."
 }
 ```
+
+> **Why deny browser by default?** The browser tool can execute arbitrary JavaScript and access any site. Starting with browser disabled and re-enabling it when needed is a safer default. When the bot needs to browse the web, it will ask for permission or you can explicitly grant it by removing `"browser"` from the deny list.
 
 **Guarded Profile** (for bots processing untrusted email/web content):
 ```json
@@ -964,6 +1050,28 @@ every ~10 seconds, taking down ALL channels. Newer versions handle it more grace
 - [ ] Discord intents enabled in Developer Portal
 - [ ] Bot responds in primary channel
 - [ ] Tested: messages in topic channels stay isolated
+
+**Review Discord channel requireMention settings:**
+
+The `requireMention` setting controls whether the bot responds to all messages in a channel or only when @mentioned. Best practice:
+
+- **Primary/ops channel:** `"requireMention": false` — bot responds to all messages
+- **All other channels:** `"requireMention": true` — bot only responds when @mentioned
+
+This prevents the bot from jumping into every conversation in busy channels and keeps API costs down.
+
+Example config showing best practices:
+```json
+"channels": {
+  "1234567890123456789": { "allow": true, "requireMention": false },  // #general (primary)
+  "9876543210987654321": { "allow": true, "requireMention": true },   // #research (topic)
+  "1111222233334444555": { "allow": true, "requireMention": true }    // #finances (topic)
+}
+```
+
+- [ ] Primary working channel has `"requireMention": false`
+- [ ] All topic channels have `"requireMention": true`
+- [ ] Tested: bot responds automatically in primary, waits for @mention in topics
 
 ---
 

@@ -271,12 +271,12 @@ Set the bot's access profile in `openclaw.json` under `agents.defaults`. This co
 cp ~/.openclaw/openclaw.json ~/.openclaw/openclaw.json.backup.$(date +%Y%m%d%H%M%S)
 ```
 
-**Explorer** (recommended for most users — all tools enabled):
+**Explorer** (recommended for most users — all tools enabled except browser):
 ```json
 "agents": {
   "defaults": {
     "sandbox": { "mode": "off", "workspaceAccess": "rw" },
-    "tools": { "notes": "All tools enabled. Monitor via logs channel." }
+    "tools": { "deny": ["browser"], "notes": "All tools enabled except browser. Browser re-enabled on request." }
   }
 }
 ```
@@ -432,7 +432,11 @@ Ask the user for:
 - The **Discord server (guild) ID** — they can get this by right-clicking the server name in Discord with Developer Mode enabled (Settings > Advanced > Developer Mode)
 - The **channel ID(s)** where the bot should operate — right-click a channel to copy its ID
 
-Then use `openclaw config` commands or carefully edit `~/.openclaw/openclaw.json` to add the Discord configuration. **Always validate after editing:**
+Then use `openclaw config` commands or carefully edit `~/.openclaw/openclaw.json` to add the Discord configuration.
+
+**Channel configuration note:** Set the primary channel to `"requireMention": false` and all other channels to `"requireMention": true` to prevent the bot from responding to every message in non-primary channels.
+
+**Always validate after editing:**
 
 ```bash
 openclaw doctor
@@ -497,6 +501,32 @@ chmod 600 ~/.openclaw/openclaw.json
 chmod 700 ~/.openclaw/
 ```
 
+#### Security Feature Verification
+
+Verify that security features are properly configured:
+
+```bash
+# Verify secrets use ${VAR_NAME} references
+grep -c '\$\{' ~/.openclaw/openclaw.json
+# Should show at least 1 match. If all secrets are plaintext, secrets migration is needed.
+
+# Verify mDNS disabled
+/usr/libexec/PlistBuddy -c "Print :EnvironmentVariables:OPENCLAW_DISABLE_BONJOUR" ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+# Should print "1"
+
+# Verify gateway token strength
+TOKEN_LENGTH=$(jq -r '.gateway.auth.token // ""' ~/.openclaw/openclaw.json | wc -c)
+if [ "$TOKEN_LENGTH" -lt 32 ]; then
+    echo "WARN: Gateway token is weak (less than 32 characters). Generate new: openssl rand -hex 32"
+else
+    echo "PASS: Gateway token strength verified"
+fi
+
+# Verify FileVault
+fdesetup status
+# Should report "FileVault is On". If off, instruct user: System Settings → Privacy & Security → FileVault → Turn On
+```
+
 Update the progress tracker.
 
 ---
@@ -531,7 +561,7 @@ Follow these rules at all times. They are non-negotiable.
 
 1. **ALWAYS back up `openclaw.json` before editing it.** Use: `cp ~/.openclaw/openclaw.json ~/.openclaw/openclaw.json.backup.$(date +%Y%m%d%H%M%S)`
 2. **NEVER install skills from ClawHub** during setup. Skill installation is a post-setup activity covered in the Foundation Playbook. Premature skill installation can cause agent conflicts.
-3. **NEVER store API keys in plaintext files, memory files, notes, or this document.** Keys go into the onboarding wizard or directly into the encrypted config. If the user pastes a key in chat, acknowledge it and move on — do not echo it back or save it elsewhere.
+3. **NEVER store API keys as plaintext in `openclaw.json` if env var substitution is available.** Use `${VAR_NAME}` references in config and store actual values in the LaunchAgent plist `EnvironmentVariables` dict via PlistBuddy. Known limitation: the gateway resolves `${VAR_NAME}` and may write plaintext back on restart — the plist is the canonical secret store.
 4. **Ask before any destructive operation.** This includes: deleting files, overwriting configs without backup, uninstalling packages, changing system settings (like pmset), or modifying LaunchAgents.
 5. **Run `openclaw doctor` after every config edit.** No exceptions. If doctor fails, fix the issue before moving on.
 6. **Do not modify files outside the OpenClaw directory** (`~/.openclaw/`) unless the step explicitly requires it (e.g., pmset for sleep prevention, Homebrew for Node.js installation).

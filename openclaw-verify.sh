@@ -132,7 +132,10 @@ if [ -f "$CONFIG_FILE" ]; then
   pass "Config file exists: ${CONFIG_FILE}"
 
   # Check if it's valid JSON
-  if python3 -c "import json; json.load(open('$CONFIG_FILE'))" 2>/dev/null; then
+  if python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null; then
+import json, sys
+json.load(open(sys.argv[1]))
+PYEOF
     pass "Config is valid JSON"
   else
     fail "Config is NOT valid JSON — openclaw doctor will show details"
@@ -149,12 +152,11 @@ if [ -f "$CONFIG_FILE" ]; then
   fi
 
   # Check for API keys (without revealing them)
-  if python3 -c "
+  if python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null | grep -q "HAS_AUTH"; then
 import json, sys
 try:
-    with open('$CONFIG_FILE') as f:
+    with open(sys.argv[1]) as f:
         config = json.load(f)
-    # Check for auth/provider configs
     auth = config.get('auth', config.get('providers', {}))
     if auth:
         print('HAS_AUTH')
@@ -162,7 +164,7 @@ try:
         print('NO_AUTH')
 except Exception as e:
     print('ERROR: ' + str(e))
-" 2>/dev/null | grep -q "HAS_AUTH"; then
+PYEOF
     pass "API provider configuration found"
   else
     warn "No API provider configuration detected in config"
@@ -247,9 +249,9 @@ fi
 header "6. Discord Bot"
 
 if [ -f "$CONFIG_FILE" ]; then
-  HAS_DISCORD=$(python3 -c "
-import json
-with open('$CONFIG_FILE') as f:
+  HAS_DISCORD=$(python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null || echo "ERROR"
+import json, sys
+with open(sys.argv[1]) as f:
     config = json.load(f)
 channels = config.get('channels', {})
 discord = channels.get('discord', config.get('discord', {}))
@@ -259,7 +261,8 @@ elif discord and discord.get('token'):
     print('CONFIGURED')
 else:
     print('NOT_CONFIGURED')
-" 2>/dev/null || echo "ERROR")
+PYEOF
+)
 
   case "$HAS_DISCORD" in
     ENABLED)
@@ -368,9 +371,9 @@ fi
 header "10. Access Profile & Approval Tier"
 
 if [ -f "$CONFIG_FILE" ]; then
-  ACCESS_PROFILE=$(python3 -c "
-import json
-with open('$CONFIG_FILE') as f:
+  ACCESS_PROFILE=$(python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null || echo "ERROR"
+import json, sys
+with open(sys.argv[1]) as f:
     config = json.load(f)
 agents = config.get('agents', {})
 defaults = agents.get('defaults', {})
@@ -387,7 +390,8 @@ elif mode != 'not set' or ws != 'not set':
     print('EXPLORER')
 else:
     print('NOT_SET')
-" 2>/dev/null || echo "ERROR")
+PYEOF
+)
 
   case "$ACCESS_PROFILE" in
     EXPLORER)
@@ -409,9 +413,9 @@ else:
   esac
 
   # Check approval tier (look for approval/autonomy settings)
-  APPROVAL_CONFIG=$(python3 -c "
-import json
-with open('$CONFIG_FILE') as f:
+  APPROVAL_CONFIG=$(python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null || echo "ERROR"
+import json, sys
+with open(sys.argv[1]) as f:
     config = json.load(f)
 agents = config.get('agents', {})
 defaults = agents.get('defaults', {})
@@ -420,7 +424,8 @@ if approval:
     print('CONFIGURED')
 else:
     print('NOT_SET')
-" 2>/dev/null || echo "ERROR")
+PYEOF
+)
 
   case "$APPROVAL_CONFIG" in
     CONFIGURED)
@@ -473,7 +478,20 @@ for rc_file in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.zprofile" "$HOME/.bash_pro
 done
 
 # ═══════════════════════════════════════════════════════════════════
-header "13. TCC Permissions"
+header "13. Disk Encryption (FileVault)"
+
+FV_STATUS=$(fdesetup status 2>/dev/null || echo "unknown")
+if echo "$FV_STATUS" | grep -qi "on"; then
+  pass "FileVault is ON — disk encrypted at rest"
+elif echo "$FV_STATUS" | grep -qi "off"; then
+  fail "FileVault is OFF — disk is not encrypted at rest"
+  info "Fix: System Settings > Privacy & Security > FileVault > Turn On"
+else
+  info "FileVault status: ${FV_STATUS}"
+fi
+
+# ═══════════════════════════════════════════════════════════════════
+header "14. TCC Permissions"
 
 check_tcc_permissions() {
   # Only meaningful for bot (non-admin) users
@@ -516,7 +534,7 @@ check_tcc_permissions() {
 check_tcc_permissions
 
 # ═══════════════════════════════════════════════════════════════════
-header "14. Memory Search"
+header "15. Memory Search"
 
 check_memory_search() {
   if [ ! -f "$CONFIG_FILE" ]; then
@@ -525,9 +543,9 @@ check_memory_search() {
   fi
 
   local mem_result
-  mem_result=$(python3 -c "
-import json
-with open('$CONFIG_FILE') as f:
+  mem_result=$(python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null || echo "ERROR"
+import json, sys
+with open(sys.argv[1]) as f:
     config = json.load(f)
 agents = config.get('agents', {})
 defaults = agents.get('defaults', {})
@@ -540,7 +558,8 @@ elif provider:
     print('DISABLED:' + provider)
 else:
     print('NOT_CONFIGURED')
-" 2>/dev/null || echo "ERROR")
+PYEOF
+)
 
   case "$mem_result" in
     ENABLED:*)
@@ -549,9 +568,9 @@ else:
       # Validate API key prefix for Voyage AI
       if echo "$provider" | grep -qi "voyage"; then
         local has_key
-        has_key=$(python3 -c "
-import json
-with open('$CONFIG_FILE') as f:
+        has_key=$(python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null || echo "ERROR"
+import json, sys
+with open(sys.argv[1]) as f:
     config = json.load(f)
 key = config.get('providers', {}).get('voyage', {}).get('apiKey', '')
 if not key:
@@ -562,7 +581,8 @@ elif key:
     print('BAD_PREFIX')
 else:
     print('NO_KEY')
-" 2>/dev/null || echo "ERROR")
+PYEOF
+)
         case "$has_key" in
           VALID_PREFIX) pass "Voyage AI key prefix looks correct (pa-...)" ;;
           BAD_PREFIX)   warn "Voyage AI key does not start with expected prefix 'pa-'" ;;
@@ -588,7 +608,7 @@ else:
 check_memory_search
 
 # ═══════════════════════════════════════════════════════════════════
-header "15. API Connectivity"
+header "16. API Connectivity"
 
 check_api_connectivity() {
   # OpenRouter reachability
@@ -603,16 +623,18 @@ check_api_connectivity() {
   # Discord token check (only if configured)
   if [ -f "$CONFIG_FILE" ]; then
     local discord_token
-    discord_token=$(python3 -c "
-import json
-with open('$CONFIG_FILE') as f:
+    discord_token=$(python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null || echo ""
+import json, sys
+with open(sys.argv[1]) as f:
     config = json.load(f)
 channels = config.get('channels', {})
 discord = channels.get('discord', config.get('discord', {}))
 token = discord.get('token', discord.get('botToken', ''))
-if token:
+# Skip ${VAR_NAME} env var references (secrets hardening)
+if token and not token.startswith('${'):
     print(token)
-" 2>/dev/null || echo "")
+PYEOF
+)
 
     if [ -n "$discord_token" ]; then
       local discord_resp
@@ -631,7 +653,7 @@ if token:
 check_api_connectivity
 
 # ═══════════════════════════════════════════════════════════════════
-header "16. Docker Sandbox"
+header "17. Docker Sandbox"
 
 check_docker_sandbox() {
   if [ ! -f "$CONFIG_FILE" ]; then
@@ -640,16 +662,17 @@ check_docker_sandbox() {
   fi
 
   local sandbox_mode
-  sandbox_mode=$(python3 -c "
-import json
-with open('$CONFIG_FILE') as f:
+  sandbox_mode=$(python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null || echo "unknown"
+import json, sys
+with open(sys.argv[1]) as f:
     config = json.load(f)
 agents = config.get('agents', {})
 defaults = agents.get('defaults', {})
 sandbox = defaults.get('sandbox', {})
 mode = sandbox.get('mode', 'off')
 print(mode)
-" 2>/dev/null || echo "unknown")
+PYEOF
+)
 
   case "$sandbox_mode" in
     non-main|all)
@@ -679,7 +702,7 @@ print(mode)
 check_docker_sandbox
 
 # ═══════════════════════════════════════════════════════════════════
-header "17. Workspace Templates"
+header "18. Workspace Templates"
 
 check_workspace_templates() {
   local template_dir="$HOME/.openclaw/workspace"

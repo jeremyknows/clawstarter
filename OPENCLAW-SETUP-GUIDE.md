@@ -100,7 +100,9 @@ responsibilities. Here are the four main risks and how this guide addresses each
 > like sending a message you didn't approve or modifying the wrong file.
 > **How we address it:** Access profiles (Explorer, Guarded, Restricted) let you control
 > what tools the bot can use. Start with Explorer + manual approval, then loosen over
-> time as trust builds.
+> time as trust builds. The Explorer profile blocks browser access by default — the
+> agent can do everything else but can't open web pages on its own. You can re-enable
+> it later if needed.
 
 > **Credential risk — API keys stored in config could be stolen.**
 > Your config file contains API keys that cost real money if misused.
@@ -184,7 +186,19 @@ sudo chown -R YOUR_BOT_USERNAME /Users/YOUR_BOT_USERNAME/Downloads/openclaw-setu
 
 The first command copies this folder to the bot user's Downloads. The second makes the bot user the owner of the copy.
 
-### 1e: Enable macOS Firewall
+### 1e: Enable Disk Encryption
+
+Disk encryption protects your API keys and bot data if your Mac is stolen or someone gains physical access.
+
+1. Open **System Settings** → **Privacy & Security** → **FileVault**
+2. Click **Turn On** if not already enabled
+3. Save your recovery key somewhere secure (password manager, not on the Mac itself)
+
+> **FileVault** encrypts your entire disk. If someone steals your Mac Mini, they
+> can't access your API keys or bot files without your password. This is especially
+> important for a 24/7 device that might sit unattended.
+
+### 1f: Enable macOS Firewall
 
 Security researchers (Censys) found over 30,000 AI agent instances exposed to the
 internet — meaning anyone could connect to them. Your bot only needs *outbound*
@@ -202,9 +216,12 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
 > ping requests or connection attempts from unknown sources. The bot's outbound
 > connections (API calls, Discord, etc.) still work normally.
 
+> The setup script also disables network discovery (Bonjour/mDNS) so your gateway
+> doesn't advertise itself to other devices on the network.
+
 You can verify the firewall is on in **System Settings → Network → Firewall**.
 
-### 1f: Switch to the Bot User
+### 1g: Switch to the Bot User
 
 You're done with admin tasks. Switch to the bot user for the rest of the guide:
 - **Fast User Switching:** System Settings → Control Center → Show in Menu Bar
@@ -339,6 +356,13 @@ next step. If you already created accounts in "What You'll Need," just grab your
 > a local file with restricted permissions (`chmod 600`). Never put API keys in
 > shared documents, Slack messages, or emails.
 
+> **Where do my keys actually live?** The setup script stores your API keys in two
+> places: a reference (like `${OPENROUTER_API_KEY}`) goes in `openclaw.json`, and the
+> actual key value goes in the LaunchAgent configuration file. This way, your real
+> keys aren't sitting in a plain text config file. If you set up manually, your keys
+> will be in `openclaw.json` directly — the Foundation Playbook Phase 1 covers
+> migrating them.
+
 ---
 
 ## Step 5: Run the Onboarding Wizard (15 min)
@@ -362,6 +386,11 @@ The wizard will ask about:
 3. **Gateway** — The background service that keeps the bot alive
    - Default port 18789 is fine
    - Token auth will be auto-generated — save the displayed token
+
+> The setup script generates a cryptographically strong gateway token (64 random
+> characters) to secure access to your agent's dashboard. If you see a short or
+> simple token, the wizard may have used a weak default — the Foundation Playbook
+> Phase 1 covers regenerating it.
 
 4. **Channels** — Which chat apps to connect
    - For now, just enable Discord (or whichever you're using)
@@ -446,6 +475,11 @@ If you don't already have one:
 
 The bot should now appear in your server (offline — we'll connect it next).
 
+> **Heads up:** Your primary channel is set so the bot responds to every message
+> (no @mention needed). All other channels require an @mention — this prevents the
+> bot from jumping into every conversation and keeps costs down. You can adjust
+> this later in the config.
+
 ### 7c: Get Channel IDs
 
 1. In Discord: **Settings** → **Advanced** → Turn on **Developer Mode**
@@ -525,6 +559,12 @@ openclaw doctor
 
 > `chmod 600` = only you can read this file. `chmod 700` = only you can enter
 > this folder. This protects your API keys from other users on the Mac.
+
+> **If you used the autosetup script:** Your API keys are stored as environment
+> variable references (like `${OPENROUTER_API_KEY}`) in `openclaw.json`, with the
+> actual values in the LaunchAgent plist. You can verify this worked by running
+> `grep '\${' ~/.openclaw/openclaw.json` — if you see references like that, the
+> migration succeeded.
 
 You want to see:
 - No critical issues

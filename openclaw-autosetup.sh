@@ -34,6 +34,7 @@ readonly REC_VERSION="2026.2.9"
 readonly DEFAULT_MODEL="openrouter/moonshotai/kimi-k2.5"
 readonly FALLBACK_MODEL="anthropic/claude-sonnet-4-5"
 readonly GATEWAY_PORT=18789
+readonly LAUNCH_AGENT_LABEL="ai.openclaw.gateway"
 readonly VERIFY_SCRIPT="$HOME/Downloads/openclaw-verify.sh"
 
 # ─── Colors & Symbols (matches openclaw-verify.sh) ───
@@ -56,7 +57,7 @@ MODE="interactive"   # interactive, minimal, full
 RESUME=false
 LOG_FILE=""
 STEP_COUNT=0
-STEP_TOTAL=18
+STEP_TOTAL=19
 
 # ═══════════════════════════════════════════════════════════════════
 # Output functions
@@ -109,10 +110,10 @@ log_start() {
 progress_init() {
     if [ -f "$PROGRESS_FILE" ]; then
         # Validate the progress file is not corrupted
-        if ! python3 -c "
+        if ! python3 - "$PROGRESS_FILE" << 'PYEOF' 2>/dev/null; then
 import json, sys
 try:
-    with open('$PROGRESS_FILE') as f:
+    with open(sys.argv[1]) as f:
         data = json.load(f)
     if not isinstance(data, dict) or 'steps' not in data:
         sys.exit(1)
@@ -120,7 +121,7 @@ try:
         sys.exit(1)
 except Exception:
     sys.exit(1)
-" 2>/dev/null; then
+PYEOF
             echo ""
             warn "Progress file appears corrupted: ${PROGRESS_FILE}"
             echo ""
@@ -137,43 +138,43 @@ except Exception:
 }
 
 _create_progress_file() {
-    python3 -c "
-import json
+    python3 - "$PROGRESS_FILE" "$SCRIPT_VERSION" "$MODE" << 'PYEOF'
+import json, sys, datetime
 data = {
-    'version': '$SCRIPT_VERSION',
-    'started': '$(date -u +%Y-%m-%dT%H:%M:%SZ)',
-    'mode': '$MODE',
+    'version': sys.argv[2],
+    'started': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+    'mode': sys.argv[3],
     'steps': {}
 }
-with open('$PROGRESS_FILE', 'w') as f:
+with open(sys.argv[1], 'w') as f:
     json.dump(data, f, indent=2)
-"
+PYEOF
 }
 
 mark_step() {
     local step_name="$1"
-    python3 -c "
-import json
-with open('$PROGRESS_FILE') as f:
+    python3 - "$PROGRESS_FILE" "$step_name" << 'PYEOF'
+import json, sys, datetime
+with open(sys.argv[1]) as f:
     data = json.load(f)
-data['steps']['$step_name'] = '$(date -u +%Y-%m-%dT%H:%M:%SZ)'
-with open('$PROGRESS_FILE', 'w') as f:
+data['steps'][sys.argv[2]] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+with open(sys.argv[1], 'w') as f:
     json.dump(data, f, indent=2)
-"
+PYEOF
     pass "Step '${step_name}' marked complete"
 }
 
 is_step_done() {
     local step_name="$1"
-    python3 -c "
+    python3 - "$PROGRESS_FILE" "$step_name" << 'PYEOF' 2>/dev/null
 import json, sys
-with open('$PROGRESS_FILE') as f:
+with open(sys.argv[1]) as f:
     data = json.load(f)
-if '$step_name' in data.get('steps', {}):
+if sys.argv[2] in data.get('steps', {}):
     sys.exit(0)
 else:
     sys.exit(1)
-" 2>/dev/null
+PYEOF
 }
 
 show_progress() {
@@ -184,18 +185,18 @@ show_progress() {
     echo ""
     echo -e "${BOLD}  Current Progress${NC}"
     echo "  ────────────────────────────────────"
-    python3 -c "
-import json
-with open('$PROGRESS_FILE') as f:
+    python3 - "$PROGRESS_FILE" << 'PYEOF'
+import json, sys
+with open(sys.argv[1]) as f:
     data = json.load(f)
 steps = data.get('steps', {})
 if not steps:
     print('  No steps completed yet.')
 else:
     for step, ts in steps.items():
-        print(f'  \033[0;32m✓\033[0m {step} ({ts})')
+        print(f'  \033[0;32m\u2713\033[0m {step} ({ts})')
 print(f'  Total: {len(steps)} step(s) completed')
-"
+PYEOF
     echo ""
 }
 
@@ -301,13 +302,13 @@ json_set() {
         value_type="$5"
     fi
 
-    python3 -c "
+    python3 - "$file" "$key_path" "$value" "$value_type" << 'PYEOF'
 import json, sys
 
-file_path = '$file'
-key_path = '$key_path'
-raw_value = '''$value'''
-value_type = '$value_type'
+file_path = sys.argv[1]
+key_path = sys.argv[2]
+raw_value = sys.argv[3]
+value_type = sys.argv[4]
 
 # Parse the value based on type
 if value_type == 'number':
@@ -341,7 +342,8 @@ with open(file_path, 'w') as f:
     f.write('\n')
 
 print('OK')
-" || return 1
+PYEOF
+    return $?
 }
 
 json_get() {
@@ -350,13 +352,13 @@ json_get() {
     local file="$1"
     local key_path="$2"
 
-    python3 -c "
+    python3 - "$file" "$key_path" << 'PYEOF' 2>/dev/null
 import json, sys
 
 try:
-    with open('$file') as f:
+    with open(sys.argv[1]) as f:
         data = json.load(f)
-    keys = '$key_path'.split('.')
+    keys = sys.argv[2].split('.')
     obj = data
     for k in keys:
         obj = obj[k]
@@ -368,16 +370,16 @@ except (KeyError, TypeError, IndexError):
     pass
 except Exception as e:
     print('ERROR: ' + str(e), file=sys.stderr)
-" 2>/dev/null
+PYEOF
 }
 
 json_validate() {
     # Validates a JSON file. Returns 0 if valid, 1 if not.
     local file="$1"
-    python3 -c "
+    python3 - "$file" << 'PYEOF' 2>/dev/null
 import json, sys
 try:
-    with open('$file') as f:
+    with open(sys.argv[1]) as f:
         json.load(f)
     sys.exit(0)
 except json.JSONDecodeError as e:
@@ -386,7 +388,7 @@ except json.JSONDecodeError as e:
 except Exception as e:
     print(str(e), file=sys.stderr)
     sys.exit(1)
-" 2>/dev/null
+PYEOF
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -416,8 +418,8 @@ atomic_config_edit() {
         die "Config file not found: ${CONFIG_FILE}\n  Run 'openclaw onboard --install-daemon' first."
     fi
 
-    # Step 1: Backup
-    cp "$CONFIG_FILE" "$backup_file" || die "Failed to create backup: ${backup_file}"
+    # Step 1: Backup (preserve permissions so backup has same restrictions as config)
+    cp -p "$CONFIG_FILE" "$backup_file" || die "Failed to create backup: ${backup_file}"
 
     # Step 2: Copy to tmp and apply changes
     cp "$CONFIG_FILE" "$tmp_file" || die "Failed to create temp file: ${tmp_file}"
@@ -467,12 +469,12 @@ version_gte() {
     # Returns 0 if $1 >= $2 (version format: YYYY.M.D)
     local v1="$1"
     local v2="$2"
-    python3 -c "
-v1 = [int(x) for x in '$v1'.split('.')]
-v2 = [int(x) for x in '$v2'.split('.')]
+    python3 - "$v1" "$v2" << 'PYEOF' 2>/dev/null
 import sys
+v1 = [int(x) for x in sys.argv[1].split('.')]
+v2 = [int(x) for x in sys.argv[2].split('.')]
 sys.exit(0 if v1 >= v2 else 1)
-" 2>/dev/null
+PYEOF
 }
 
 parse_openclaw_version() {
@@ -553,9 +555,10 @@ show_help() {
     echo "  13. Gateway verification"
     echo "  14. Discord setup (human checkpoint)"
     echo "  15. Config file permission hardening"
-    echo "  16. Access profile application"
-    echo "  17. openclaw doctor"
-    echo "  18. Final verification (openclaw-verify.sh)"
+    echo "  16. Secrets hardening (env vars, mDNS, gateway token)"
+    echo "  17. Access profile application"
+    echo "  18. openclaw doctor"
+    echo "  19. Final verification (openclaw-verify.sh)"
     echo ""
 }
 
@@ -1103,19 +1106,20 @@ step_get_api_keys() {
     # If --minimal, check if config already has auth
     if [ "$MODE" = "minimal" ] && [ -f "$CONFIG_FILE" ]; then
         local has_auth
-        has_auth=$(python3 -c "
-import json
+        has_auth=$(python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null
+import json, sys
 try:
-    with open('$CONFIG_FILE') as f:
+    with open(sys.argv[1]) as f:
         config = json.load(f)
     auth = config.get('auth', config.get('providers', {}))
     if auth:
         print('yes')
     else:
         print('no')
-except:
+except Exception:
     print('no')
-" 2>/dev/null)
+PYEOF
+)
         if [ "$has_auth" = "yes" ]; then
             pass "API provider configuration already exists in config"
             mark_step "$step_name"
@@ -1445,10 +1449,10 @@ step_setup_discord() {
     # Check if Discord is already configured
     if [ -f "$CONFIG_FILE" ]; then
         local discord_status
-        discord_status=$(python3 -c "
-import json
+        discord_status=$(python3 - "$CONFIG_FILE" << 'PYEOF' 2>/dev/null
+import json, sys
 try:
-    with open('$CONFIG_FILE') as f:
+    with open(sys.argv[1]) as f:
         config = json.load(f)
     channels = config.get('channels', {})
     discord = channels.get('discord', config.get('discord', {}))
@@ -1458,9 +1462,10 @@ try:
         print('CONFIGURED')
     else:
         print('NOT_CONFIGURED')
-except:
+except Exception:
     print('NOT_CONFIGURED')
-" 2>/dev/null)
+PYEOF
+)
         if [ "$discord_status" = "ENABLED" ]; then
             pass "Discord is already enabled in config"
             mark_step "$step_name"
@@ -1518,7 +1523,7 @@ except:
     local discord_channel_id
     discord_channel_id=$(prompt_input "Primary channel ID (right-click #general > Copy Channel ID)")
 
-    # Validate inputs
+    # Validate inputs (Discord IDs must be numeric snowflakes)
     if [ -z "$discord_guild_id" ] || [ -z "$discord_owner_id" ] || [ -z "$discord_channel_id" ]; then
         warn "Missing required Discord IDs — skipping config write"
         info "Edit ~/.openclaw/openclaw.json manually using the Setup Guide"
@@ -1526,41 +1531,65 @@ except:
         return 0
     fi
 
+    for id_name in discord_guild_id discord_owner_id discord_channel_id; do
+        local id_val="${!id_name}"
+        if ! [[ "$id_val" =~ ^[0-9]+$ ]]; then
+            fail "${id_name} must be numeric (got: ${id_val})"
+            info "Right-click the item in Discord with Developer Mode ON to copy the ID"
+            mark_step "$step_name"
+            return 0
+        fi
+    done
+
     # Ask for optional second channel
     local discord_logs_channel_id=""
     echo ""
     if confirm "Do you have a #bot-logs channel? (optional)"; then
         discord_logs_channel_id=$(prompt_input "Bot logs channel ID")
+        if [ -n "$discord_logs_channel_id" ] && ! [[ "$discord_logs_channel_id" =~ ^[0-9]+$ ]]; then
+            warn "Invalid channel ID '${discord_logs_channel_id}' — skipping logs channel"
+            discord_logs_channel_id=""
+        fi
     fi
 
-    # Build the Discord config JSON
-    local channels_json
-    if [ -n "$discord_logs_channel_id" ]; then
-        channels_json="{\"${discord_channel_id}\": {\"allow\": true, \"requireMention\": false}, \"${discord_logs_channel_id}\": {\"allow\": true, \"requireMention\": false}}"
-    else
-        channels_json="{\"${discord_channel_id}\": {\"allow\": true, \"requireMention\": false}}"
-    fi
-
+    # Build the Discord config JSON safely via Python (no string interpolation)
     local discord_config
-    discord_config=$(python3 -c "
-import json
+    discord_config=$(python3 - "$discord_token" "$discord_owner_id" "$discord_guild_id" "$discord_server_slug" "$discord_channel_id" "$discord_logs_channel_id" << 'PYEOF'
+import json, sys
+
+token = sys.argv[1]
+owner_id = sys.argv[2]
+guild_id = sys.argv[3]
+server_slug = sys.argv[4]
+primary_channel = sys.argv[5]
+logs_channel = sys.argv[6] if len(sys.argv) > 6 and sys.argv[6] else ""
+
+# Primary channel: requireMention false (general/ops)
+# Additional channels: requireMention true (reduces prompt injection surface)
+channels = {
+    primary_channel: {"allow": True, "requireMention": False}
+}
+if logs_channel:
+    channels[logs_channel] = {"allow": True, "requireMention": True}
+
 config = {
-    'enabled': True,
-    'token': '$discord_token',
-    'groupPolicy': 'allowlist',
-    'dm': {
-        'policy': 'pairing',
-        'allowFrom': ['$discord_owner_id']
+    "enabled": True,
+    "token": token,
+    "groupPolicy": "allowlist",
+    "dm": {
+        "policy": "pairing",
+        "allowFrom": [owner_id]
     },
-    'guilds': {
-        '$discord_guild_id': {
-            'slug': '$discord_server_slug',
-            'channels': json.loads('$channels_json')
+    "guilds": {
+        guild_id: {
+            "slug": server_slug,
+            "channels": channels
         }
     }
 }
 print(json.dumps(config))
-")
+PYEOF
+)
 
     # Write to config atomically
     if [ -f "$CONFIG_FILE" ]; then
@@ -1826,6 +1855,143 @@ step_harden_permissions() {
     mark_step "$step_name"
 }
 
+step_harden_secrets() {
+    local step_name="harden_secrets"
+    if $RESUME && is_step_done "$step_name"; then
+        info "Skipping (already done): Secrets hardening"
+        return 0
+    fi
+
+    step_header "Secrets Hardening"
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+        warn "Config file not found — skipping secrets hardening"
+        mark_step "$step_name"
+        return 0
+    fi
+
+    local launch_agent="$HOME/Library/LaunchAgents/ai.openclaw.gateway.plist"
+    if [ ! -f "$launch_agent" ]; then
+        warn "LaunchAgent plist not found — skipping secrets hardening"
+        info "Run 'openclaw onboard --install-daemon' first"
+        mark_step "$step_name"
+        return 0
+    fi
+
+    info "This step moves API keys and tokens from plaintext in openclaw.json"
+    info "to environment variables in the LaunchAgent plist."
+    info "The config file will use \${VAR_NAME} references instead of real values."
+    echo ""
+
+    if ! confirm_or_skip "Migrate secrets to environment variables?"; then
+        warn "Skipping secrets migration"
+        mark_step "$step_name"
+        return 0
+    fi
+
+    # Ensure EnvironmentVariables dict exists in plist
+    /usr/libexec/PlistBuddy -c "Add :EnvironmentVariables dict" "$launch_agent" 2>/dev/null || true
+
+    local migrated=0
+
+    # Define secret paths: config_key_path env_var_name
+    local -a secret_map=(
+        "gateway.auth.token|OPENCLAW_GATEWAY_TOKEN"
+        "channels.discord.token|DISCORD_BOT_TOKEN"
+        "channels.telegram.botToken|TELEGRAM_BOT_TOKEN"
+        "env.vars.OPENAI_API_KEY|OPENAI_API_KEY"
+        "env.vars.GEMINI_API_KEY|GEMINI_API_KEY"
+        "tools.web.search.apiKey|BRAVE_SEARCH_API_KEY"
+        "agents.defaults.memorySearch.remote.apiKey|VOYAGE_API_KEY"
+    )
+
+    for entry in "${secret_map[@]}"; do
+        local config_path="${entry%%|*}"
+        local env_var="${entry##*|}"
+
+        # Read current value from config
+        local current_val
+        current_val=$(json_get "$CONFIG_FILE" "$config_path" 2>/dev/null)
+
+        # Skip if empty, not found, or already a ${} reference
+        if [ -z "$current_val" ] || [[ "$current_val" == '${'"$env_var"'}' ]] || [[ "$current_val" == '${'* ]]; then
+            continue
+        fi
+
+        # Write real value to LaunchAgent plist EnvironmentVariables
+        /usr/libexec/PlistBuddy -c "Add :EnvironmentVariables:${env_var} string ${current_val}" "$launch_agent" 2>/dev/null || \
+        /usr/libexec/PlistBuddy -c "Set :EnvironmentVariables:${env_var} ${current_val}" "$launch_agent" 2>/dev/null || {
+            warn "Failed to write ${env_var} to LaunchAgent plist"
+            continue
+        }
+
+        # Replace plaintext with ${VAR_NAME} reference in config
+        atomic_config_edit "$config_path" "\${${env_var}}" || {
+            warn "Failed to update ${config_path} in config"
+            continue
+        }
+
+        pass "Migrated ${config_path} → \${${env_var}}"
+        migrated=$((migrated + 1))
+    done
+
+    if [ "$migrated" -gt 0 ]; then
+        pass "${migrated} secret(s) migrated to environment variables"
+    else
+        info "No plaintext secrets found to migrate (already hardened or not configured)"
+    fi
+
+    # Verify/generate cryptographic gateway token
+    local gw_token
+    gw_token=$(json_get "$CONFIG_FILE" "gateway.auth.token" 2>/dev/null)
+    # Check the plist value if config has a ${} reference
+    if [[ "$gw_token" == '${'* ]]; then
+        gw_token=$(/usr/libexec/PlistBuddy -c "Print :EnvironmentVariables:OPENCLAW_GATEWAY_TOKEN" "$launch_agent" 2>/dev/null || echo "")
+    fi
+    if [ -z "$gw_token" ] || [ ${#gw_token} -lt 32 ]; then
+        info "Gateway token is missing or weak — generating a cryptographic token..."
+        local new_token
+        new_token=$(openssl rand -hex 32)
+        /usr/libexec/PlistBuddy -c "Add :EnvironmentVariables:OPENCLAW_GATEWAY_TOKEN string ${new_token}" "$launch_agent" 2>/dev/null || \
+        /usr/libexec/PlistBuddy -c "Set :EnvironmentVariables:OPENCLAW_GATEWAY_TOKEN ${new_token}" "$launch_agent"
+        atomic_config_edit "gateway.auth.token" "\${OPENCLAW_GATEWAY_TOKEN}" || true
+        pass "Generated cryptographic gateway token (64 hex chars)"
+    fi
+
+    # Disable mDNS/Bonjour advertising
+    /usr/libexec/PlistBuddy -c "Add :EnvironmentVariables:OPENCLAW_DISABLE_BONJOUR string 1" "$launch_agent" 2>/dev/null || \
+    /usr/libexec/PlistBuddy -c "Set :EnvironmentVariables:OPENCLAW_DISABLE_BONJOUR 1" "$launch_agent" 2>/dev/null || true
+    pass "mDNS/Bonjour advertising disabled (OPENCLAW_DISABLE_BONJOUR=1)"
+
+    # Export gateway token to ~/.zshrc for bridge script access
+    local zshrc="$HOME/.zshrc"
+    if [ -f "$zshrc" ] && grep -q "OPENCLAW_GATEWAY_TOKEN" "$zshrc"; then
+        info "OPENCLAW_GATEWAY_TOKEN already exported in ~/.zshrc"
+    else
+        local plist_token
+        plist_token=$(/usr/libexec/PlistBuddy -c "Print :EnvironmentVariables:OPENCLAW_GATEWAY_TOKEN" "$launch_agent" 2>/dev/null || echo "")
+        if [ -n "$plist_token" ]; then
+            echo "" >> "$zshrc"
+            echo "# OpenClaw gateway token (for bridge script auth)" >> "$zshrc"
+            echo "export OPENCLAW_GATEWAY_TOKEN=\"${plist_token}\"" >> "$zshrc"
+            pass "Gateway token exported in ~/.zshrc"
+        fi
+    fi
+
+    echo ""
+    warn "IMPORTANT: The gateway process may rewrite openclaw.json with resolved"
+    warn "plaintext values after restart. This is a known behavior."
+    info "The LaunchAgent plist is the canonical secret store."
+    info "File permissions (chmod 600) protect the config regardless."
+    info "After gateway restart, re-run this script with --resume to re-apply."
+    echo ""
+    info "Plist changes take effect on next gateway load."
+    info "To apply now: launchctl unload && launchctl load the plist"
+    info "Do NOT restart the gateway before the final verification step."
+
+    mark_step "$step_name"
+}
+
 step_apply_access_profile() {
     local step_name="apply_access_profile"
     if $RESUME && is_step_done "$step_name"; then
@@ -1880,8 +2046,8 @@ step_apply_access_profile() {
         1|explorer|Explorer)
             info "Applying Explorer profile..."
             atomic_config_edit "agents.defaults.sandbox" '{"mode": "off", "workspaceAccess": "rw"}' --type json || return 1
-            atomic_config_edit "agents.defaults.tools" '{"notes": "All tools enabled. Monitor via logs channel."}' --type json || return 1
-            pass "Explorer profile applied"
+            atomic_config_edit "agents.defaults.tools" '{"deny": ["browser"], "notes": "All tools enabled except browser (reduces attack surface). Re-enable if needed."}' --type json || return 1
+            pass "Explorer profile applied (browser tool denied by default)"
             ;;
         2|guarded|Guarded)
             info "Applying Guarded profile..."
@@ -1898,8 +2064,8 @@ step_apply_access_profile() {
         *)
             warn "Invalid choice '${choice}' — defaulting to Explorer"
             atomic_config_edit "agents.defaults.sandbox" '{"mode": "off", "workspaceAccess": "rw"}' --type json || return 1
-            atomic_config_edit "agents.defaults.tools" '{"notes": "All tools enabled. Monitor via logs channel."}' --type json || return 1
-            pass "Explorer profile applied (default)"
+            atomic_config_edit "agents.defaults.tools" '{"deny": ["browser"], "notes": "All tools enabled except browser (reduces attack surface). Re-enable if needed."}' --type json || return 1
+            pass "Explorer profile applied (default, browser denied)"
             ;;
     esac
 
@@ -2107,7 +2273,7 @@ main() {
         info "Running in --minimal mode (gateway only)."
         info "Non-destructive steps skip confirmation."
         info "Destructive steps still require explicit approval."
-        STEP_TOTAL=16
+        STEP_TOTAL=17
     elif [ "$MODE" = "full" ]; then
         info "Running in --full mode (everything, with confirmations)."
     else
@@ -2190,13 +2356,16 @@ main() {
     # Step 15: Permission hardening
     step_harden_permissions
 
-    # Step 16: Access profile
+    # Step 16: Secrets hardening (env var migration + mDNS + gateway token)
+    step_harden_secrets
+
+    # Step 17: Access profile
     step_apply_access_profile
 
-    # Step 17: openclaw doctor
+    # Step 18: openclaw doctor
     step_run_doctor
 
-    # Step 18: Final verification
+    # Step 19: Final verification
     step_final_verify
 
     # ─── Summary ───
@@ -2224,7 +2393,15 @@ main() {
     echo -e "  ${BOLD}What's next:${NC}"
     echo -e "  ${INFO} Open the dashboard: ${CYAN}openclaw dashboard${NC}"
     echo -e "  ${INFO} Talk to your bot to verify it responds"
-    echo -e "  ${INFO} Start the ${BOLD}Foundation Playbook${NC} for hardening + advanced config"
+    echo -e "  ${INFO} Start the ${BOLD}Foundation Playbook${NC} (Phase 1 = security hardening)"
+    echo ""
+    echo -e "  ${BOLD}${YELLOW}IMPORTANT:${NC} Run Phase 1 of the Foundation Playbook this week."
+    echo -e "  The autosetup script handled the basics, but Phase 1 covers:"
+    echo -e "  key rotation, TCC audits, spending limits, and incident response."
+    echo ""
+    echo -e "  ${BOLD}${YELLOW}NOTE:${NC} After each gateway restart, secrets in openclaw.json may"
+    echo -e "  revert to plaintext. The LaunchAgent plist is the canonical secret"
+    echo -e "  store. Re-run this script with --resume to re-apply \${VAR_NAME} refs."
     echo ""
     echo -e "  ${BOLD}Useful commands:${NC}"
     echo -e "  ${DIM}  openclaw gateway status    # Check gateway status${NC}"

@@ -32,7 +32,9 @@ chmod 700 /Users/openclaw
 ```
 The first prevents the bot from reading the owner's personal files. The second prevents anyone from reading the bot's files (API keys, config). Explain chmod 700 in plain English: "only the owner of this folder can access it."
 
-**1c: Prevent Mac sleep.** If the Mac sleeps, the bot stops. This is the #1 reason agents "randomly stop working."
+**1c: Check FileVault disk encryption.** Check that FileVault is turned on — that's Apple's built-in disk encryption. Go to System Settings → Privacy & Security → FileVault. If it says "On," you're good. If not, turn it on. This protects everything on the Mac if it's ever stolen. The encryption takes a few hours in the background but won't interrupt your setup.
+
+**1d: Prevent Mac sleep.** If the Mac sleeps, the bot stops. This is the #1 reason agents "randomly stop working."
 ```
 sudo pmset -a sleep 0 standby 0 hibernatemode 0 powernap 0 displaysleep 15 disksleep 0
 ```
@@ -43,21 +45,21 @@ Also disable automatic macOS update restarts:
 sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticallyInstallMacOSUpdates -bool FALSE
 ```
 
-**1d: Copy setup files to the bot user.** The setup files are on the admin account. Before switching, copy them to the bot user's Downloads so they're accessible after switching:
+**1e: Copy setup files to the bot user.** The setup files are on the admin account. Before switching, copy them to the bot user's Downloads so they're accessible after switching:
 ```
 sudo cp -R ~/Downloads/openclaw-setup /Users/BOT_USERNAME/Downloads/
 sudo chown -R BOT_USERNAME /Users/BOT_USERNAME/Downloads/openclaw-setup
 ```
 Explain: the first command copies the folder, the second makes the bot user the owner so they can actually use the files. Remind them to open the guide again from the bot user's copy after switching.
 
-**1e: Enable macOS firewall.** The bot only needs outbound internet access — block everything inbound.
+**1f: Enable macOS firewall.** The bot only needs outbound internet access — block everything inbound.
 ```
 sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
 sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
 ```
 Explain simply: "This turns on the Mac's built-in firewall and makes it invisible on the network. Your bot can still reach the internet, but nothing can reach in."
 
-**1f: Switch to the bot user** for the rest of the guide. Everything from here runs as the bot user.
+**1g: Switch to the bot user** for the rest of the guide. Everything from here runs as the bot user.
 
 ---
 
@@ -107,6 +109,8 @@ OpenClaw needs API keys for the AI models it uses. Guide me through getting thes
 
 Tell me to have these keys ready before the next step. Remind me: NEVER share these keys with anyone, never paste them into a website, never commit them to git. They're like passwords that cost money when used.
 
+If they used the automated setup script, their API keys are stored securely — the config file has references like `${OPENROUTER_API_KEY}` instead of the actual key, and the real values live in a system configuration file. If they set up manually, their keys are in the config file directly, which is still protected by file permissions. The Foundation Playbook Phase 1 covers migrating to the more secure approach.
+
 ---
 
 **PHASE 5: RUN THE ONBOARDING WIZARD**
@@ -122,7 +126,7 @@ The command is:
 openclaw onboard --install-daemon
 ```
 
-The `--install-daemon` flag sets up OpenClaw to run as a background service (a "daemon" — a program that runs continuously without you needing to keep Terminal open). The wizard will ask for the API keys from Phase 4 and walk through configuration.
+The `--install-daemon` flag sets up OpenClaw to run as a background service (a "daemon" — a program that runs continuously without you needing to keep Terminal open). The wizard will ask for the API keys from Phase 4 and walk through configuration. The setup script generates a strong random token (64 characters) to protect the gateway dashboard, so you don't need to make one up yourself.
 
 **Sandbox modes** — The wizard will ask about sandboxing. Explain each option:
 - **"off"**: No Docker sandboxing. Agents run directly on the Mac user account. The macOS user separation provides the security boundary. This is the right choice if Docker is not installed.
@@ -132,7 +136,7 @@ The `--install-daemon` flag sets up OpenClaw to run as a background service (a "
 If they pick "non-main" or "all" and don't have Docker Desktop installed, guide them to download it from docker.com and install it before continuing. Docker Desktop for Mac is a free download for personal use.
 
 **Access profile** — After the wizard completes, help the user set an access profile in `~/.openclaw/openclaw.json` under `agents.defaults`. Three options:
-- **Explorer** (recommended for most users): All tools enabled. The macOS user separation provides the security boundary. Best for learning what OpenClaw can do.
+- **Explorer** (recommended for most users): All tools enabled except browser. The macOS user separation provides the security boundary. Best for learning what OpenClaw can do. The default Explorer profile blocks the agent from using a web browser on its own — you can unlock browser access later if you need it.
 - **Guarded**: Shell commands blocked. Good for bots processing untrusted email or web content.
 - **Restricted**: Messaging and memory only. No web, no shell. For alert-only bots.
 
@@ -189,7 +193,7 @@ This connects OpenClaw to Discord so agents can interact through a Discord serve
      }
    }
    ```
-   Replace the YOUR_ placeholders with the actual values from step 5. After saving, run `openclaw doctor` to validate your config.
+   Replace the YOUR_ placeholders with the actual values from step 5. The primary channel is set so the bot responds to every message — no @mention needed. If you add other channels later, set `"requireMention": true` to keep the bot from jumping into every conversation. That keeps costs down. After saving, run `openclaw doctor` to validate your config.
 7. **Restart and verify**: Run `openclaw gateway restart` and then send a message in the configured Discord channel. The bot should respond.
 
 **Troubleshooting Discord error 4014**: This specifically means the Message Content Intent is not enabled. Go back to the Developer Portal > Bot tab > Privileged Gateway Intents > enable Message Content Intent. Save, then restart the gateway.
@@ -219,7 +223,8 @@ Once everything passes, celebrate! Say something like: "You did it! Your AI agen
 - Set spending limits on all API keys. AI agents can run up costs fast if misconfigured.
 - The dedicated Mac user account provides real isolation — even if an agent goes rogue, it can't access your main user's files.
 - Keep OpenClaw updated. Security patches matter for software that runs AI agents.
-- The config file contains API keys in plain text. The chmod 700 on the home directory helps, but also don't back up `~/.openclaw/openclaw.json` to cloud services without encryption.
+- The config file contains API keys. The chmod 700 on the home directory protects them, and if you used the automated setup script, the actual key values are stored in a system file with `${VAR_NAME}` references in the config. Don't back up `~/.openclaw/openclaw.json` to cloud services without encryption.
+- The setup script turns off network discovery so the gateway doesn't announce itself to other devices on the network. One less thing to worry about.
 
 ---
 

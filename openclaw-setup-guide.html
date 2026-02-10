@@ -629,7 +629,7 @@
         <div class="config-grid cols-3">
           <div class="config-card selected" onclick="setConfig('accessProfile','explorer')" data-config="accessProfile:explorer">
             <div class="card-label">Explorer</div>
-            <div class="card-desc">All tools enabled. You monitor via logs. Best for learning.</div>
+            <div class="card-desc">All tools enabled except browser (blocks opening web pages). You monitor via logs. Best for learning.</div>
           </div>
           <div class="config-card" onclick="setConfig('accessProfile','guarded')" data-config="accessProfile:guarded">
             <div class="card-label">Guarded</div>
@@ -744,6 +744,19 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on</div><b
       <summary>What does stealth mode do?</summary>
       <div class="detail-body"><p>Normally, your Mac responds to network probes (like "ping") to say "I'm here." Stealth mode silences those responses &#8212; your Mac is still online, but it doesn't announce itself. This makes it harder for anyone on the network to discover it.</p></div>
     </details>
+    <div class="callout info" data-requires="autonomy:script">
+      <span class="callout-icon">&#128161;</span>
+      <div><strong>Script mode bonus:</strong> The automated setup script also disables network discovery (Bonjour/mDNS) so your gateway doesn't advertise itself to other devices on the network.</div>
+    </div>
+
+    <h3>Enable FileVault disk encryption</h3>
+    <p>FileVault encrypts your entire disk, protecting API keys and agent data if the Mac is stolen or accessed physically.</p>
+    <ol>
+      <li>Open <strong>System Settings</strong> &#8594; <strong>Privacy &amp; Security</strong> &#8594; <strong>FileVault</strong></li>
+      <li>If it says "FileVault is turned off," click <strong>Turn On</strong></li>
+      <li>Choose how you want to unlock (iCloud or recovery key) and follow prompts</li>
+    </ol>
+    <p style="color:var(--text-muted);font-size:14px;">If FileVault is already on, you're all set. This is a one-time setup and runs transparently in the background.</p>
 
     <details>
       <summary>Security note: macOS TCC permissions</summary>
@@ -774,6 +787,7 @@ sudo chown -R <span class="bot-username-code">YOUR_BOT_USERNAME</span> /Users/<s
     <div class="check-item"><input type="checkbox" id="c2" onchange="saveCheck(this)"><label for="c2">Home directories locked (<code>chmod 700</code>)</label></div>
     <div class="check-item"><input type="checkbox" id="c17" onchange="saveCheck(this)"><label for="c17">Mac sleep prevention configured</label></div>
     <div class="check-item"><input type="checkbox" id="c-firewall" onchange="saveCheck(this)"><label for="c-firewall">Firewall enabled with stealth mode</label></div>
+    <div class="check-item"><input type="checkbox" id="c-filevault" onchange="saveCheck(this)"><label for="c-filevault">FileVault is turned on</label></div>
     <div class="check-item"><input type="checkbox" id="c-tcc" onchange="saveCheck(this)"><label for="c-tcc">I've checked TCC permissions for the bot user (zero special access)</label></div>
     <div class="check-item"><input type="checkbox" id="c3" onchange="saveCheck(this)"><label for="c3">Switched to the bot user account</label></div>
     <div class="summary-box"><strong>What just happened:</strong> You created a dedicated Mac user for your bot with no admin privileges, locked down both home directories so neither account can snoop on the other, prevented your Mac from sleeping, and enabled the firewall with stealth mode. This is the security foundation &#8212; your bot runs in its own sandbox, separate from your personal files, with no inbound network exposure.</div>
@@ -909,6 +923,10 @@ sudo chown -R <span class="bot-username-code">YOUR_BOT_USERNAME</span> /Users/<s
       <p style="font-size:14px;">After setup, protect your config file. These commands ensure only your bot user can read the API keys.</p>
       <div class="code-wrapper"><div class="code-block" id="code-chmod-cfg">chmod 600 ~/.openclaw/openclaw.json</div><button class="copy-btn" onclick="copyCode('code-chmod-cfg')">Copy</button></div>
       <div class="code-wrapper"><div class="code-block" id="code-chmod-dir">chmod 700 ~/.openclaw/</div><button class="copy-btn" onclick="copyCode('code-chmod-dir')">Copy</button></div>
+      <div class="callout info" data-requires="autonomy:script" style="margin-top:14px;">
+        <span class="callout-icon">&#128274;</span>
+        <div>The automated setup script stores your API keys securely: it puts a reference like <code>${OPENROUTER_API_KEY}</code> in the config file, and keeps the actual key in the system's LaunchAgent configuration. This way your real keys aren't sitting in a plain text file. If you set up manually, your keys will be in the config file directly — the Foundation Playbook Phase 1 covers migrating them to environment variables.</div>
+      </div>
     </div>
 
     <div class="divider"></div>
@@ -939,6 +957,10 @@ sudo chown -R <span class="bot-username-code">YOUR_BOT_USERNAME</span> /Users/<s
     <div class="callout success">
       <span class="callout-icon">&#128161;</span>
       <div>The wizard asks questions and you answer them. Not sure? The default (shown in brackets) is usually fine. You can re-run the wizard anytime.</div>
+    </div>
+    <div class="callout info" data-requires="autonomy:script">
+      <span class="callout-icon">&#128274;</span>
+      <div><strong>Script mode:</strong> The setup script generates a cryptographically strong gateway token (64 random characters) to secure access to your agent's dashboard.</div>
     </div>
     <table>
       <tr><td><strong>Model/Auth</strong></td><td>Paste your API key, pick your model</td></tr>
@@ -1045,6 +1067,10 @@ sudo chown -R <span class="bot-username-code">YOUR_BOT_USERNAME</span> /Users/<s
     }
   }
 }</div><button class="copy-btn" onclick="copyCode('code-discord')">Copy</button></div>
+    <div class="callout info">
+      <span class="callout-icon">&#128161;</span>
+      <div><strong>About requireMention:</strong> Your primary channel is set so the bot responds to every message (<code>"requireMention": false</code>). For additional channels, use <code>"requireMention": true</code> — this prevents the bot from jumping into every conversation and keeps costs down.</div>
+    </div>
     <div class="callout info">
       <span class="callout-icon">&#128161;</span>
       <div><strong>JSON is picky.</strong> Every quote must be a straight double-quote (<code>"</code>), every item needs a comma after it (except the last one), and every <code>{</code> needs a matching <code>}</code>. If <code>openclaw doctor</code> fails after your edit, restore the backup and try again.</div>
