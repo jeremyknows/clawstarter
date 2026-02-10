@@ -97,6 +97,10 @@ You are here
         Foundation Playbook ──── Optional post-setup hardening
 ```
 
+## Architecture
+
+For full architecture documentation, data flow diagrams, and a navigation guide for contributors, see [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md).
+
 ## What's Next
 
 After setup, your workspace has template files ready to personalize. **Open a chat with your bot** — if BOOTSTRAP.md exists, it will walk you through 9 questions to set up your name, timezone, personality, and preferences. This takes about 5 minutes and makes the bot genuinely yours.
