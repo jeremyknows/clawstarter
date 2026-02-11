@@ -24,7 +24,7 @@
 set -euo pipefail
 
 # ─── Constants ───
-readonly SCRIPT_VERSION="1.0.0"
+readonly SCRIPT_VERSION="2.0.0"
 readonly MIN_NODE_VERSION="22"
 readonly DEFAULT_GATEWAY_PORT=18789
 
@@ -346,12 +346,104 @@ step2_configure() {
         info "You can add channels later using the full setup guide"
     fi
     
+    # Question 6: Use Case (NEW - Decision Matrix)
+    echo ""
+    echo -e "${BOLD}What do you want to use OpenClaw for?${NC}"
+    echo -e "${DIM}(Select all that apply — type numbers separated by commas)${NC}"
+    echo ""
+    echo "  1. 📱 Content Creator"
+    echo "     → Social media, podcasts, video workflows, automated posting"
+    echo ""
+    echo "  2. 📅 Workflow Optimizer"
+    echo "     → Personal assistant, email, calendar, notes, reminders"
+    echo ""
+    echo "  3. 🛠️ App Builder"
+    echo "     → Coding, APIs, GitHub automation, development workflows"
+    echo ""
+    echo -e "${DIM}Example: 1,2 for Content Creator + Workflow Optimizer${NC}"
+    echo ""
+    
+    local use_case_input
+    use_case_input=$(prompt "Type 1, 2, 3, or combination (e.g., 1,2)" "2")
+    
+    # Parse use cases into flags
+    local is_content_creator=false
+    local is_workflow_optimizer=false
+    local is_app_builder=false
+    
+    if [[ "$use_case_input" == *"1"* ]]; then is_content_creator=true; fi
+    if [[ "$use_case_input" == *"2"* ]]; then is_workflow_optimizer=true; fi
+    if [[ "$use_case_input" == *"3"* ]]; then is_app_builder=true; fi
+    
+    # Default to workflow optimizer if nothing selected
+    if ! $is_content_creator && ! $is_workflow_optimizer && ! $is_app_builder; then
+        is_workflow_optimizer=true
+    fi
+    
+    info "Selected: ${is_content_creator:+Content Creator }${is_workflow_optimizer:+Workflow Optimizer }${is_app_builder:+App Builder}"
+    
+    # Question 7: Setup Type (Security Level)
+    echo ""
+    echo -e "${BOLD}What's your setup situation?${NC}"
+    echo ""
+    echo -e "  ${GREEN}1. Personal Mac ⭐ RECOMMENDED${NC}"
+    echo "     → Your own machine, you're the only user"
+    echo ""
+    echo "  2. Shared Mac"
+    echo "     → Multiple users on this computer"
+    echo ""
+    echo "  3. Dedicated Device"
+    echo "     → A Mac specifically for OpenClaw (e.g., Mac Mini server)"
+    echo ""
+    
+    local setup_type_choice
+    setup_type_choice=$(prompt "Type 1, 2, or 3 and press Enter" "1")
+    
+    local setup_type="personal"
+    local security_level="medium"
+    case "$setup_type_choice" in
+        1) setup_type="personal"; security_level="medium" ;;
+        2) setup_type="shared"; security_level="high" ;;
+        3) setup_type="dedicated"; security_level="low" ;;
+    esac
+    
+    info "Setup: $setup_type (security level: $security_level)"
+    
+    # Build skills recommendation based on use cases
+    local recommended_skills=""
+    
+    # Always include these safe beginner skills
+    recommended_skills="weather, summarize"
+    
+    if $is_content_creator; then
+        recommended_skills="$recommended_skills, openai-image-gen, tts, video-frames, x-fetch"
+    fi
+    
+    if $is_workflow_optimizer; then
+        recommended_skills="$recommended_skills, apple-notes, apple-reminders, gog, himalaya"
+    fi
+    
+    if $is_app_builder; then
+        recommended_skills="$recommended_skills, github, coding-agent, generate-jsdoc"
+    fi
+    
+    echo ""
+    echo -e "${BOLD}📦 Recommended skills for you:${NC}"
+    echo -e "  ${CYAN}$recommended_skills${NC}"
+    echo ""
+    echo -e "${DIM}You can install these after setup with: openclaw skills add <name>${NC}"
+    echo ""
+    
     # Save config variables for step 3
     export QUICKSTART_OPENROUTER_KEY="$openrouter_key"
     export QUICKSTART_ANTHROPIC_KEY="$anthropic_key"
     export QUICKSTART_DEFAULT_MODEL="$default_model"
     export QUICKSTART_BOT_NAME="$bot_name"
     export QUICKSTART_PERSONALITY="$bot_personality"
+    export QUICKSTART_USE_CASES="$use_case_input"
+    export QUICKSTART_SETUP_TYPE="$setup_type"
+    export QUICKSTART_SECURITY_LEVEL="$security_level"
+    export QUICKSTART_RECOMMENDED_SKILLS="$recommended_skills"
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -383,17 +475,28 @@ step3_start_bot() {
     echo ""
     
     # Build minimal config via Python
-    python3 - "$QUICKSTART_DEFAULT_MODEL" "$QUICKSTART_OPENROUTER_KEY" "$QUICKSTART_ANTHROPIC_KEY" "$config_file" << 'PYEOF'
+    python3 - "$QUICKSTART_DEFAULT_MODEL" "$QUICKSTART_OPENROUTER_KEY" "$QUICKSTART_ANTHROPIC_KEY" "$config_file" "$QUICKSTART_SECURITY_LEVEL" "$QUICKSTART_USE_CASES" << 'PYEOF'
 import json, sys, os, secrets
 
 model = sys.argv[1]
 openrouter_key = sys.argv[2]
 anthropic_key = sys.argv[3]
 config_path = sys.argv[4]
+security_level = sys.argv[5] if len(sys.argv) > 5 else "medium"
+use_cases = sys.argv[6] if len(sys.argv) > 6 else "2"
 
 # Generate gateway token
 gateway_token = secrets.token_hex(32)
 
+# Security settings based on setup type
+tools_deny = ["browser"]  # Always deny browser
+sandbox_mode = "off"
+
+if security_level == "high":
+    # Shared Mac - more restrictive
+    sandbox_mode = "workspace"  # Restrict to workspace only
+    tools_deny.extend(["exec"])  # Consider restricting exec
+    
 # Build minimal config
 config = {
     "version": "2026.2.9",
@@ -418,9 +521,18 @@ config = {
     },
     "agents": {
         "defaults": {
-            "sandbox": {"mode": "off", "workspaceAccess": "rw"},
-            "tools": {"deny": ["browser"]}
+            "sandbox": {"mode": sandbox_mode, "workspaceAccess": "rw"},
+            "tools": {"deny": tools_deny},
+            "subagents": {
+                "maxConcurrent": 8,
+                "maxDepth": 1  # Prevent recursive agent spawning
+            }
         }
+    },
+    "meta": {
+        "use_cases": use_cases,
+        "security_level": security_level,
+        "created_by": "clawstarter-quickstart"
     }
 }
 
@@ -560,11 +672,29 @@ step3_start_gateway() {
     echo -e "  ${INFO} Advanced security: See Foundation Playbook Phase 1"
     echo -e "  ${INFO} Sleep prevention: Run ${CYAN}sudo pmset -a sleep 0${NC}"
     echo ""
+    
+    # Show recommended skills based on use case
+    if [ -n "$QUICKSTART_RECOMMENDED_SKILLS" ]; then
+        echo -e "${BOLD}📦 Recommended skills to install:${NC}"
+        echo -e "  ${CYAN}$QUICKSTART_RECOMMENDED_SKILLS${NC}"
+        echo ""
+        echo -e "  Install with: ${CYAN}openclaw skills add <skill-name>${NC}"
+        echo ""
+    fi
+    
     echo -e "${BOLD}💡 Model tips:${NC}"
     echo -e "  ${INFO} For complex tasks: Use Claude Sonnet or Opus"
     echo -e "  ${INFO} For simple lookups: GPT-5 Nano is fast and cheap"
     echo -e "  ${INFO} Change models anytime: ${CYAN}/model sonnet${NC} in chat"
     echo ""
+    
+    # Security reminder based on setup type
+    if [ "$QUICKSTART_SECURITY_LEVEL" = "high" ]; then
+        echo -e "${BOLD}🔐 Security note (shared Mac):${NC}"
+        echo -e "  ${INFO} Your bot is in restricted mode for safety"
+        echo -e "  ${INFO} Review security settings before adding channels"
+        echo ""
+    fi
     
     # Offer to open dashboard
     if confirm "Open dashboard now?"; then
@@ -590,7 +720,8 @@ main() {
     echo ""
     echo -e "  This script will:"
     echo -e "  ${INFO} Install Node.js + OpenClaw automatically"
-    echo -e "  ${INFO} Ask you 4-5 simple questions"
+    echo -e "  ${INFO} Ask you 7 simple questions"
+    echo -e "  ${INFO} Recommend skills based on your use case"
     echo -e "  ${INFO} Start your bot (dashboard-only for now)"
     echo ""
     echo -e "  ${YELLOW}Time: ~15 minutes${NC}"
