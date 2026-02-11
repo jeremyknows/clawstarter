@@ -499,22 +499,14 @@
   }
   .features-bento {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--sp-4);
     max-width: 1040px;
     margin: 0 auto;
   }
-  .feature-item:nth-child(1) { grid-column: span 4; }
-  .feature-item:nth-child(2) { grid-column: span 2; }
-  .feature-item:nth-child(3) { grid-column: span 2; }
-  .feature-item:nth-child(4) { grid-column: span 2; }
-  .feature-item:nth-child(5) { grid-column: span 2; }
-  .feature-item:nth-child(6) { grid-column: span 3; }
-  .feature-item:nth-child(5) { grid-column: span 3; }
 
   @media (max-width: 768px) {
     .features-bento { grid-template-columns: 1fr; }
-    .feature-item:nth-child(n) { grid-column: span 1; }
   }
   .feature-item {
     background: var(--bg-card);
@@ -780,7 +772,7 @@
   <div class="ambient-orb ambient-orb-1"></div>
   <div class="ambient-orb ambient-orb-2"></div>
   <h1>Your Personal AI.<br><span class="mint-text">Running on Your Mac.</span></h1>
-  <p class="subheadline">Set up in 30 minutes. No coding required.</p>
+  <p class="subheadline">Set up in 2 minutes. No coding required.</p>
   <div class="hero-actions">
     <a href="#get-started" class="cta-primary">
       <span>Get Started</span>
@@ -807,18 +799,18 @@
   <div class="bento-steps">
     <div class="bento-step">
       <div class="step-number">1</div>
-      <h3>Download &amp; Run</h3>
-      <p>One simple command in Terminal. We guide you through every keystroke. Takes 5 minutes.</p>
+      <h3>Run One Command</h3>
+      <p>Paste the install command into Terminal and press Enter. That's it.</p>
     </div>
     <div class="bento-step">
       <div class="step-number">2</div>
-      <h3>Pick Your Style</h3>
-      <p>Choose your AI model, set spending limits, and configure channels. All point-and-click.</p>
+      <h3>Answer 2 Questions</h3>
+      <p>The script asks what you want to use it for. Choose free tier or bring your own API key.</p>
     </div>
     <div class="bento-step">
       <div class="step-number">3</div>
       <h3>Start Chatting</h3>
-      <p>Talk to your AI via Discord, iMessage, or web chat. It learns your preferences as you go.</p>
+      <p>Your AI is running. Talk to it via web dashboard, or connect Discord/iMessage later.</p>
     </div>
   </div>
 </div>
@@ -905,28 +897,29 @@
     <details class="faq-item">
       <summary>Is this safe?</summary>
       <div class="faq-answer">
-        <p><strong>Yes.</strong> OpenClaw runs in a sandboxed Mac user account with zero access to your personal files, browser history, or passwords. It can only do what you explicitly grant permission for.</p>
-        <p>The setup guide walks you through security best practices: file permissions, firewall settings, and disk encryption. Your API keys are stored locally and never transmitted anywhere except to the AI provider you choose.</p>
+        <p><strong>Yes.</strong> ClawStarter sets up OpenClaw to run locally on your Mac. Your data stays on your machine — no cloud middleman.</p>
+        <p>The setup script uses industry-standard security practices. Your API keys are stored locally and only sent to the AI provider you choose (OpenAI, Anthropic, etc.). Nothing is transmitted to third parties.</p>
       </div>
     </details>
     <details class="faq-item">
       <summary>What does it cost?</summary>
       <div class="faq-answer">
-        <p><strong>OpenClaw is free.</strong> The software costs nothing.</p>
-        <p>You pay only for AI model usage (like paying for electricity):</p>
+        <p><strong>ClawStarter is free.</strong> The setup script costs nothing.</p>
+        <p>You pay only for AI model usage:</p>
         <ul style="margin: 12px 0 12px 20px; color: var(--text-secondary);">
-          <li><strong>Budget ($5-15/mo)</strong> — Simple tasks, summaries, quick lookups</li>
-          <li><strong>Balanced ($15-50/mo)</strong> — Most people. Handles daily tasks well ⭐</li>
-          <li><strong>Premium ($50+/mo)</strong> — Complex research, coding, strategic work</li>
+          <li><strong>Free tier (recommended)</strong> — OpenCode's Kimi K2.5 (no signup, no payment)</li>
+          <li><strong>Budget ($5-15/mo)</strong> — Simple tasks with paid models</li>
+          <li><strong>Balanced ($15-50/mo)</strong> — Daily use with premium models ⭐</li>
+          <li><strong>Premium ($50+/mo)</strong> — Heavy usage, complex work</li>
         </ul>
-        <p>You set spending limits during setup, so there are no surprise bills. Think of it like this: OpenClaw is the car (free), the AI provider is the gas station (pay-as-you-go).</p>
+        <p>The script defaults to OpenCode's free tier (no payment required). You can upgrade to paid models anytime.</p>
       </div>
     </details>
     <details class="faq-item">
       <summary>Do I need to know how to code?</summary>
       <div class="faq-answer">
-        <p><strong>Nope.</strong> If you can copy and paste text into Terminal, you can set up OpenClaw.</p>
-        <p>The setup guide is written for non-technical users. Every command is explained in plain English. If you get stuck, the FAQ and troubleshooting sections have your back.</p>
+        <p><strong>Nope.</strong> If you can copy and paste, you can run ClawStarter.</p>
+        <p>Paste one command into Terminal, press Enter, and answer 2 simple questions. The script handles everything else. Takes about 2 minutes.</p>
       </div>
     </details>
     <details class="faq-item">
@@ -937,9 +930,10 @@
           <li>Answer questions and have conversations</li>
           <li>Search the web for real-time info</li>
           <li>Remember context from past chats</li>
-          <li>Work across multiple messaging apps</li>
+          <li>Read and write files</li>
+          <li>Run terminal commands (with your permission)</li>
         </ul>
-        <p>You can add skills later: calendar management, email triage, file organization, camera access, and more. Each skill is optional and explained in the Foundation Playbook.</p>
+        <p>You can connect messaging apps (Discord, iMessage, Telegram) and add more capabilities later.</p>
       </div>
     </details>
     <details class="faq-item">
@@ -959,7 +953,7 @@
     <details class="faq-item">
       <summary>Can I use this on multiple Macs?</summary>
       <div class="faq-answer">
-        <p>Yes! Each Mac runs its own instance of OpenClaw. They don&rsquo;t sync automatically, but you can manually share configuration files or memory snapshots between them.</p>
+        <p>Yes! Run ClawStarter on each Mac. Each will have its own independent AI agent. They don&rsquo;t sync automatically, but you can share config files between them if you want.</p>
       </div>
     </details>
     <details class="faq-item">
@@ -993,7 +987,7 @@
 <div class="cta-section reveal" id="download">
   <div class="cta-banner">
     <h2>Ready to Try It?</h2>
-    <p>Download the setup package. You&rsquo;ll have your AI running in 30 minutes.</p>
+    <p>Run one command. Your AI will be live in 2 minutes.</p>
     <a href="openclaw-quickstart-v2.sh" class="cta-primary" download>
       <span>Download Setup Script</span>
       <span class="arrow">&darr;</span>
