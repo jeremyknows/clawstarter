@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Your personal AI assistant. Runs on your Mac. No coding required. Set up in 30 minutes.">
+<title>OpenClaw - Your Personal AI, Running on Your Mac</title>
+<style>
+  /* ─── Theme Variables ─── */
+  [data-theme="light"] {
+    --bg: #f8f7f6;
+    --bg-card: #ffffff;
+    --bg-nav: rgba(248,247,246,0.95);
+    --text: #2c2825;
+    --text-heading: #1a1715;
+    --text-muted: #6b6560;
+    --text-light: #9c9590;
+    --accent: #e05a00;
+    --accent-hover: #c24e00;
+    --accent-text: #ffffff;
+    --accent-light: #fed7aa;
+    --accent-bg: #fff7ed;
+    --green: #15803d;
+    --green-light: #4ade80;
+    --green-bg: #f0fdf4;
+    --border: #e0ddd9;
+    --border-light: #eeebe8;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 4px 14px rgba(0,0,0,0.08);
+    --shadow-hero: 0 8px 32px rgba(0,0,0,0.12);
+    --radius: 14px;
+    --radius-lg: 20px;
+  }
+
+  [data-theme="dark"] {
+    --bg: #161412;
+    --bg-card: #221f1d;
+    --bg-nav: rgba(22,20,18,0.95);
+    --text: #e8e4e0;
+    --text-heading: #f5f3f0;
+    --text-muted: #a8a29e;
+    --text-light: #78716c;
+    --accent: #fb923c;
+    --accent-hover: #fdba74;
+    --accent-text: #1a1715;
+    --accent-light: #7c2d12;
+    --accent-bg: #3b1a08;
+    --green: #4ade80;
+    --green-light: #86efac;
+    --green-bg: #0a2614;
+    --border: #3d3835;
+    --border-light: #2d2926;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4);
+    --shadow-lg: 0 4px 14px rgba(0,0,0,0.5);
+    --shadow-hero: 0 8px 32px rgba(0,0,0,0.7);
+    --radius: 14px;
+    --radius-lg: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+    overflow-x: hidden;
+  }
+
+  /* ─── Navigation ─── */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--bg-nav);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-light);
+    padding: 0 24px;
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-heading);
+    text-decoration: none;
+  }
+
+  .logo-icon { font-size: 32px; }
+
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ─── Hero Section ─── */
+  .hero {
+    padding: 140px 24px 80px;
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 7vw, 64px);
+    font-weight: 800;
+    letter-spacing: -2px;
+    color: var(--text-heading);
+    margin-bottom: 20px;
+    line-height: 1.1;
+  }
+
+  .hero .gradient-text {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero .subheadline {
+    font-size: clamp(20px, 3vw, 28px);
+    color: var(--text-muted);
+    margin-bottom: 40px;
+    font-weight: 500;
+  }
+
+  .cta-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 40px;
+    font-size: 20px;
+    font-weight: 700;
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s;
+    box-shadow: var(--shadow-hero);
+  }
+
+  .cta-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(251, 146, 60, 0.4);
+  }
+
+  .cta-secondary {
+    display: inline-block;
+    margin-left: 16px;
+    padding: 18px 32px;
+    font-size: 18px;
+    color: var(--text);
+    text-decoration: none;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.2s;
+  }
+
+  .cta-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .video-placeholder {
+    margin-top: 60px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-hero);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .video-placeholder::before {
+    content: '▶';
+    font-size: 64px;
+    color: var(--accent);
+    opacity: 0.5;
+  }
+
+  /* ─── Sections ─── */
+  section {
+    padding: 80px 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  section h2 {
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--text-heading);
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  /* ─── Steps Section ─── */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+    margin-top: 40px;
+  }
+
+  .step-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .step-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
+  }
+
+  .step-number {
+    width: 56px;
+    height: 56px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border: 2px solid var(--accent-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 auto 20px;
+  }
+
+  .step-card h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin-bottom: 12px;
+  }
+
+  .step-card p {
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ─── Features Section ─── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+  }
+
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    display: flex;
+    gap: 20px;
+  }
+
+  .feature-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+  }
+
+  .feature-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin-bottom: 8px;
+  }
+
+  .feature-card p {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ─── Trust Section ─── */
+  .trust-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 60px 40px;
+    text-align: center;
+  }
+
+  .trust-badges {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+  }
+
+  .badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .badge-icon {
+    font-size: 48px;
+  }
+
+  .badge-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 140px;
+  }
+
+  /* ─── FAQ Section ─── */
+  .faq-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  details {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+
+  details:hover {
+    border-color: var(--accent);
+  }
+
+  summary {
+    padding: 20px 24px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--text-heading);
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  summary::after {
+    content: '+';
+    font-size: 24px;
+    color: var(--accent);
+    transition: transform 0.2s;
+  }
+
+  details[open] summary::after {
+    transform: rotate(45deg);
+  }
+
+  details[open] summary {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .faq-answer {
+    padding: 20px 24px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ─── CTA Banner ─── */
+  .cta-banner {
+    background: linear-gradient(135deg, var(--accent-bg) 0%, var(--accent-light) 100%);
+    border: 2px solid var(--accent-light);
+    border-radius: var(--radius-lg);
+    padding: 60px 40px;
+    text-align: center;
+  }
+
+  .cta-banner h2 {
+    font-size: clamp(28px, 5vw, 42px);
+    color: var(--text-heading);
+    margin-bottom: 16px;
+  }
+
+  .cta-banner p {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+
+  /* ─── Footer ─── */
+  footer {
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 14px;
+    border-top: 1px solid var(--border-light);
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    text-decoration: underline;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 768px) {
+    .hero {
+      padding: 100px 20px 60px;
+    }
+
+    .cta-secondary {
+      display: block;
+      margin: 16px auto 0;
+      text-align: center;
+    }
+
+    section {
+      padding: 60px 20px;
+    }
+
+    .steps-grid,
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .trust-badges {
+      gap: 24px;
+    }
+
+    .cta-banner {
+      padding: 40px 24px;
+    }
+  }
+
+  /* ─── Animations ─── */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-in {
+    animation: fadeInUp 0.6s ease-out;
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <span class="logo-icon">🦞</span>
+      <span>OpenClaw</span>
+    </a>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme">☀</button>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero fade-in">
+  <h1>Your Personal AI.<br><span class="gradient-text">Running on Your Mac.</span></h1>
+  <p class="subheadline">Set up in 30 minutes. No coding required.</p>
+  <a href="#download" class="cta-primary">
+    <span>Download Now</span>
+    <span>→</span>
+  </a>
+  <a href="#how-it-works" class="cta-secondary">See How It Works</a>
+  
+  <div class="video-placeholder">
+    <!-- Video would go here -->
+  </div>
+</section>
+
+<!-- 3 Easy Steps -->
+<section id="how-it-works">
+  <h2>Get Started in 3 Steps</h2>
+  <div class="steps-grid">
+    <div class="step-card fade-in">
+      <div class="step-number">1</div>
+      <h3>Download & Run</h3>
+      <p>One simple command in Terminal. We guide you through every keystroke. Takes 5 minutes.</p>
+    </div>
+    <div class="step-card fade-in" style="animation-delay: 0.1s;">
+      <div class="step-number">2</div>
+      <h3>Pick Your Style</h3>
+      <p>Choose your AI model, set spending limits, and configure channels. All point-and-click.</p>
+    </div>
+    <div class="step-card fade-in" style="animation-delay: 0.2s;">
+      <div class="step-number">3</div>
+      <h3>Start Chatting</h3>
+      <p>Talk to your AI via Discord, iMessage, or web chat. It learns your preferences as you go.</p>
+    </div>
+  </div>
+</section>
+
+<!-- What You Get -->
+<section>
+  <h2>What You Get</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <div>
+        <h3>Your Data Stays Yours</h3>
+        <p>Runs entirely on your Mac. No cloud middleman. Your conversations, files, and API keys never leave your machine.</p>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <div>
+        <h3>Chat Anywhere</h3>
+        <p>Works with Discord, iMessage, Telegram, or web chat. Pick your favorite or use them all.</p>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <div>
+        <h3>Actually Useful</h3>
+        <p>Research topics, manage your calendar, draft emails, summarize documents, and learn your preferences over time.</p>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div>
+        <h3>Always On</h3>
+        <p>Your AI runs 24/7 in the background. Ask it anything, anytime. Responds in seconds.</p>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💰</div>
+      <div>
+        <h3>You Control Costs</h3>
+        <p>Pay only for what you use. Set spending limits. Budget-friendly options start at $5/month.</p>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛠️</div>
+      <div>
+        <h3>Grows With You</h3>
+        <p>Start simple, add skills later. Web browsing, file management, calendar access—all optional.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trust Section -->
+<section>
+  <div class="trust-section">
+    <h2 style="margin-bottom: 20px;">Built on Trust</h2>
+    <p style="font-size: 18px; color: var(--text-muted); max-width: 700px; margin: 0 auto;">
+      OpenClaw was built by someone who isn't a coder—with AI assistance. 
+      That means it's designed for <em>people like you</em>, not developers.
+    </p>
+    
+    <div class="trust-badges">
+      <div class="badge">
+        <div class="badge-icon">🔓</div>
+        <div class="badge-text">100% Open Source</div>
+      </div>
+      <div class="badge">
+        <div class="badge-icon">🛡️</div>
+        <div class="badge-text">Security-First Design</div>
+      </div>
+      <div class="badge">
+        <div class="badge-icon">🏠</div>
+        <div class="badge-text">Runs Locally</div>
+      </div>
+      <div class="badge">
+        <div class="badge-icon">🤝</div>
+        <div class="badge-text">Community Supported</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section>
+  <h2>Questions?</h2>
+  <div class="faq-container">
+    <details>
+      <summary>Is this safe?</summary>
+      <div class="faq-answer">
+        <p><strong>Yes.</strong> OpenClaw runs in a sandboxed Mac user account with zero access to your personal files, browser history, or passwords. It can only do what you explicitly grant permission for.</p>
+        <p style="margin-top: 12px;">The setup guide walks you through security best practices: file permissions, firewall settings, and disk encryption. Your API keys are stored locally and never transmitted anywhere except to the AI provider you choose.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>What does it cost?</summary>
+      <div class="faq-answer">
+        <p><strong>OpenClaw is free.</strong> The software costs nothing.</p>
+        <p style="margin-top: 12px;">You pay only for the AI model usage (like paying for electricity). Budget options start at <strong>$5-15/month</strong> for light use. You set spending limits during setup, so there are no surprise bills.</p>
+        <p style="margin-top: 12px;">Think of it like this: OpenClaw is the car (free), the AI provider is the gas station (pay-as-you-go).</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Do I need to know how to code?</summary>
+      <div class="faq-answer">
+        <p><strong>Nope.</strong> If you can copy and paste text into Terminal, you can set up OpenClaw.</p>
+        <p style="margin-top: 12px;">The setup guide is written for non-technical users. Every command is explained in plain English. If you get stuck, the FAQ and troubleshooting sections have your back.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>What can it actually do?</summary>
+      <div class="faq-answer">
+        <p>Out of the box, your AI can:</p>
+        <ul style="margin-top: 8px; padding-left: 24px;">
+          <li>Answer questions and have conversations</li>
+          <li>Search the web for real-time info</li>
+          <li>Remember context from past chats</li>
+          <li>Work across multiple messaging apps</li>
+        </ul>
+        <p style="margin-top: 12px;">You can add skills later: calendar management, email triage, file organization, camera access, and more. Each skill is optional and explained in the Foundation Playbook.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>What's the catch?</summary>
+      <div class="faq-answer">
+        <p><strong>There isn't one.</strong> This is an open-source project built for real people who want a personal AI without vendor lock-in.</p>
+        <p style="margin-top: 12px;">You own your data. You control the costs. You decide what it can access. No subscriptions, no upsells, no tracking.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>My Mac goes to sleep. Will this work?</summary>
+      <div class="faq-answer">
+        <p>The setup guide includes a command to keep your Mac awake (but turns off the screen to save power). This ensures your AI is always responsive.</p>
+        <p style="margin-top: 12px;">If you need your Mac to sleep (like a laptop you carry around), you can skip that step—just know your AI won't respond while the Mac is asleep.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Can I use this on multiple Macs?</summary>
+      <div class="faq-answer">
+        <p>Yes! Each Mac runs its own instance of OpenClaw. They don't sync automatically, but you can manually share configuration files or memory snapshots between them.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>What if I want to uninstall it?</summary>
+      <div class="faq-answer">
+        <p>Delete the bot user account from System Settings → Users & Groups. That's it. Everything is contained in that one user account.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- CTA Banner -->
+<section id="download">
+  <div class="cta-banner fade-in">
+    <h2>Ready to Try It?</h2>
+    <p>Download the setup package. You'll have your AI running in 30 minutes.</p>
+    <a href="openclaw-setup.zip" class="cta-primary" download>
+      <span>Download OpenClaw Setup</span>
+      <span>↓</span>
+    </a>
+    <p style="margin-top: 24px; font-size: 14px; color: var(--text-light);">
+      macOS 13+ · Apple Silicon or Intel · Free
+    </p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>Built with ❤️ and AI assistance.</p>
+  <p style="margin-top: 8px;">
+    <a href="https://github.com/openclaw/openclaw" target="_blank">GitHub</a> · 
+    <a href="https://openclaw.ai/docs" target="_blank">Documentation</a> · 
+    <a href="https://discord.gg/openclaw" target="_blank">Community</a>
+  </p>
+</footer>
+
+<script>
+// Theme toggle
+function toggleTheme() {
+  const html = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  const currentTheme = html.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  
+  html.setAttribute('data-theme', newTheme);
+  btn.textContent = newTheme === 'dark' ? '☀' : '🌙';
+  
+  localStorage.setItem('theme', newTheme);
+}
+
+// Load saved theme
+(function() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀' : '🌙';
+})();
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+
+</body>
+</html>

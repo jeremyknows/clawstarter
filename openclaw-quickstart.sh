@@ -1,0 +1,590 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════
+# OpenClaw Quickstart — 3 Easy Steps
+#
+# Zero to running bot in ~15 minutes.
+# For beginners who just want it working.
+#
+# Usage:
+#   bash openclaw-quickstart.sh
+#
+# What this does:
+#   1. Installs Node.js + OpenClaw automatically
+#   2. Asks 4-5 simple questions (no tech knowledge needed)
+#   3. Starts your bot
+#
+# What it DOESN'T do (deferred to advanced setup):
+#   - Create separate Mac user
+#   - Configure Discord/Telegram
+#   - Apply access profiles
+#   - Migrate secrets to env vars
+#
+# See QUICKSTART.md for the 3-step guide.
+# ═══════════════════════════════════════════════════════════════════
+set -euo pipefail
+
+# ─── Constants ───
+readonly SCRIPT_VERSION="1.0.0"
+readonly MIN_NODE_VERSION="22"
+readonly DEFAULT_GATEWAY_PORT=18789
+
+# ─── Colors ───
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+PASS="${GREEN}✓${NC}"
+FAIL="${RED}✗${NC}"
+INFO="${CYAN}→${NC}"
+STEP="${BOLD}${CYAN}>>>${NC}"
+
+# ═══════════════════════════════════════════════════════════════════
+# Helper Functions
+# ═══════════════════════════════════════════════════════════════════
+
+pass()   { echo -e "  ${PASS} $1"; }
+fail()   { echo -e "  ${FAIL} $1"; }
+info()   { echo -e "  ${INFO} $1"; }
+warn()   { echo -e "  ${YELLOW}!${NC} $1"; }
+
+die() {
+    echo -e "\n  ${FAIL} ${RED}ERROR:${NC} $1" >&2
+    exit 1
+}
+
+prompt() {
+    local question="$1"
+    local default="${2:-}"
+    local response
+    
+    if [ -n "$default" ]; then
+        echo -en "\n  ${CYAN}?${NC} ${question} [${default}]: "
+    else
+        echo -en "\n  ${CYAN}?${NC} ${question}: "
+    fi
+    
+    read -r response
+    if [ -z "$response" ] && [ -n "$default" ]; then
+        echo "$default"
+    else
+        echo "$response"
+    fi
+}
+
+confirm() {
+    local question="$1"
+    local response
+    echo -en "\n  ${CYAN}?${NC} ${question} [y/N]: "
+    read -r response
+    case "$response" in
+        [yY]|[yY][eE][sS]) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    while ps -p $pid > /dev/null 2>&1; do
+        local temp=${spinstr#?}
+        printf " [%c] " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
+# ═══════════════════════════════════════════════════════════════════
+# STEP 1: Auto-Install Dependencies
+# ═══════════════════════════════════════════════════════════════════
+
+step1_install_dependencies() {
+    echo ""
+    echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
+    echo -e "  ${STEP} ${BOLD}Step 1: Download & Install${NC}"
+    echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
+    echo ""
+    
+    # Check macOS
+    if [ "$(uname -s)" != "Darwin" ]; then
+        die "This script is for macOS only. Detected: $(uname -s)"
+    fi
+    pass "macOS detected"
+    
+    # Check/install Homebrew
+    if ! command -v brew &>/dev/null; then
+        info "Installing Homebrew (macOS package manager)..."
+        echo ""
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || \
+            die "Homebrew installation failed"
+        
+        # Add to PATH for Apple Silicon
+        if [ -f "/opt/homebrew/bin/brew" ]; then
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+        fi
+        pass "Homebrew installed"
+    else
+        pass "Homebrew found"
+    fi
+    
+    # Check/install Node.js
+    local node_ok=false
+    if command -v node &>/dev/null; then
+        local node_ver
+        node_ver=$(node --version | sed 's/v//' | cut -d. -f1)
+        if [ "$node_ver" -ge "$MIN_NODE_VERSION" ] 2>/dev/null; then
+            pass "Node.js $(node --version) found"
+            node_ok=true
+        fi
+    fi
+    
+    if ! $node_ok; then
+        info "Installing Node.js 22..."
+        brew install node@22 &>/dev/null &
+        spinner $!
+        wait
+        
+        # Link if needed
+        if ! command -v node &>/dev/null; then
+            brew link --overwrite node@22 &>/dev/null || true
+            local brew_prefix
+            brew_prefix=$(brew --prefix)
+            export PATH="${brew_prefix}/opt/node@22/bin:$PATH"
+        fi
+        
+        if command -v node &>/dev/null; then
+            pass "Node.js $(node --version) installed"
+        else
+            die "Node.js installed but not in PATH. Restart terminal and re-run."
+        fi
+    fi
+    
+    # Check/install OpenClaw
+    if command -v openclaw &>/dev/null; then
+        local oc_ver
+        oc_ver=$(openclaw --version 2>&1 | head -1 | grep -oE '[0-9]{4}\.[0-9]+\.[0-9]+' || echo "unknown")
+        pass "OpenClaw ${oc_ver} found"
+        
+        # Offer update
+        if confirm "Update to latest version?"; then
+            info "Updating OpenClaw..."
+            openclaw update &>/dev/null &
+            spinner $!
+            wait
+            pass "OpenClaw updated"
+        fi
+    else
+        info "Installing OpenClaw..."
+        curl -fsSL https://openclaw.ai/install.sh | bash || \
+            die "OpenClaw installation failed"
+        
+        export PATH="$HOME/.openclaw/bin:$PATH"
+        
+        if command -v openclaw &>/dev/null; then
+            pass "OpenClaw installed"
+        else
+            die "OpenClaw installed but not in PATH. Add to ~/.zprofile:\n  export PATH=\"\$HOME/.openclaw/bin:\$PATH\""
+        fi
+    fi
+    
+    # Quick sleep prevention (silently, no sudo prompt for this step)
+    if [ "$(pmset -g 2>/dev/null | grep -E '^ sleep' | awk '{print $2}')" != "0" ]; then
+        info "Sleep prevention is NOT configured (your bot may stop when Mac sleeps)"
+        info "Fix this later: See 'Advanced Setup' in QUICKSTART.md"
+    fi
+}
+
+# ═══════════════════════════════════════════════════════════════════
+# STEP 2: Quick Configuration (4-5 Questions)
+# ═══════════════════════════════════════════════════════════════════
+
+step2_configure() {
+    echo ""
+    echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
+    echo -e "  ${STEP} ${BOLD}Step 2: Make Your Choices${NC}"
+    echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
+    echo ""
+    
+    # Question 1: AI Provider
+    echo -e "${BOLD}Which AI provider do you want to use?${NC}"
+    echo ""
+    echo "  1. OpenRouter (recommended for beginners)"
+    echo "     → One key, 100+ models, budget-friendly"
+    echo "     → Sign up: https://openrouter.ai"
+    echo ""
+    echo "  2. Anthropic (premium quality)"
+    echo "     → Claude models directly"
+    echo "     → Sign up: https://console.anthropic.com"
+    echo ""
+    echo "  3. Both (use OpenRouter for most, Anthropic for complex tasks)"
+    echo ""
+    
+    local provider_choice
+    provider_choice=$(prompt "Choose [1/2/3]" "1")
+    
+    local openrouter_key=""
+    local anthropic_key=""
+    local default_model=""
+    
+    case "$provider_choice" in
+        1)
+            info "OpenRouter selected"
+            openrouter_key=$(prompt "Paste your OpenRouter API key (starts with sk-or-v1-)")
+            default_model="openrouter/moonshotai/kimi-k2.5"
+            ;;
+        2)
+            info "Anthropic selected"
+            anthropic_key=$(prompt "Paste your Anthropic API key (starts with sk-ant-)")
+            default_model="anthropic/claude-sonnet-4-5"
+            ;;
+        3)
+            info "Both providers selected"
+            openrouter_key=$(prompt "Paste your OpenRouter API key")
+            anthropic_key=$(prompt "Paste your Anthropic API key")
+            default_model="openrouter/moonshotai/kimi-k2.5"
+            ;;
+        *)
+            warn "Invalid choice, defaulting to OpenRouter"
+            openrouter_key=$(prompt "Paste your OpenRouter API key")
+            default_model="openrouter/moonshotai/kimi-k2.5"
+            ;;
+    esac
+    
+    # Question 2: Spending Tier (sets model quality)
+    echo ""
+    echo -e "${BOLD}What's your monthly AI spending budget?${NC}"
+    echo ""
+    echo "  1. Budget (~$5-15/mo)   → Fast, cheap models"
+    echo "  2. Balanced (~$15-50/mo) → Good quality, reasonable cost"
+    echo "  3. Premium (~$50+/mo)    → Best models, no limits"
+    echo ""
+    
+    local spend_choice
+    spend_choice=$(prompt "Choose [1/2/3]" "2")
+    
+    case "$spend_choice" in
+        1)
+            info "Budget tier selected"
+            if [ "$provider_choice" = "2" ]; then
+                default_model="anthropic/claude-haiku-3-5"
+            else
+                default_model="openrouter/moonshotai/kimi-k2.5"
+            fi
+            ;;
+        2)
+            info "Balanced tier selected"
+            # Keep the default from provider choice
+            ;;
+        3)
+            info "Premium tier selected"
+            if [ "$provider_choice" = "2" ]; then
+                default_model="anthropic/claude-opus-4-6"
+            else
+                default_model="anthropic/claude-sonnet-4-5"
+            fi
+            ;;
+    esac
+    
+    # Question 3: Personality
+    echo ""
+    echo -e "${BOLD}What personality style do you prefer?${NC}"
+    echo ""
+    echo "  1. Professional (formal, structured responses)"
+    echo "  2. Casual (friendly, conversational tone)"
+    echo "  3. Direct (concise, no fluff)"
+    echo "  4. Custom (you'll configure later)"
+    echo ""
+    
+    local personality_choice
+    personality_choice=$(prompt "Choose [1/2/3/4]" "2")
+    
+    local bot_personality
+    case "$personality_choice" in
+        1) bot_personality="professional" ;;
+        2) bot_personality="casual" ;;
+        3) bot_personality="direct" ;;
+        *) bot_personality="custom" ;;
+    esac
+    
+    # Question 4: Bot Name
+    echo ""
+    local bot_name
+    bot_name=$(prompt "What should I call your bot?" "Atlas")
+    
+    # Question 5: Channel (simplified — just dashboard for now)
+    echo ""
+    echo -e "${BOLD}How do you want to chat with your bot?${NC}"
+    echo ""
+    echo "  1. Dashboard only (web browser, simplest setup)"
+    echo "  2. I'll configure Discord/Telegram later"
+    echo ""
+    
+    local channel_choice
+    channel_choice=$(prompt "Choose [1/2]" "1")
+    
+    if [ "$channel_choice" = "2" ]; then
+        info "You can add channels later using the full setup guide"
+    fi
+    
+    # Save config variables for step 3
+    export QUICKSTART_OPENROUTER_KEY="$openrouter_key"
+    export QUICKSTART_ANTHROPIC_KEY="$anthropic_key"
+    export QUICKSTART_DEFAULT_MODEL="$default_model"
+    export QUICKSTART_BOT_NAME="$bot_name"
+    export QUICKSTART_PERSONALITY="$bot_personality"
+}
+
+# ═══════════════════════════════════════════════════════════════════
+# STEP 3: Start Bot
+# ═══════════════════════════════════════════════════════════════════
+
+step3_start_bot() {
+    echo ""
+    echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
+    echo -e "  ${STEP} ${BOLD}Step 3: Start Chatting${NC}"
+    echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
+    echo ""
+    
+    # Run onboarding wizard with automatic answers
+    local config_file="$HOME/.openclaw/openclaw.json"
+    
+    if [ -f "$config_file" ]; then
+        warn "Config already exists at $config_file"
+        if ! confirm "Overwrite with new configuration?"; then
+            info "Keeping existing config. Skipping to gateway start."
+            step3_start_gateway
+            return 0
+        fi
+        cp "$config_file" "${config_file}.backup-$(date +%Y%m%d-%H%M%S)"
+        info "Backed up existing config"
+    fi
+    
+    info "Running onboarding wizard (auto-answering based on your choices)..."
+    echo ""
+    
+    # Build minimal config via Python
+    python3 - "$QUICKSTART_DEFAULT_MODEL" "$QUICKSTART_OPENROUTER_KEY" "$QUICKSTART_ANTHROPIC_KEY" "$config_file" << 'PYEOF'
+import json, sys, os, secrets
+
+model = sys.argv[1]
+openrouter_key = sys.argv[2]
+anthropic_key = sys.argv[3]
+config_path = sys.argv[4]
+
+# Generate gateway token
+gateway_token = secrets.token_hex(32)
+
+# Build minimal config
+config = {
+    "version": "2026.2.9",
+    "model": model,
+    "models": {
+        "fallback": "anthropic/claude-sonnet-4-5" if anthropic_key else model
+    },
+    "auth": {},
+    "gateway": {
+        "port": 18789,
+        "auth": {
+            "enabled": True,
+            "token": gateway_token
+        }
+    },
+    "channels": {
+        "discord": {"enabled": False},
+        "telegram": {"enabled": False}
+    },
+    "workspace": {
+        "path": os.path.expanduser("~/.openclaw/workspace")
+    },
+    "agents": {
+        "defaults": {
+            "sandbox": {"mode": "off", "workspaceAccess": "rw"},
+            "tools": {"deny": ["browser"]}
+        }
+    }
+}
+
+# Add API keys
+if openrouter_key:
+    config["auth"]["openrouter"] = {"apiKey": openrouter_key}
+if anthropic_key:
+    config["auth"]["anthropic"] = {"apiKey": anthropic_key}
+
+# Create config directory
+os.makedirs(os.path.dirname(config_path), exist_ok=True)
+
+# Write config
+with open(config_path, 'w') as f:
+    json.dump(config, f, indent=2)
+    f.write('\n')
+
+# Print gateway token for user
+print(f"\nGateway Token: {gateway_token}")
+print("Save this token — you'll need it to access the dashboard.\n")
+PYEOF
+    
+    if [ ! -f "$config_file" ]; then
+        die "Config creation failed"
+    fi
+    
+    pass "Configuration created"
+    
+    # Set permissions
+    chmod 600 "$config_file"
+    chmod 700 "$HOME/.openclaw"
+    pass "Permissions secured"
+    
+    # Create workspace
+    local workspace_dir="$HOME/.openclaw/workspace"
+    mkdir -p "$workspace_dir"
+    mkdir -p "$workspace_dir/memory"
+    
+    # Create minimal AGENTS.md
+    cat > "$workspace_dir/AGENTS.md" << AGENTSEOF
+# Agent Operating Instructions
+
+You are ${QUICKSTART_BOT_NAME}, a helpful AI assistant.
+
+**Personality:** ${QUICKSTART_PERSONALITY}
+
+**Your purpose:** Help your human with daily tasks, answer questions, and learn from interactions.
+
+**Safety rules:**
+- Never run destructive commands without asking first
+- Confirm before sending emails or messages
+- If you're uncertain, ask
+
+**Communication style:**
+$(case "$QUICKSTART_PERSONALITY" in
+    professional) echo "- Be formal and structured\n- Use complete sentences\n- Provide thorough explanations" ;;
+    casual) echo "- Be friendly and conversational\n- Use contractions and informal language\n- Keep responses light and approachable" ;;
+    direct) echo "- Be concise and to-the-point\n- No fluff or unnecessary elaboration\n- Get straight to answers" ;;
+    custom) echo "- Adapt to your human's preferences over time\n- Ask questions to understand their style" ;;
+esac)
+
+See the OpenClaw Foundation Playbook for advanced configuration.
+AGENTSEOF
+    
+    pass "Workspace created"
+    
+    # Create LaunchAgent
+    local launch_agent="$HOME/Library/LaunchAgents/ai.openclaw.gateway.plist"
+    mkdir -p "$HOME/Library/LaunchAgents"
+    
+    cat > "$launch_agent" << PLISTEOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.openclaw.gateway</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$HOME/.openclaw/bin/openclaw</string>
+        <string>gateway</string>
+        <string>start</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/openclaw/gateway-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/openclaw/gateway-stderr.log</string>
+    <key>WorkingDirectory</key>
+    <string>$HOME/.openclaw</string>
+</dict>
+</plist>
+PLISTEOF
+    
+    pass "LaunchAgent created"
+    
+    # Start gateway
+    step3_start_gateway
+}
+
+step3_start_gateway() {
+    info "Starting gateway..."
+    
+    # Unload if already loaded
+    launchctl unload "$HOME/Library/LaunchAgents/ai.openclaw.gateway.plist" 2>/dev/null || true
+    
+    # Load
+    launchctl load "$HOME/Library/LaunchAgents/ai.openclaw.gateway.plist" || \
+        die "Failed to load LaunchAgent"
+    
+    sleep 3
+    
+    # Verify
+    if pgrep -f "openclaw" &>/dev/null; then
+        pass "Gateway is running!"
+    else
+        die "Gateway failed to start. Check logs:\n  tail /tmp/openclaw/gateway-stderr.log"
+    fi
+    
+    # Show success
+    echo ""
+    echo -e "${BOLD}${GREEN}🎉 SUCCESS! Your bot is alive.${NC}"
+    echo ""
+    echo -e "  ${INFO} Dashboard: ${CYAN}http://127.0.0.1:${DEFAULT_GATEWAY_PORT}/${NC}"
+    echo -e "  ${INFO} Status: ${CYAN}openclaw gateway status${NC}"
+    echo -e "  ${INFO} Restart: ${CYAN}openclaw gateway restart${NC}"
+    echo ""
+    echo -e "${BOLD}Try your first message:${NC}"
+    echo -e "  Open the dashboard and type: ${CYAN}\"Hello! What can you help me with?\"${NC}"
+    echo ""
+    echo -e "${BOLD}What's next:${NC}"
+    echo -e "  ${INFO} Your bot is running 24/7 (auto-restarts on reboot)"
+    echo -e "  ${INFO} Add Discord/Telegram: See full setup guide"
+    echo -e "  ${INFO} Advanced security: See Foundation Playbook Phase 1"
+    echo -e "  ${INFO} Sleep prevention: Run ${CYAN}sudo pmset -a sleep 0${NC}"
+    echo ""
+    
+    # Offer to open dashboard
+    if confirm "Open dashboard now?"; then
+        if command -v open &>/dev/null; then
+            open "http://127.0.0.1:${DEFAULT_GATEWAY_PORT}/"
+        else
+            info "Open this URL in your browser: http://127.0.0.1:${DEFAULT_GATEWAY_PORT}/"
+        fi
+    fi
+}
+
+# ═══════════════════════════════════════════════════════════════════
+# Main
+# ═══════════════════════════════════════════════════════════════════
+
+main() {
+    # Banner
+    echo ""
+    echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
+    echo -e "${BOLD}  OpenClaw Quickstart v${SCRIPT_VERSION}${NC}"
+    echo -e "${BOLD}  Zero to Running Bot in 3 Easy Steps${NC}"
+    echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "  This script will:"
+    echo -e "  ${INFO} Install Node.js + OpenClaw automatically"
+    echo -e "  ${INFO} Ask you 4-5 simple questions"
+    echo -e "  ${INFO} Start your bot (dashboard-only for now)"
+    echo ""
+    echo -e "  ${YELLOW}Time: ~15 minutes${NC}"
+    echo ""
+    
+    if ! confirm "Ready to begin?"; then
+        info "Exiting. Re-run when ready: bash openclaw-quickstart.sh"
+        exit 0
+    fi
+    
+    # Run the 3 steps
+    step1_install_dependencies
+    step2_configure
+    step3_start_bot
+}
+
+main "$@"
