@@ -59,10 +59,31 @@ echo "  2. (Optional) Set up summarize for docs:"
 echo "     export GEMINI_API_KEY=\"your-key\""
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+# Verify installations
+echo ""
+echo -e "${CYAN}Verifying installations...${NC}"
+command -v gh >/dev/null && echo "  ✅ GitHub CLI (gh)" || echo "  ❌ gh FAILED"
+command -v jq >/dev/null && echo "  ✅ jq" || echo "  ❌ jq FAILED"
+command -v fzf >/dev/null && echo "  ✅ fzf" || echo "  ❌ fzf FAILED"
+command -v rg >/dev/null && echo "  ✅ ripgrep (rg)" || echo "  ❌ ripgrep FAILED"
+command -v tmux >/dev/null && echo "  ✅ tmux" || echo "  ❌ tmux FAILED"
+
+# Check GitHub auth
+echo ""
+if gh auth status &>/dev/null; then
+    echo -e "  ✅ GitHub authenticated"
+else
+    echo -e "${YELLOW}⚠️  GitHub not authenticated${NC}"
+    echo "   Run: gh auth login"
+fi
+
 echo ""
 echo -e "${GREEN}🎉 Ready! Try asking your agent:${NC}"
-echo "  • \"Show me open PRs in this repo\""
+echo "  • \"Show me open PRs in steipete/openclaw\""
 echo "  • \"Check CI status for the latest commit\""
 echo "  • \"Create an issue: Bug in login flow\""
 echo "  • \"Help me refactor this function\""
+echo ""
+echo -e "${DIM}Note: Code editing uses OpenClaw's built-in tools (Read, Write, Edit, exec).${NC}"
+echo -e "${DIM}No additional skills needed for coding assistance.${NC}"
 echo ""

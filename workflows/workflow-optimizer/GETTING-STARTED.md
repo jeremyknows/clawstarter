@@ -2,6 +2,15 @@
 
 Welcome! This template turns your AI agent into a personal productivity assistant. Let's get you organized in 5 minutes.
 
+## Prerequisites
+
+Before you start, make sure you have:
+- ✅ **macOS** (these templates are Mac-specific)
+- ✅ **Homebrew** installed ([get it here](https://brew.sh) if not)
+- ✅ **OpenClaw** running (gateway started)
+- ✅ **Google account** (for Calendar/Gmail features)
+- ✅ **Basic terminal comfort** (copy/paste commands)
+
 ## Quick Setup (3 minutes)
 
 ### 1. Install Skills
@@ -25,6 +34,36 @@ gog auth login
 ```bash
 cp ~/Downloads/openclaw-setup/workflows/workflow-optimizer/AGENTS.md ~/.openclaw/workspace/
 ```
+
+## ✅ Verify Your Setup
+
+Run these commands to confirm everything works:
+
+```bash
+# 1. Check skills installed
+which memo && echo "✅ Apple Notes ready"
+which remindctl && echo "✅ Apple Reminders ready"
+which gog && echo "✅ Google Workspace ready"
+
+# 2. Check Google auth
+gog auth status 2>/dev/null && echo "✅ Google authenticated" || echo "⚠️ Run: gog auth login"
+
+# 3. Check workspace folders
+ls ~/.openclaw/workspace/daily/ && echo "✅ Folders created"
+```
+
+**What success looks like:**
+```
+✅ Apple Notes ready
+✅ Apple Reminders ready
+✅ Google Workspace ready
+✅ Google authenticated
+✅ Folders created
+```
+
+**If macOS permission dialogs appear:**
+- Click "Allow" when prompted for Automation access
+- If you clicked "Deny": System Settings → Privacy & Security → Automation → enable Terminal
 
 ## Your First Win (2 minutes)
 

@@ -1,0 +1,19 @@
+{
+  "name": "dependency-check",
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 9 * * 1",
+    "tz": "America/New_York"
+  },
+  "sessionTarget": "isolated",
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Weekly dependency audit: Check for outdated packages in active projects. Flag any with security vulnerabilities. Suggest which updates are safe to apply. Keep report concise.",
+    "timeoutSeconds": 300
+  },
+  "delivery": {
+    "mode": "announce"
+  },
+  "enabled": false,
+  "_note": "Mondays at 9 AM — weekly dependency review"
+}

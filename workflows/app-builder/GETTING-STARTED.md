@@ -2,6 +2,15 @@
 
 Welcome! This template gives you an AI assistant optimized for software development. Let's get you coding faster in 10 minutes.
 
+## Prerequisites
+
+Before you start, make sure you have:
+- ✅ **macOS** (these templates are Mac-specific)
+- ✅ **Homebrew** installed ([get it here](https://brew.sh) if not)
+- ✅ **OpenClaw** running (gateway started)
+- ✅ **GitHub account** (for issue/PR management)
+- ✅ **Terminal comfort** (you're a developer!)
+
 ## Quick Setup (5 minutes)
 
 ### 1. Install Skills
@@ -26,6 +35,36 @@ Create a `CLAUDE.md` in your project root with:
 - Coding standards
 - Test commands
 - Deployment process
+
+## ✅ Verify Your Setup
+
+Run these commands to confirm everything works:
+
+```bash
+# 1. Check skills installed
+which gh && echo "✅ GitHub CLI ready"
+which jq && echo "✅ jq ready"
+which rg && echo "✅ ripgrep ready"
+
+# 2. Check GitHub auth
+gh auth status && echo "✅ GitHub authenticated"
+
+# 3. Test a simple command
+gh repo list --limit 3 && echo "✅ GitHub API working"
+```
+
+**What success looks like:**
+```
+✅ GitHub CLI ready
+✅ jq ready
+✅ ripgrep ready
+✓ Logged in to github.com as yourusername
+✅ GitHub authenticated
+owner/repo1
+owner/repo2
+owner/repo3
+✅ GitHub API working
+```
 
 ## Your First Win (5 minutes)
 

@@ -1,0 +1,19 @@
+{
+  "name": "weekly-planning",
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 9 * * 0",
+    "tz": "America/New_York"
+  },
+  "sessionTarget": "isolated",
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Weekly planning preview: Show next week's calendar with busy days highlighted. Flag any conflicts. Suggest 2-3 focus blocks I should protect. Save to weekly/YYYY-MM-DD-plan.md",
+    "timeoutSeconds": 240
+  },
+  "delivery": {
+    "mode": "announce"
+  },
+  "enabled": false,
+  "_note": "Sundays at 9 AM — week ahead planning"
+}

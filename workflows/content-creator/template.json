@@ -1,24 +1,19 @@
 {
   "name": "content-creator",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "Content Creator",
   "description": "Social media, podcasts, video workflows, automated posting",
   "emoji": "📱",
   "author": "OpenClaw Team",
-  "skills": [
-    "summarize",
-    "video-frames",
-    "gifgrep",
-    "openai-whisper-api",
-    "nano-banana-pro",
-    "weather",
-    "x-research-skill",
-    "tts"
-  ],
-  "optionalSkills": [
-    "peekaboo",
-    "wacli"
-  ],
+  "skills": {
+    "external": ["summarize", "gifgrep"],
+    "builtin": ["web_search", "web_fetch", "tts", "image"],
+    "_note": "External skills are installed via brew. Built-in tools are available automatically."
+  },
+  "optionalSkills": {
+    "external": ["peekaboo", "wacli"],
+    "requiresApiKey": ["openai-whisper-api"]
+  },
   "crons": [
     "content-ideas",
     "trend-monitor",

@@ -1,0 +1,19 @@
+{
+  "name": "engagement-check",
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 18 * * *",
+    "tz": "America/New_York"
+  },
+  "sessionTarget": "isolated",
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Quick engagement summary for today: What content performed well? Any notable mentions or replies to respond to? Keep it brief — 3-5 bullet points max.",
+    "timeoutSeconds": 180
+  },
+  "delivery": {
+    "mode": "announce"
+  },
+  "enabled": false,
+  "_note": "Daily at 6 PM — reviews engagement metrics"
+}

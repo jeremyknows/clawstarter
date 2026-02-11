@@ -1,0 +1,19 @@
+{
+  "name": "calendar-reminder",
+  "schedule": {
+    "kind": "every",
+    "everyMs": 900000,
+    "_note": "15 minutes"
+  },
+  "sessionTarget": "isolated",
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Check if there's a meeting starting in the next 15-20 minutes. If yes, alert with title and any prep notes. If no, reply 'No upcoming meetings'.",
+    "timeoutSeconds": 60
+  },
+  "delivery": {
+    "mode": "announce"
+  },
+  "enabled": false,
+  "_note": "Every 15 min — alerts on upcoming meetings"
+}

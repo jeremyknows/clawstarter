@@ -2,6 +2,14 @@
 
 Welcome! This template gives you an AI assistant optimized for content creation. Let's get you productive in 5 minutes.
 
+## Prerequisites
+
+Before you start, make sure you have:
+- ✅ **macOS** (these templates are Mac-specific)
+- ✅ **Homebrew** installed ([get it here](https://brew.sh) if not)
+- ✅ **OpenClaw** running (gateway started)
+- ✅ **Basic terminal comfort** (copy/paste commands)
+
 ## Quick Setup (2 minutes)
 
 ### 1. Install Skills
@@ -23,6 +31,31 @@ export OPENAI_API_KEY="your-key"
 ### 3. Copy Agent Instructions
 ```bash
 cp ~/Downloads/openclaw-setup/workflows/content-creator/AGENTS.md ~/.openclaw/workspace/
+```
+
+## ✅ Verify Your Setup
+
+Run these commands to confirm everything works:
+
+```bash
+# 1. Check skills installed
+which gifgrep && echo "✅ gifgrep ready"
+which summarize && echo "✅ summarize ready"
+
+# 2. Verify API key (for summarize)
+[ -n "$GEMINI_API_KEY" ] || [ -n "$OPENAI_API_KEY" ] && echo "✅ API key set" || echo "⚠️ No API key - summarize won't work"
+
+# 3. Check workspace folders
+ls ~/.openclaw/workspace/content/ && echo "✅ Folders created"
+```
+
+**What success looks like:**
+```
+✅ gifgrep ready
+✅ summarize ready
+✅ API key set
+ideas  drafts  published  analytics
+✅ Folders created
 ```
 
 ## Your First Win (3 minutes)

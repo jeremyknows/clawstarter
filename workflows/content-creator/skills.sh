@@ -58,9 +58,41 @@ echo "  For image generation (nano-banana-pro):"
 echo "    Uses your main AI provider (OpenRouter/Anthropic)"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+# Create workspace folders
+echo ""
+echo -e "${GREEN}Creating workspace folders...${NC}"
+WORKSPACE="$HOME/.openclaw/workspace"
+mkdir -p "$WORKSPACE/content/ideas"
+mkdir -p "$WORKSPACE/content/drafts"
+mkdir -p "$WORKSPACE/content/published"
+mkdir -p "$WORKSPACE/content/analytics"
+mkdir -p "$WORKSPACE/images/$(date +%Y-%m)"
+mkdir -p "$WORKSPACE/transcripts"
+echo "  ✓ Created content/, images/, transcripts/"
+
+# Verify installations
+echo ""
+echo -e "${CYAN}Verifying installations...${NC}"
+command -v gifgrep >/dev/null && echo "  ✅ gifgrep" || echo "  ❌ gifgrep FAILED"
+command -v ffmpeg >/dev/null && echo "  ✅ ffmpeg (video-frames)" || echo "  ❌ ffmpeg FAILED"
+command -v summarize >/dev/null && echo "  ✅ summarize" || echo "  ❌ summarize FAILED"
+
+# Check API keys
+echo ""
+if [ -z "$GEMINI_API_KEY" ] && [ -z "$OPENAI_API_KEY" ]; then
+    echo -e "${YELLOW}⚠️  No API keys detected for summarize skill${NC}"
+    echo "   Set one of these in ~/.zshrc:"
+    echo "   export GEMINI_API_KEY=\"your-key\"  # Free tier available"
+    echo "   export OPENAI_API_KEY=\"your-key\""
+else
+    echo -e "  ✅ API key configured"
+fi
+
 echo ""
 echo -e "${GREEN}🎉 Ready! Try asking your agent:${NC}"
-echo "  • \"Summarize this video: [URL]\""
+echo "  • \"Summarize this video: https://youtu.be/dQw4w9WgXcQ\""
 echo "  • \"Find me a 'mind blown' GIF\""
 echo "  • \"Generate an image of a sunset over mountains\""
+echo ""
+echo -e "${CYAN}📁 Workspace folders created at:${NC} $WORKSPACE"
 echo ""

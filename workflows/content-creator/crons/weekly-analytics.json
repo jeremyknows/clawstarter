@@ -1,0 +1,19 @@
+{
+  "name": "weekly-analytics",
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 9 * * 0",
+    "tz": "America/New_York"
+  },
+  "sessionTarget": "isolated",
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Weekly content analytics report: Top performing content, growth trends, audience insights. What should I focus on next week? Save to content/analytics/week-of-YYYY-MM-DD.md",
+    "timeoutSeconds": 300
+  },
+  "delivery": {
+    "mode": "announce"
+  },
+  "enabled": false,
+  "_note": "Sundays at 9 AM — weekly performance review"
+}
