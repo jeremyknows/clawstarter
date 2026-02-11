@@ -66,12 +66,8 @@ readonly CACHE_DIR="$HOME/.openclaw/cache/templates"
 readonly VERIFICATION_LOG="$HOME/.openclaw/logs/template-verification.log"
 
 declare -A TEMPLATE_CHECKSUMS=(
-    ["workflows/content-creator/AGENTS.md"]="1d8513f149d635f69f5475da2861a896add0b30824374a4782ceabdc5ae09448"
-    ["workflows/content-creator/GETTING-STARTED.md"]="c73f1514e26a1912f8df5403555b051707b81629548de74278e6cd0d443a54d7"
-    ["workflows/workflow-optimizer/AGENTS.md"]="da75bbf0ab2d34da0351228290708bb704cad9937f0746f4f1bc94c19ae55019"
-    ["workflows/workflow-optimizer/GETTING-STARTED.md"]="b6af4dae46415ea455be3b8a9ea0a9d1808758a2d3ebd5b4382a614be6a00104"
-    ["workflows/app-builder/AGENTS.md"]="efebf563c01c50d452db6e09440a9c4bea8630702eaaaceb534ae78956c12f0e"
-    ["workflows/app-builder/GETTING-STARTED.md"]="0aa9079a39b50747dbf35b0147fe82cdf18eaa3ddc469d36d45f457edbdeafd0"
+    ["templates/workspace/AGENTS.md"]="placeholder"
+    ["templates/workspace/SOUL.md"]="placeholder"
 )
 
 # ─── Colors ───
