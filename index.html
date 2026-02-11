@@ -782,14 +782,23 @@
   <h1>Your Personal AI.<br><span class="mint-text">Running on Your Mac.</span></h1>
   <p class="subheadline">Set up in 30 minutes. No coding required.</p>
   <div class="hero-actions">
-    <a href="#download" class="cta-primary">
-      <span>Download Now</span>
+    <a href="#get-started" class="cta-primary">
+      <span>Get Started</span>
       <span class="arrow">&rarr;</span>
     </a>
-    <a href="#how-it-works" class="cta-secondary">See How It Works</a>
+    <a href="#how-it-works" class="cta-secondary">Watch Video</a>
   </div>
   <div class="video-placeholder">
-    <div class="play-icon">&#9654;</div>
+    <video 
+      controls 
+      poster="" 
+      style="width: 100%; height: 100%; object-fit: cover;"
+      preload="metadata"
+    >
+      <source src="welcome-to-clawstarter-video.MOV" type="video/quicktime">
+      <source src="welcome-to-clawstarter-video.mp4" type="video/mp4">
+      Your browser doesn't support video playback.
+    </video>
   </div>
 </section>
 
@@ -963,13 +972,31 @@
   </div>
 </div>
 
+<!-- Get Started -->
+<div class="steps-section reveal" id="get-started">
+  <h2>Installation</h2>
+  <div style="max-width: 720px; margin: 0 auto;">
+    <div class="bento-step" style="background: var(--bg-raised); border: 2px solid var(--accent-muted); margin-bottom: var(--sp-6);">
+      <h3 style="margin-bottom: var(--sp-4);">Run this command in Terminal:</h3>
+      <pre style="background: var(--bg-base); padding: var(--sp-4); border-radius: var(--r-md); overflow-x: auto; font-family: var(--font-mono); font-size: 13px; color: var(--accent); border: 1px solid var(--border);">curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash</pre>
+      <p style="margin-top: var(--sp-4); font-size: 14px; color: var(--text-tertiary);">Copy and paste into Terminal, press Enter. The script will guide you through setup.</p>
+    </div>
+    <div style="text-align: center;">
+      <a href="openclaw-quickstart-v2.sh" class="cta-secondary" download style="display: inline-flex;">
+        <span>Or download the script manually</span>
+        <span>&darr;</span>
+      </a>
+    </div>
+  </div>
+</div>
+
 <!-- CTA Banner -->
 <div class="cta-section reveal" id="download">
   <div class="cta-banner">
     <h2>Ready to Try It?</h2>
     <p>Download the setup package. You&rsquo;ll have your AI running in 30 minutes.</p>
-    <a href="openclaw-setup.zip" class="cta-primary" download>
-      <span>Download OpenClaw Setup</span>
+    <a href="openclaw-quickstart-v2.sh" class="cta-primary" download>
+      <span>Download Setup Script</span>
       <span class="arrow">&darr;</span>
     </a>
     <p class="system-reqs">macOS 13+ &middot; Apple Silicon or Intel &middot; Free</p>
