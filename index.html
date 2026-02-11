@@ -984,17 +984,19 @@
   <h2>Installation</h2>
   <div style="max-width: 720px; margin: 0 auto;">
     <div class="installation-hero">
-      <h3>1. Open Terminal</h3>
+      <h3>1. Copy this command</h3>
+      <div style="text-align: center; margin: var(--sp-4) 0;">
+        <button onclick="copyInstallCommand()" class="btn-copy" id="copyBtn">
+          <span id="copyBtnText">📋 Copy to Clipboard</span>
+        </button>
+      </div>
+      <pre>curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash</pre>
+      
+      <h3 style="margin-top: var(--sp-6);">2. Open Terminal</h3>
       <p style="margin-bottom: var(--sp-4);">Hold <kbd>Command (⌘)</kbd> and press <kbd>Space</kbd>, type "Terminal", press Enter</p>
       
-      <h3>2. Run this command:</h3>
-      <pre>curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash</pre>
-    </div>
-    <div style="text-align: center; margin-top: var(--sp-4);">
-      <button onclick="copyInstallCommand()" class="btn-copy" id="copyBtn">
-        <span id="copyBtnText">📋 Copy to Clipboard</span>
-      </button>
-      <p style="margin-top: var(--sp-3); font-size: 14px; color: var(--text-secondary);">Click to copy, then paste into Terminal (hold <kbd>Command (⌘)</kbd> and press <kbd>V</kbd>)</p>
+      <h3>3. Paste and run</h3>
+      <p>In Terminal, hold <kbd>Command (⌘)</kbd> and press <kbd>V</kbd> to paste, then press <kbd>Enter</kbd></p>
     </div>
   </div>
 </div>
