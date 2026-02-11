@@ -509,3 +509,48 @@ cat ~/.npm-global/lib/node_modules/openclaw/skills/weather/SKILL.md
 ```
 
 For questions, check the main OpenClaw documentation or ask your agent: "How do I use the [skill name] skill?"
+
+---
+
+## 🎉 Joy Pack — Make It Delightful
+
+These skills aren't essential, but they make people go "WHOA":
+
+### 🎨 Image Generation (nano-banana-pro)
+**Joy factor:** "Watson, draw me a lobster wearing a bowler hat"
+
+```bash
+# Requires Gemini API key (free tier available)
+# Add GEMINI_API_KEY to your environment
+```
+
+**Try it:**
+> "Generate an image of a cozy coffee shop in the rain"
+
+### 🔊 Text-to-Speech (sag)
+**Joy factor:** Hear Watson speak out loud!
+
+```bash
+brew install steipete/tap/sag
+# Requires ElevenLabs API key
+```
+
+**Try it:**
+> "Say 'Good morning! Your coffee is ready.' out loud"
+
+### 🎵 Spotify Control (spotify-player)
+**Joy factor:** "Play something chill while I work"
+
+```bash
+brew install spogo
+# Requires Spotify Premium
+```
+
+**Try it:**
+> "Play some lo-fi beats"
+> "Skip this song"
+> "What's playing?"
+
+---
+
+*Joy skills are optional but they're what makes people show their friends.*
