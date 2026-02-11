@@ -67,12 +67,25 @@ When drafting posts:
 | Tool | Purpose |
 |------|---------|
 | summarize | Transcribe/summarize videos, articles, podcasts |
-| video-frames | Extract frames from video for thumbnails |
 | gifgrep | Find reaction GIFs for social posts |
-| openai-whisper-api | Fast audio transcription |
-| nano-banana-pro | AI image generation |
-| x-research | Monitor X trends and conversations |
-| tts | Voice content for audio posts |
+| tts | Voice content for audio posts (built-in) |
+| image | AI image generation (built-in) |
+| web_search | Research topics (built-in) |
+
+## Research Skills
+
+| Skill | When to Use |
+|-------|-------------|
+| **x-research-skill** | Research X/Twitter for trends, takes, discourse |
+| **brainstorming** | Before creating content — explore angles |
+
+**For X/Twitter research:** Use the x-research-skill to find:
+- What people are saying about a topic
+- Trending takes and hot discussions
+- Expert opinions and dev discourse
+- Cultural moments to reference
+
+**For transcription:** Use openai-whisper-api skill or summarize for YouTube.
 
 ## Daily Rhythms
 

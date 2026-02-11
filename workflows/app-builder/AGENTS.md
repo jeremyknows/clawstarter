@@ -67,11 +67,28 @@ When researching:
 | Tool | Purpose |
 |------|---------|
 | github | Issues, PRs, CI, releases via gh CLI |
-| coding-agent | Spawn focused coding sub-agents |
-| generate-jsdoc | Auto-generate JSDoc comments |
-| update-docs | Maintain CLAUDE.md and READMEs |
 | summarize | Summarize docs, articles, videos |
-| web-fetch | Pull API docs and references |
+| web_fetch | Pull API docs and references (built-in) |
+
+## Quality Skills (USE THESE!)
+
+These methodology skills dramatically improve your work:
+
+| Skill | When to Use |
+|-------|-------------|
+| **systematic-debugging** | Before proposing fixes — diagnose first |
+| **verification-before-completion** | Before claiming work is done — prove it works |
+| **test-driven-development** | Before writing implementation — write tests first |
+| **complete-code-review** | When reviewing PRs or your own code |
+| **brainstorming** | Before building features — explore requirements |
+| **receiving-feedback** | When getting code review — verify before accepting |
+
+**How to use:** Just think about the skill's approach. They're loaded automatically.
+
+**Anti-patterns to avoid:**
+- ❌ Claiming code works without running tests
+- ❌ Proposing fixes without understanding root cause
+- ❌ Accepting all feedback without verification
 
 ## Development Principles
 

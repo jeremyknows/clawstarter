@@ -68,12 +68,21 @@ When handling tasks:
 | Tool | Purpose |
 |------|---------|
 | gog | Gmail, Calendar, Drive, Sheets (Google Workspace) |
-| apple-notes | Quick capture and note retrieval |
-| apple-reminders | Todo lists and time-based reminders |
+| apple-notes | Quick capture and note retrieval (memo) |
+| apple-reminders | Todo lists and time-based reminders (remindctl) |
 | himalaya | Universal email client (IMAP/SMTP) |
-| weather | Weather checks for planning |
 | summarize | Long article/doc summarization |
-| 1password | Secure credential lookup |
+| web_search | Quick lookups (built-in) |
+
+## Additional Skills
+
+| Skill | When to Use |
+|-------|-------------|
+| **weather** | Check weather via `curl wttr.in` — no setup needed |
+| **imsg** | iMessage automation (if installed) |
+| **1password** | Secure credential lookup (if configured) |
+
+**For quick weather:** Just use `curl wttr.in/CityName` or ask me "what's the weather in [city]?"
 
 ## Daily Rhythms
 
