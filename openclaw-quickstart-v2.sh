@@ -27,6 +27,15 @@
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
+# ─── Parse Arguments ───
+AUTO_YES=false
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -y|--yes) AUTO_YES=true; shift ;;
+        *) shift ;;
+    esac
+done
+
 # ─── Constants ───
 readonly SCRIPT_VERSION="2.6.0-secure"
 readonly MIN_NODE_VERSION="22"
@@ -781,10 +790,22 @@ prompt_validated() {
 }
 
 confirm() {
+    # Auto-accept if -y flag was passed
+    if [ "$AUTO_YES" = true ]; then
+        return 0
+    fi
+    
     local question="$1"
     local response
     echo -en "\n  ${CYAN}?${NC} ${question} [y/N]: "
-    read -r response
+    
+    # Read from /dev/tty to work with curl | bash
+    if [ -t 0 ]; then
+        read -r response
+    else
+        read -r response < /dev/tty 2>/dev/null || return 1
+    fi
+    
     case "$response" in
         [yY]|[yY][eE][sS]) return 0 ;;
         *) return 1 ;;
