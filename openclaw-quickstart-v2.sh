@@ -65,10 +65,13 @@ readonly TEMPLATE_BASE_URL="https://raw.githubusercontent.com/jeremyknows/clawst
 readonly CACHE_DIR="$HOME/.openclaw/cache/templates"
 readonly VERIFICATION_LOG="$HOME/.openclaw/logs/template-verification.log"
 
+# Temporarily disable -u for associative array with / in keys (bash 3.2 compat)
+set +u
 declare -A TEMPLATE_CHECKSUMS=(
     ["templates/workspace/AGENTS.md"]="placeholder"
     ["templates/workspace/SOUL.md"]="placeholder"
 )
+set -u
 
 # ─── Colors ───
 GREEN='\033[0;32m'
