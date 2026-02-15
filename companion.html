@@ -97,8 +97,8 @@
 
     --text-primary: hsl(172, 15%, 15%);
     --text-heading: hsl(172, 20%, 8%);
-    --text-secondary: hsl(170, 8%, 42%);
-    --text-tertiary: hsl(170, 6%, 62%);
+    --text-secondary: hsl(170, 8%, 38%);
+    --text-tertiary: hsl(170, 6%, 48%);
 
     --accent: hsl(168, 72%, 36%);
     --accent-hover: hsl(168, 72%, 30%);
@@ -478,8 +478,8 @@
 
   .checklist-item input[type="checkbox"] {
     margin-top: 2px;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     cursor: pointer;
     accent-color: var(--accent);
   }
@@ -693,6 +693,8 @@
     padding: var(--sp-4);
     margin: var(--sp-4) 0;
     position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .command-block code {
@@ -1112,16 +1114,6 @@
     }
   }
   
-  /* Command blocks: prevent overflow */
-  .command-block {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .command-block code {
-    word-break: break-word;
-  }
-
   /* Download disclaimer modal: mobile fixes */
   @media (max-width: 480px) {
     #download-disclaimer-modal > div {
