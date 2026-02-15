@@ -1630,6 +1630,23 @@
             <li>Regenerate if exposed: <code>openclaw doctor --generate-gateway-token</code></li>
           </ul>
         </div>
+        
+        <details style="margin-top: var(--sp-4);">
+          <summary style="cursor: pointer; font-weight: 600; color: var(--accent);">🔒 Want additional security for API keys?</summary>
+          <div style="margin-top: var(--sp-3); padding-left: var(--sp-4); border-left: 2px solid var(--border); font-size: 14px;">
+            <p><strong>Current setup:</strong> Your API keys are stored in the LaunchAgent (as environment variables) and cached in <code>openclaw.json</code> for performance. File permissions (<code>chmod 600</code>) protect them, but they're readable if someone gets access to your account.</p>
+            
+            <p style="margin-top: var(--sp-3);"><strong>Enhanced security options:</strong></p>
+            <ul style="margin-left: var(--sp-4); margin-top: var(--sp-2); line-height: 1.8;">
+              <li><strong>macOS Keychain:</strong> Store keys in the system Keychain (encrypted, requires user password)</li>
+              <li><strong>1Password CLI:</strong> Reference keys like <code>op://vault/item/field</code> (never written to disk)</li>
+            </ul>
+            
+            <p style="margin-top: var(--sp-3);">Both methods are covered in <strong>Foundation Playbook Phase 1</strong> (included in the download). Setup takes ~5 minutes and eliminates plaintext credential storage.</p>
+            
+            <p style="margin-top: var(--sp-3); color: var(--text-secondary);"><em>For most personal use cases, the default setup is sufficient. Consider upgrading if you're handling sensitive data or deploying on a shared machine.</em></p>
+          </div>
+        </details>
       </div>
 
       <h3 style="font-size: 20px; margin-bottom: var(--sp-4); margin-top: var(--sp-8);">Try your first prompt:</h3>
