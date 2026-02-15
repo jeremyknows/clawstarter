@@ -1065,6 +1065,27 @@
       font-size: 16px;
     }
   }
+
+  /* Mobile optimizations for new features */
+  @media (max-width: 480px) {
+    #download-disclaimer-modal > div {
+      padding: var(--sp-6);
+      margin: var(--sp-3);
+    }
+    
+    #download-disclaimer-modal h3 {
+      font-size: 20px;
+    }
+    
+    .discord-cta-btn {
+      width: 100%;
+      text-align: center;
+    }
+    
+    .command-block code {
+      font-size: 13px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1331,7 +1352,7 @@
             You're about to embark on a wonderful journey designing your personal AI agent!
           </p>
           <p style="margin-bottom: var(--sp-6); color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
-            Just so you know: AI agent technology is still experimental and comes with various associated risks. Your bot will have access to tools on your computer — that's what makes it powerful, but also why we recommend the security practices in this guide.
+            AI agent technology is experimental. Your bot will have access to your computer — that's what makes it powerful, but also why we recommend the security practices in this guide.
           </p>
           <label style="display: flex; align-items: center; justify-content: center; gap: var(--sp-3); margin-bottom: var(--sp-6); cursor: pointer;">
             <input type="checkbox" id="disclaimer-checkbox" onchange="updateDownloadButton()" style="width: 20px; height: 20px; cursor: pointer;">
@@ -1676,8 +1697,8 @@
       <div class="instruction info" style="margin-top: var(--sp-6); background: linear-gradient(135deg, rgba(88, 101, 242, 0.15), rgba(88, 101, 242, 0.05)); border-left-color: #5865F2;">
         <div class="instruction-title" style="color: #5865F2;">💬 Join the OpenClaw Community</div>
         <p style="margin-bottom: var(--sp-4);">Get help, share tips, and connect with other OpenClaw users!</p>
-        <a href="https://discord.gg/UCjDDjNcZq" target="_blank" class="btn btn-primary" style="background: #5865F2; border-color: #5865F2;">
-          Join Discord Server →
+        <a href="https://discord.gg/UCjDDjNcZq" target="_blank" class="btn btn-primary discord-cta-btn" style="background: #5865F2; border-color: #5865F2;">
+          Join Discord →
         </a>
       </div>
 
@@ -1688,18 +1709,21 @@
       </div>
       <p style="margin-top: var(--sp-2); color: var(--text-secondary); font-size: 14px;">This tells your bot to read the personalization file and ask you questions to learn who you are and how to help you.</p>
 
+      <h3 style="font-size: 20px; margin-bottom: var(--sp-2); margin-top: var(--sp-8);">Add a chat channel</h3>
+      <p style="margin-bottom: var(--sp-4); color: var(--text-secondary); font-size: 14px;">Paste these prompts into your bot's chat (the web dashboard you just opened):</p>
+
       <div class="expandable">
         <div class="expandable-item">
           <div class="expandable-header" onclick="toggleExpandable(this)">
-            <div class="expandable-title">💬 Add Discord channel (recommended)</div>
+            <div class="expandable-title">💬 Add Discord channel (best for desktop)</div>
             <span class="expandable-icon">▸</span>
           </div>
           <div class="expandable-content">
             <div class="expandable-body">
               <p>Want to chat with your bot via Discord? Copy this message and paste it into your bot's chat:</p>
               <div class="command-block">
-                <button class="btn-copy" onclick="copyCommand(this, 'Help me set up Discord. I want to chat with you on Discord instead of the web dashboard.')" aria-label="Copy Discord setup request">Copy</button>
-                <code>Help me set up Discord. I want to chat with you on Discord instead of the web dashboard.</code>
+                <button class="btn-copy" onclick="copyCommand(this, 'Help me set up Discord so I can chat with you instead of using the web dashboard.')" aria-label="Copy Discord setup request">Copy</button>
+                <code>Help me set up Discord so I can chat with you instead of using the web dashboard.</code>
               </div>
               <p style="margin-top: var(--sp-3);">Your bot will walk you through the setup step-by-step. Takes about 10 minutes.</p>
             </div>
@@ -1708,15 +1732,15 @@
 
         <div class="expandable-item">
           <div class="expandable-header" onclick="toggleExpandable(this)">
-            <div class="expandable-title">📱 Add Telegram (fastest mobile setup)</div>
+            <div class="expandable-title">📱 Add Telegram (fastest setup, works everywhere)</div>
             <span class="expandable-icon">▸</span>
           </div>
           <div class="expandable-content">
             <div class="expandable-body">
               <p>Chat with your bot from your phone via Telegram. Copy this message and paste it into your bot's chat:</p>
               <div class="command-block">
-                <button class="btn-copy" onclick="copyCommand(this, 'Help me set up Telegram. I want to chat with you from my phone.')" aria-label="Copy Telegram setup request">Copy</button>
-                <code>Help me set up Telegram. I want to chat with you from my phone.</code>
+                <button class="btn-copy" onclick="copyCommand(this, 'Help me set up Telegram so I can chat with you from anywhere.')" aria-label="Copy Telegram setup request">Copy</button>
+                <code>Help me set up Telegram so I can chat with you from anywhere.</code>
               </div>
               <p style="margin-top: var(--sp-3);">Just needs a BotFather token — takes about 5 minutes.</p>
             </div>
@@ -1725,15 +1749,15 @@
 
         <div class="expandable-item">
           <div class="expandable-header" onclick="toggleExpandable(this)">
-            <div class="expandable-title">🍎 Add iMessage (Apple users)</div>
+            <div class="expandable-title">🍎 Add iMessage (Mac, iPhone, iPad)</div>
             <span class="expandable-icon">▸</span>
           </div>
           <div class="expandable-content">
             <div class="expandable-body">
               <p>Chat with your bot via iMessage on your Mac, iPhone, or iPad. Copy this message and paste it into your bot's chat:</p>
               <div class="command-block">
-                <button class="btn-copy" onclick="copyCommand(this, 'Help me set up iMessage. I want to chat with you from my iPhone.')" aria-label="Copy iMessage setup request">Copy</button>
-                <code>Help me set up iMessage. I want to chat with you from my iPhone.</code>
+                <button class="btn-copy" onclick="copyCommand(this, 'Help me set up iMessage so I can text you from my Apple devices.')" aria-label="Copy iMessage setup request">Copy</button>
+                <code>Help me set up iMessage so I can text you from my Apple devices.</code>
               </div>
               <p style="margin-top: var(--sp-3);">Requires macOS permissions setup — takes about 15 minutes.</p>
             </div>
