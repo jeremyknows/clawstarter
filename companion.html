@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Step-by-step companion guide for setting up OpenClaw on your Mac. Walk through the Terminal install process with detailed guidance.">
+<title>ClawStarter Companion - Your OpenClaw Setup Guide</title>
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://clawstarter.xyz/companion">
+<meta property="og:title" content="ClawStarter Companion - Your OpenClaw Setup Guide">
+<meta property="og:description" content="Step-by-step companion guide for setting up OpenClaw. Walk through the Terminal install process with detailed guidance.">
+<meta property="og:image" content="https://clawstarter.xyz/clawstarter-video-thumbnail.png">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://clawstarter.xyz/companion">
+<meta property="twitter:title" content="ClawStarter Companion - Your OpenClaw Setup Guide">
+<meta property="twitter:description" content="Step-by-step companion guide for setting up OpenClaw on your Mac.">
+<meta property="twitter:image" content="https://clawstarter.xyz/clawstarter-video-thumbnail.png">
+
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     RESET
+     ══════════════════════════════════════════════════════════ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { min-height: 100vh; overflow-x: hidden; }
+
+  /* ═══════════════════════════════════════════════════════════
+     DESIGN TOKENS — Glacial Depths Palette (EXACT match)
+     ══════════════════════════════════════════════════════════ */
+  :root {
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-6: 24px;
+    --sp-8: 32px;
+    --sp-12: 48px;
+    --sp-16: 64px;
+
+    --font-display: 'DM Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Space Mono', ui-monospace, monospace;
+
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 16px;
+    --r-xl: 24px;
+    --r-pill: 100px;
+
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  [data-theme="dark"] {
+    --bg-base: hsl(172, 12%, 6%);
+    --bg-raised: hsl(172, 10%, 9%);
+    --bg-card: hsl(172, 8%, 12%);
+    --bg-card-hover: hsl(172, 8%, 14%);
+    --bg-nav: hsla(172, 12%, 6%, 0.92);
+
+    --text-primary: hsl(168, 15%, 92%);
+    --text-heading: hsl(165, 20%, 96%);
+    --text-secondary: hsl(170, 8%, 62%);
+    --text-tertiary: hsl(170, 6%, 42%);
+    --text-emphasis: hsl(168, 20%, 98%);
+    --text-code: hsl(168, 76%, 62%);
+
+    --accent: hsl(168, 76%, 52%);
+    --accent-hover: hsl(168, 76%, 62%);
+    --accent-muted: hsl(168, 40%, 22%);
+    --accent-subtle: hsl(168, 30%, 14%);
+    --accent-text: hsl(172, 30%, 6%);
+    --accent-glow: hsla(168, 76%, 52%, 0.25);
+
+    --border: hsl(170, 6%, 18%);
+    --border-subtle: hsl(170, 6%, 14%);
+    --border-accent: hsl(168, 40%, 28%);
+
+    --shadow-sm: 0 2px 4px hsla(172, 20%, 2%, 0.3), 0 1px 2px hsla(172, 20%, 2%, 0.2);
+    --shadow-md: 0 4px 8px hsla(172, 20%, 2%, 0.3), 0 2px 4px hsla(172, 20%, 2%, 0.2);
+    --shadow-lg: 0 12px 24px hsla(172, 20%, 2%, 0.4), 0 4px 8px hsla(172, 20%, 2%, 0.2);
+    --shadow-glow: 0 0 48px hsla(168, 76%, 52%, 0.15), 0 0 16px hsla(168, 76%, 52%, 0.1);
+  }
+
+  [data-theme="light"] {
+    --bg-base: hsl(168, 20%, 97%);
+    --bg-raised: hsl(168, 15%, 94%);
+    --bg-card: hsl(168, 10%, 99%);
+    --bg-card-hover: hsl(168, 12%, 96%);
+    --bg-nav: hsla(168, 20%, 97%, 0.92);
+
+    --text-primary: hsl(172, 15%, 15%);
+    --text-heading: hsl(172, 20%, 8%);
+    --text-secondary: hsl(170, 8%, 42%);
+    --text-tertiary: hsl(170, 6%, 62%);
+
+    --accent: hsl(168, 72%, 36%);
+    --accent-hover: hsl(168, 72%, 30%);
+    --accent-muted: hsl(168, 30%, 82%);
+    --accent-subtle: hsl(168, 25%, 92%);
+    --accent-text: hsl(0, 0%, 99%);
+    --accent-glow: hsla(168, 72%, 36%, 0.12);
+
+    --border: hsl(170, 8%, 86%);
+    --border-subtle: hsl(170, 8%, 90%);
+    --border-accent: hsl(168, 30%, 72%);
+
+    --shadow-sm: 0 2px 4px hsla(172, 10%, 30%, 0.08), 0 1px 2px hsla(172, 10%, 30%, 0.04);
+    --shadow-md: 0 4px 8px hsla(172, 10%, 30%, 0.1), 0 2px 4px hsla(172, 10%, 30%, 0.06);
+    --shadow-lg: 0 12px 24px hsla(172, 10%, 30%, 0.12), 0 4px 8px hsla(172, 10%, 30%, 0.06);
+    --shadow-glow: 0 0 48px hsla(168, 72%, 36%, 0.1), 0 0 16px hsla(168, 72%, 36%, 0.06);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     BASE TYPOGRAPHY
+     ══════════════════════════════════════════════════════════ */
+  body {
+    font-family: var(--font-display);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--bg-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    color: var(--text-heading);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ANIMATIONS
+     ══════════════════════════════════════════════════════════ */
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes progress-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     STICKY PROGRESS HEADER
+     ══════════════════════════════════════════════════════════ */
+  .progress-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--bg-nav);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: var(--sp-4) var(--sp-6);
+  }
+
+  .progress-container {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+  }
+
+  .progress-step {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    opacity: 0.5;
+    transition: opacity 0.3s, color 0.3s;
+  }
+
+  .progress-step.active {
+    opacity: 1;
+    color: var(--accent);
+  }
+
+  .progress-step.completed {
+    opacity: 1;
+    color: var(--text-secondary);
+  }
+
+  .progress-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    transition: background 0.3s, transform 0.3s;
+  }
+
+  .progress-step.active .progress-dot {
+    background: var(--accent);
+    animation: progress-pulse 2s ease-in-out infinite;
+  }
+
+  .progress-step.completed .progress-dot {
+    background: var(--text-secondary);
+  }
+
+  .progress-arrow {
+    color: var(--border);
+    font-size: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .progress-step span:not(.progress-dot) {
+      display: none;
+    }
+    .progress-arrow {
+      display: none;
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     NAVIGATION
+     ══════════════════════════════════════════════════════════ */
+  nav {
+    padding: 0 var(--sp-6);
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-heading);
+    text-decoration: none;
+  }
+
+  .logo-icon { 
+    width: 28px; 
+    height: 28px; 
+    object-fit: contain;
+  }
+
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.25s, color 0.25s, background 0.25s;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-subtle);
+  }
+
+  /* Focus indicators for accessibility */
+  .theme-toggle:focus-visible,
+  .btn:focus-visible,
+  .accordion-header:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     CONTAINER
+     ══════════════════════════════════════════════════════════ */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 var(--sp-6);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     HERO SECTION
+     ══════════════════════════════════════════════════════════ */
+  .hero {
+    padding: var(--sp-12) 0 var(--sp-16);
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 48px);
+    margin-bottom: var(--sp-3);
+  }
+
+  .mint-text {
+    background: linear-gradient(135deg, var(--accent), hsl(190, 65%, 55%), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: clamp(16px, 2vw, 20px);
+    color: var(--text-secondary);
+    margin-bottom: var(--sp-8);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     SECTION
+     ══════════════════════════════════════════════════════════ */
+  section {
+    padding: var(--sp-8) 0;
+  }
+
+  section h2 {
+    font-size: clamp(24px, 3vw, 32px);
+    margin-bottom: var(--sp-6);
+  }
+
+  section h3 {
+    font-size: clamp(20px, 2.5vw, 24px);
+    margin-bottom: var(--sp-4);
+  }
+
+  .section-intro {
+    font-size: 18px;
+    color: var(--text-secondary);
+    margin-bottom: var(--sp-8);
+    line-height: 1.7;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     CHECKLIST
+     ══════════════════════════════════════════════════════════ */
+  .checklist {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--sp-6);
+    margin-bottom: var(--sp-8);
+  }
+
+  .checklist h3 {
+    font-size: 20px;
+    margin-bottom: var(--sp-4);
+    color: var(--accent);
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-3);
+    padding: var(--sp-3);
+    border-radius: var(--r-md);
+    transition: background 0.2s;
+  }
+
+  .checklist-item:hover {
+    background: var(--bg-card-hover);
+  }
+
+  .checklist-item label {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    cursor: pointer;
+    flex: 1;
+  }
+
+  .checklist-item input[type="checkbox"] {
+    margin-top: 2px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+
+  .checklist-item input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .checklist-item-text {
+    flex: 1;
+  }
+
+  .checklist-item strong {
+    color: var(--text-heading);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     PATH SELECTION
+     ══════════════════════════════════════════════════════════ */
+  .path-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-8);
+  }
+
+  @media (max-width: 768px) {
+    .path-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .path-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--sp-6);
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    position: relative;
+  }
+
+  .path-card.recommended::before {
+    content: '⭐ Recommended';
+    position: absolute;
+    top: -12px;
+    right: var(--sp-4);
+    background: var(--accent);
+    color: var(--accent-text);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: var(--r-pill);
+  }
+
+  .path-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .path-card h3 {
+    font-size: 22px;
+    margin-bottom: var(--sp-3);
+  }
+
+  .path-meta {
+    display: flex;
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-4);
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+
+  .path-card p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--sp-4);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     BUTTON
+     ══════════════════════════════════════════════════════════ */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4) var(--sp-6);
+    font-size: 16px;
+    font-weight: 600;
+    font-family: var(--font-display);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s, background 0.25s;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-text);
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-subtle);
+  }
+
+  .btn-large {
+    padding: var(--sp-6) var(--sp-12);
+    font-size: 18px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     TERMINAL PREVIEW
+     ══════════════════════════════════════════════════════════ */
+  .terminal {
+    background: hsl(172, 12%, 8%);
+    border: 1px solid hsl(168, 30%, 18%);
+    border-radius: var(--r-md);
+    padding: var(--sp-4);
+    margin: var(--sp-4) 0;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.6;
+    color: hsl(168, 15%, 85%);
+    box-shadow: inset 0 1px 3px hsla(0, 0%, 0%, 0.4), 0 2px 8px hsla(168, 76%, 52%, 0.08);
+    overflow-x: auto;
+  }
+
+  /* Keep terminal blocks dark in light mode */
+  [data-theme="light"] .terminal {
+    background: hsl(172, 12%, 10%);
+    color: hsl(168, 15%, 85%);
+  }
+
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-3);
+    padding-bottom: var(--sp-2);
+    border-bottom: 1px solid hsl(168, 30%, 18%);
+  }
+
+  .terminal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: hsl(0, 60%, 50%);
+  }
+
+  .terminal-dot:nth-child(2) {
+    background: hsl(40, 60%, 50%);
+  }
+
+  .terminal-dot:nth-child(3) {
+    background: hsl(120, 60%, 40%);
+  }
+
+  .terminal-prompt {
+    color: hsl(120, 60%, 60%);
+  }
+
+  .terminal-command {
+    color: hsl(200, 70%, 70%);
+  }
+
+  .terminal-output {
+    color: hsl(0, 0%, 80%);
+  }
+
+  .terminal-success {
+    color: hsl(120, 60%, 60%);
+  }
+
+  .terminal-warning {
+    color: hsl(40, 80%, 60%);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     COMMAND BLOCK
+     ══════════════════════════════════════════════════════════ */
+  .command-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: var(--sp-4);
+    margin: var(--sp-4) 0;
+    position: relative;
+  }
+
+  .command-block code {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-code);
+    display: block;
+    padding: var(--sp-3) var(--sp-4);
+    background: hsl(172, 12%, 8%);
+    border-radius: var(--r-sm);
+    user-select: all;
+  }
+
+  .btn-copy {
+    position: absolute;
+    top: var(--sp-2);
+    right: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .btn-copy:hover {
+    background: var(--accent-hover);
+    transform: scale(1.05);
+  }
+
+  .btn-copy.copied {
+    background: hsl(130, 60%, 45%);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ACCORDION
+     ══════════════════════════════════════════════════════════ */
+  .accordion {
+    margin: var(--sp-6) 0;
+  }
+
+  .accordion-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    margin-bottom: var(--sp-3);
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .accordion-item:hover {
+    border-color: var(--border-accent);
+  }
+
+  .accordion-header {
+    padding: var(--sp-4) var(--sp-6);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.2s;
+  }
+
+  .accordion-header:hover {
+    background: var(--bg-card-hover);
+  }
+
+  .accordion-title {
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--text-heading);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+  }
+
+  .accordion-icon {
+    font-size: 14px;
+    color: var(--accent);
+    transition: transform 0.3s var(--ease-spring);
+  }
+
+  .accordion-item.open .accordion-icon {
+    transform: rotate(90deg);
+  }
+
+  .accordion-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.4s var(--ease-out), opacity 0.3s;
+    opacity: 0;
+  }
+
+  .accordion-item.open .accordion-content {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  .accordion-body {
+    overflow: hidden;
+    padding: 0 var(--sp-6) 0 var(--sp-6);
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .accordion-item.open .accordion-body {
+    padding-bottom: var(--sp-6);
+  }
+
+  .accordion-body h4 {
+    font-size: 16px;
+    margin: var(--sp-4) 0 var(--sp-2);
+    color: var(--text-heading);
+  }
+
+  .accordion-body p {
+    margin-bottom: var(--sp-3);
+  }
+
+  .accordion-body ul {
+    margin-left: var(--sp-6);
+    margin-bottom: var(--sp-3);
+  }
+
+  .accordion-body li {
+    margin-bottom: var(--sp-2);
+  }
+
+  .accordion-body strong {
+    color: var(--text-heading);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     INSTRUCTION BOX
+     ══════════════════════════════════════════════════════════ */
+  .instruction {
+    background: var(--accent-subtle);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--r-md);
+    padding: var(--sp-4);
+    margin: var(--sp-4) 0;
+  }
+
+  .instruction-title {
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: var(--sp-2);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+
+  .instruction p {
+    color: var(--text-primary);
+    margin-bottom: var(--sp-2);
+  }
+
+  .instruction p:last-child {
+    margin-bottom: 0;
+  }
+
+  .instruction.warning {
+    background: hsla(40, 60%, 50%, 0.1);
+    border-left-color: hsl(40, 80%, 60%);
+  }
+
+  .instruction.warning .instruction-title {
+    color: hsl(40, 80%, 60%);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     COLLAPSIBLE
+     ══════════════════════════════════════════════════════════ */
+  .collapsible {
+    margin: var(--sp-4) 0;
+  }
+
+  .collapsible summary {
+    padding: var(--sp-3) var(--sp-4);
+    cursor: pointer;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    font-weight: 600;
+    color: var(--text-secondary);
+    user-select: none;
+    list-style: none;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .collapsible summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .collapsible summary::before {
+    content: '▸ ';
+    color: var(--accent);
+    margin-right: var(--sp-2);
+  }
+
+  .collapsible[open] summary::before {
+    content: '▾ ';
+  }
+
+  .collapsible summary:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-heading);
+  }
+
+  .collapsible-content {
+    padding: var(--sp-4);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--r-md) var(--r-md);
+    background: var(--bg-raised);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     KEYBOARD KEY
+     ══════════════════════════════════════════════════════════ */
+  kbd {
+    display: inline-block;
+    padding: 3px 8px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-heading);
+    background: linear-gradient(180deg, var(--bg-card), var(--bg-base));
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    box-shadow: 0 1px 0 var(--border-subtle), 0 2px 0 hsla(0, 0%, 0%, 0.2), inset 0 1px 0 hsla(0, 0%, 100%, 0.05);
+    text-shadow: 0 1px 1px hsla(0, 0%, 0%, 0.3);
+    letter-spacing: 0.5px;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     FOOTER
+     ══════════════════════════════════════════════════════════ */
+  footer {
+    padding: var(--sp-8) var(--sp-6);
+    text-align: center;
+    border-top: 1px solid var(--border-subtle);
+    font-size: 14px;
+    color: var(--text-tertiary);
+    margin-top: var(--sp-16);
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  footer a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  footer p + p {
+    margin-top: var(--sp-2);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     RESPONSIVE
+     ══════════════════════════════════════════════════════════ */
+  @media (max-width: 768px) {
+    .hero {
+      padding: var(--sp-8) 0 var(--sp-12);
+    }
+
+    section {
+      padding: var(--sp-6) 0;
+    }
+
+    .accordion-title {
+      font-size: 16px;
+    }
+
+    .terminal {
+      font-size: 12px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Progress Header -->
+<div class="progress-header" aria-label="Installation progress">
+  <div class="progress-container">
+    <div class="progress-step" id="step-download">
+      <span class="progress-dot"></span>
+      <span>Download</span>
+    </div>
+    <span class="progress-arrow">→</span>
+    <div class="progress-step" id="step-run">
+      <span class="progress-dot"></span>
+      <span>Run</span>
+    </div>
+    <span class="progress-arrow">→</span>
+    <div class="progress-step" id="step-chat">
+      <span class="progress-dot"></span>
+      <span>Chat</span>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<nav>
+  <a href="index.html" class="logo">
+    <img src="favicon.png" alt="ClawStarter" class="logo-icon">
+    <span>ClawStarter</span>
+  </a>
+  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme" aria-pressed="false">☀</button>
+</nav>
+
+<!-- Main Content -->
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Your Personal AI.<br><span class="mint-text">Running on Your Mac.</span></h1>
+    <p>Follow along step-by-step. We'll walk you through everything.</p>
+  </div>
+
+  <!-- Section 1: Before You Start -->
+  <section id="before-you-start">
+    <h2>Before You Start</h2>
+    <p class="section-intro">Make sure you have everything ready. This will only take 15-20 minutes.</p>
+    
+    <fieldset class="checklist">
+      <legend><h3>✅ Pre-Install Checklist</h3></legend>
+      <div class="checklist-item">
+        <label>
+          <input type="checkbox" onchange="saveCheckbox('check-1', this.checked)">
+          <div class="checklist-item-text">
+            <strong>Mac with macOS 13+ (Ventura or newer)</strong><br>
+            Check: Apple menu (top left) → About This Mac
+          </div>
+        </label>
+      </div>
+      <div class="checklist-item">
+        <label>
+          <input type="checkbox" onchange="saveCheckbox('check-2', this.checked)">
+          <div class="checklist-item-text">
+            <strong>15-20 minutes of uninterrupted time</strong><br>
+            Find a quiet moment. You'll need to watch the Terminal as it installs.
+          </div>
+        </label>
+      </div>
+      <div class="checklist-item">
+        <label>
+          <input type="checkbox" onchange="saveCheckbox('check-3', this.checked)">
+          <div class="checklist-item-text">
+            <strong>An AI provider API key (optional)</strong><br>
+            Don't have an API key yet? No problem — you can set one up during installation, or skip it and use the free tier to try things out.<br>
+            <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">Get an OpenRouter API key here</a> (recommended, $5-10 to start)
+          </div>
+        </label>
+      </div>
+    </fieldset>
+
+    <h3 style="margin-top: var(--sp-8); margin-bottom: var(--sp-4);">Choose Your Setup Path</h3>
+    <div class="path-grid">
+      <div class="path-card recommended">
+        <h3>Same Mac (Create a Second User)</h3>
+        <div class="path-meta">
+          <span>⏱️ 15 min</span>
+          <span>🧪 Testing</span>
+        </div>
+        <p>Install OpenClaw in a separate Mac user account on your current Mac. Perfect for trying it out without affecting your main setup.</p>
+        <p style="font-size: 14px; color: var(--accent);">Your main account and files stay completely untouched. You can delete this user anytime.</p>
+        <p style="font-size: 14px; color: var(--text-tertiary); margin-top: var(--sp-2);">Note: This Mac won't sleep while the bot is running (screen will turn off to save power).</p>
+      </div>
+      <div class="path-card">
+        <h3>Dedicated Mac</h3>
+        <div class="path-meta">
+          <span>⏱️ 20 min</span>
+          <span>🏠 24/7</span>
+        </div>
+        <p>Use a Mac Mini or old MacBook dedicated to running OpenClaw 24/7. Best for always-on personal AI.</p>
+        <p style="font-size: 14px; color: var(--text-tertiary);">Recommended for production use.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Download -->
+  <section id="download">
+    <h2>Step 1: Download the Script</h2>
+    <p class="section-intro">Click the button below to download the install script.</p>
+    
+    <div style="text-align: center; margin: var(--sp-8) 0;">
+      <a href="openclaw-quickstart-v2.sh" download="install.sh" class="btn btn-primary btn-large" onclick="markStepComplete('download')">
+        <span>📥 Download install.sh</span>
+      </a>
+      <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px;">
+        File will download to your Downloads folder
+      </p>
+    </div>
+
+    <details class="collapsible">
+      <summary>Advanced: Use curl command instead</summary>
+      <div class="collapsible-content">
+        <p>If you prefer the one-line install, copy this command:</p>
+        <div class="command-block">
+          <button class="btn-copy" onclick="copyCommand(this, 'curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash')" aria-label="Copy curl install command">Copy</button>
+          <code>curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash</code>
+        </div>
+        <p>Then skip to "Step 3: Run the Script" below.</p>
+      </div>
+    </details>
+
+    <div style="text-align: center; margin-top: var(--sp-8);">
+      <button class="btn btn-secondary" onclick="scrollToSection('open-terminal')">
+        ✅ Downloaded? Let's go →
+      </button>
+    </div>
+  </section>
+
+  <!-- Section 3: Open Terminal -->
+  <section id="open-terminal">
+    <h2>Step 2: Open Terminal</h2>
+    <p class="section-intro">Terminal is a built-in Mac app. Here's how to find it.</p>
+
+    <div class="instruction">
+      <div class="instruction-title">👉 How to open Terminal:</div>
+      <p>1. Hold <kbd>⌘ Command</kbd> and press <kbd>Space</kbd></p>
+      <p>2. Type "Terminal"</p>
+      <p>3. Press <kbd>Enter</kbd></p>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+      </div>
+      <div>
+        <span class="terminal-prompt">Last login: Mon Feb 15 14:30:00 on ttys000</span><br>
+        <span class="terminal-prompt">YourMacBook:~ yourname$</span> <span style="animation: blink 1s infinite;">█</span>
+      </div>
+    </div>
+    <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px; text-align: center;">
+      ↑ This is what Terminal looks like
+    </p>
+
+    <h3 style="margin-top: var(--sp-8); margin-bottom: var(--sp-4);">Navigate to Downloads</h3>
+    <p>Type this command in Terminal and press <kbd>Enter</kbd>:</p>
+    <div class="command-block">
+      <button class="btn-copy" onclick="copyCommand(this, 'cd ~/Downloads')" aria-label="Copy cd ~/Downloads command">Copy</button>
+      <code>cd ~/Downloads</code>
+    </div>
+  </section>
+
+  <!-- Section 4: Run the Script -->
+  <section id="run-script">
+    <h2>Step 3: Run the Script</h2>
+    <p class="section-intro">Now we'll run the installer. Copy this command and paste it into Terminal.</p>
+
+    <div class="instruction warning" style="margin-bottom: var(--sp-6);">
+      <div class="instruction-title">⚠️ IMPORTANT: Password Visibility</div>
+      <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">When Terminal asks for your password, YOU WON'T SEE ANYTHING when you type. No dots, no stars, nothing.</p>
+      <p>This is NORMAL and secure. Just type your password and press Enter.</p>
+    </div>
+
+    <div class="instruction warning">
+      <div class="instruction-title">⚠️ Don't Press ⌘C During Installation</div>
+      <p>Don't press <kbd>⌘ Command</kbd> + <kbd>C</kbd> during installation — this will cancel the script.</p>
+      <p>If you need to copy text, use <kbd>⌘ Command</kbd> + <kbd>C</kbd> only BEFORE you start the script.</p>
+    </div>
+
+    <div class="command-block">
+      <button class="btn-copy" onclick="copyCommand(this, 'bash install.sh')" aria-label="Copy bash install.sh command">Copy</button>
+      <code>bash install.sh</code>
+    </div>
+
+    <div class="instruction">
+      <div class="instruction-title">👉 What to do:</div>
+      <p>1. Make sure Terminal is active (click on it)</p>
+      <p>2. Hold <kbd>⌘ Command</kbd> and press <kbd>V</kbd> to paste</p>
+      <p>3. Press <kbd>Enter</kbd></p>
+    </div>
+
+    <p style="margin-top: var(--sp-6); text-align: center; color: var(--text-secondary);">
+      ↓ Now follow along below as the script runs ↓
+    </p>
+  </section>
+
+  <!-- Section 5-11: Terminal Walkthrough -->
+  <section id="walkthrough">
+    <h2>What Terminal Will Show You</h2>
+    <p class="section-intro">Click each step to see what happens. These sections match what you'll see in Terminal.</p>
+
+    <div class="accordion">
+      
+      <!-- Step 5: Installing Dependencies -->
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>Step 5: Installing Dependencies</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <h4>What you'll see in Terminal:</h4>
+            <div class="terminal">
+              <span class="terminal-output">═══ Installing Homebrew...</span><br>
+              <span class="terminal-output">═══ Installing Node.js...</span><br>
+              <span class="terminal-output">[Text scrolling by — this is normal]</span>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">👉 What to do:</div>
+              <p><strong>Wait.</strong> This takes 2-5 minutes. You'll see text scrolling — that's normal.</p>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">💡 What's happening:</div>
+              <p>The script is installing Homebrew (Mac's package manager) and Node.js (what OpenClaw needs to run).</p>
+            </div>
+
+            <details class="collapsible">
+              <summary>🚨 If you're asked for your password:</summary>
+              <div class="collapsible-content">
+                <div class="instruction warning">
+                  <div class="instruction-title">⚠️ Password Prompt (DON'T PANIC!)</div>
+                  <p>When you type your password, <strong>YOU WON'T SEE ANYTHING</strong>.</p>
+                  <p>This is NORMAL. Terminal hides passwords for security.</p>
+                  <p><strong>What to do:</strong></p>
+                  <p>1. Type your Mac login password</p>
+                  <p>2. You'll see nothing — that's OK!</p>
+                  <p>3. Press <kbd>Enter</kbd></p>
+                  <p>If you make a mistake: The script will say "Sorry, try again"</p>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Installing OpenClaw -->
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>Step 6: Installing OpenClaw</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <h4>What you'll see in Terminal:</h4>
+            <div class="terminal">
+              <span class="terminal-output">═══ Installing OpenClaw...</span><br>
+              <span class="terminal-output">[npm install output scrolling]</span><br>
+              <span class="terminal-success">✓ OpenClaw v2026.2.9 installed</span>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">👉 What to do:</div>
+              <p><strong>Wait about 1 minute.</strong> The script is downloading and installing OpenClaw.</p>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">💡 What's happening:</div>
+              <p>Installing the OpenClaw framework and all its dependencies.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 7: OpenClaw Config Wizard -->
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>Step 7: OpenClaw Config Wizard ⚠️ IMPORTANT</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <h4>What you'll see in Terminal:</h4>
+            <div class="terminal">
+              <span class="terminal-output">OpenClaw has a built-in setup wizard.</span><br>
+              <span class="terminal-warning">Press ESCAPE to skip it (recommended for ClawStarter)</span><br>
+              <span class="terminal-output">Or press ENTER to run it now.</span>
+            </div>
+
+            <div class="instruction warning">
+              <div class="instruction-title">⚠️ IMPORTANT DECISION</div>
+              <p><strong>Press <kbd>ESC</kbd> (Escape key, top-left of keyboard)</strong></p>
+              <p>This skips the advanced wizard. Our installer handles the configuration for you.</p>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">💡 Why skip it?</div>
+              <p>The config wizard is for advanced users who want to customize everything. ClawStarter has a curated config ready for you. Skipping saves time.</p>
+            </div>
+
+            <details class="collapsible">
+              <summary>🔄 Can I run the wizard later?</summary>
+              <div class="collapsible-content">
+                <p>Yes! After setup is complete, you can run:</p>
+                <div class="command-block">
+                  <button class="btn-copy" onclick="copyCommand(this, 'openclaw init')" aria-label="Copy openclaw init command">Copy</button>
+                  <code>openclaw init</code>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 8: API Key Entry -->
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>Step 8: API Key Entry</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <h4>What you'll see in Terminal:</h4>
+            <div class="terminal">
+              <span class="terminal-output">Which AI provider?</span><br>
+              <span class="terminal-output">1) OpenRouter (recommended - $5-10 to start)</span><br>
+              <span class="terminal-output">2) Anthropic (premium)</span><br>
+              <span class="terminal-output">3) Both</span><br>
+              <span class="terminal-prompt">Enter 1, 2, or 3:</span>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">💡 Typical costs: $5-15/month in API usage</div>
+              <p>• Simple chats: ~$0.01 each</p>
+              <p>• Complex tasks: ~$0.05-0.10 each</p>
+              <p>• Most users spend $10-15/month</p>
+              <p>• You control your budget — set a limit in OpenRouter</p>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">👉 What to do (Option 1 — OpenRouter):</div>
+              <p>1. Type <strong>1</strong> and press <kbd>Enter</kbd></p>
+              <p>2. Paste your OpenRouter API key and press <kbd>Enter</kbd></p>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">👉 What to do (Option 2 — Free Tier):</div>
+              <p>If you don't have an API key yet, just press <kbd>Enter</kbd> to skip. You'll use OpenCode's free model (no signup needed).</p>
+            </div>
+
+            <details class="collapsible">
+              <summary>🔑 Don't have an API key? Get one now</summary>
+              <div class="collapsible-content">
+                <h4>OpenRouter (Recommended)</h4>
+                <ol style="margin-left: var(--sp-6); margin-top: var(--sp-2);">
+                  <li>Go to <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">openrouter.ai/keys</a></li>
+                  <li>Sign up with email or Google</li>
+                  <li>Add $5-10 in credits</li>
+                  <li>Create an API key in Settings</li>
+                  <li>Copy the key (starts with <code>sk-or-v1-</code>)</li>
+                  <li>Return to Terminal and paste it</li>
+                </ol>
+
+                <h4 style="margin-top: var(--sp-4);">Anthropic</h4>
+                <ol style="margin-left: var(--sp-6); margin-top: var(--sp-2);">
+                  <li>Go to <a href="https://console.anthropic.com" target="_blank" style="color: var(--accent);">console.anthropic.com</a></li>
+                  <li>Create account and add payment info</li>
+                  <li>Go to Settings → API Keys</li>
+                  <li>Create Key</li>
+                  <li>Copy the key (starts with <code>sk-ant-</code>)</li>
+                  <li>Return to Terminal and paste it</li>
+                </ol>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 9: Final Questions -->
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>Step 9: Final Questions</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <h4>What you'll see in Terminal:</h4>
+            <div class="terminal">
+              <span class="terminal-output">Monthly spending budget?</span><br>
+              <span class="terminal-output">1) Budget (~$5-15/mo)</span><br>
+              <span class="terminal-output">2) Balanced (~$15-50/mo) ⭐ RECOMMENDED</span><br>
+              <span class="terminal-output">3) Premium ($50+/mo)</span><br>
+              <span class="terminal-prompt">Enter 1, 2, or 3:</span>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">👉 What to do:</div>
+              <p>Type <strong>2</strong> (Balanced) and press <kbd>Enter</kbd></p>
+              <p>For all other questions: <strong>Press <kbd>Enter</kbd> to accept defaults</strong></p>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">💡 Can you change this later?</div>
+              <p>Yes! All settings can be changed anytime by editing config files.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 10: Setup Complete -->
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>Step 10: Setup Complete! 🎉</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <h4>What you'll see in Terminal:</h4>
+            <div class="terminal">
+              <span class="terminal-success">✓ Creating config file...</span><br>
+              <span class="terminal-success">✓ Setting up workspace...</span><br>
+              <span class="terminal-success">✓ Installing LaunchAgent...</span><br>
+              <span class="terminal-success">✓ Starting gateway...</span><br>
+              <br>
+              <span class="terminal-success">🎉 SUCCESS! Your bot is alive.</span><br>
+              <br>
+              <span class="terminal-output">Dashboard: http://127.0.0.1:18789/</span><br>
+              <span class="terminal-output">Gateway token: [long random string]</span><br>
+              <br>
+              <span class="terminal-warning">Save the token somewhere safe!</span>
+            </div>
+
+            <div class="instruction">
+              <div class="instruction-title">👉 What to do:</div>
+              <p>1. Hold <kbd>⌘ Command</kbd> and press <kbd>A</kbd> to select all the Terminal output</p>
+              <p>2. Hold <kbd>⌘ Command</kbd> and press <kbd>C</kbd> to copy</p>
+              <p>3. Save it in Notes or a password manager</p>
+              <p>4. Click the dashboard URL or copy it to your browser</p>
+            </div>
+
+            <div style="text-align: center; margin-top: var(--sp-6);">
+              <button class="btn btn-primary btn-large" onclick="markStepComplete('chat'); scrollToSection('now-what')">
+                🎉 Start Chatting →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 12: Now What? -->
+  <section id="now-what">
+    <h2>Now What?</h2>
+    <p class="section-intro">Your bot is running! Here's what to do next.</p>
+
+    <div class="accordion">
+      
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>💬 Talk to your bot</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <p>Your bot will run BOOTSTRAP.md and ask you 9 personalization questions. This helps it learn your preferences.</p>
+            <p><strong>Try these to get started:</strong></p>
+            <ul>
+              <li>"Hello! What's your name?"</li>
+              <li>"What can you help me with?"</li>
+              <li>"Search the web for the latest AI news"</li>
+              <li>"Tell me a joke"</li>
+            </ul>
+
+            <div class="instruction" style="margin-top: var(--sp-4);">
+              <div class="instruction-title">📝 Your bot's personality lives in two files:</div>
+              <p><strong>SOUL.md</strong> — Who your bot IS (personality, boundaries, vibe)</p>
+              <p><strong>AGENTS.md</strong> — How your bot WORKS (memory, tools, routines)</p>
+              <p style="margin-top: var(--sp-2);">You can edit these anytime to customize your AI's behavior.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>💬 Add Discord (recommended)</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <p>Want to chat with your bot via Discord? Copy this message and paste it into your bot's chat:</p>
+            <div class="command-block">
+              <button class="btn-copy" onclick="copyCommand(this, 'Help me set up Discord. I want to chat with you on Discord instead of the web dashboard.')" aria-label="Copy Discord setup request">Copy</button>
+              <code>Help me set up Discord. I want to chat with you on Discord instead of the web dashboard.</code>
+            </div>
+            <p style="margin-top: var(--sp-4);">Your bot will walk you through the setup step-by-step. Takes about 10 minutes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>📱 Add other channels</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <ul>
+              <li><strong>Telegram</strong> — Fast mobile access (5 min setup)</li>
+              <li><strong>iMessage</strong> — Apple ecosystem users (15 min setup)</li>
+              <li><strong>Slack</strong> — <span style="color: var(--text-tertiary);">Coming soon</span></li>
+            </ul>
+            <p style="margin-top: var(--sp-4);">Ask your bot: "How do I set up [channel name]?"</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>🛠️ Try a skill pack</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <p>Skill packs add specialized capabilities to your bot:</p>
+            <ul>
+              <li><strong>Content Creator</strong> — Social media scheduling, image generation, content calendars</li>
+              <li><strong>App Builder</strong> — Code generation, project scaffolding, deployment automation</li>
+              <li><strong>Workflow Optimizer</strong> — Task automation, reminders, meeting prep</li>
+            </ul>
+            <p style="margin-top: var(--sp-4); color: var(--text-tertiary);">Skill packs coming soon. For now, your bot can do web search, file management, and conversations.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 13: First 24 Hours -->
+  <section id="first-24-hours">
+    <h2>Your First 24 Hours</h2>
+    <p class="section-intro">What to expect as you get started with your personal AI.</p>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-6);">
+      <p style="margin-bottom: var(--sp-4);">Your bot will run BOOTSTRAP.md when you first chat — this asks 9 questions to personalize your AI.</p>
+      
+      <h3 style="font-size: 18px; margin-top: var(--sp-4); margin-bottom: var(--sp-3);">After setup:</h3>
+      <ul style="margin-left: var(--sp-6); line-height: 1.8;">
+        <li><strong>Hour 1:</strong> Try asking your bot to summarize a webpage, check the weather, or help draft an email</li>
+        <li><strong>Hour 2-4:</strong> Set up Discord (see above) so you can chat from your phone</li>
+        <li><strong>Day 1:</strong> Your bot starts building memory — it'll remember what you talked about</li>
+        <li><strong>By tomorrow:</strong> Check in and notice how it remembers yesterday's conversation</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Section 14: Troubleshooting -->
+  <section id="troubleshooting">
+    <h2>Troubleshooting</h2>
+    <p class="section-intro">Something went wrong? Here are common fixes.</p>
+
+    <div class="accordion">
+      
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>🚨 "Permission denied" error</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <p><strong>Fix:</strong> Run the script with sudo:</p>
+            <div class="command-block">
+              <button class="btn-copy" onclick="copyCommand(this, 'sudo bash install.sh')" aria-label="Copy sudo bash install.sh command">Copy</button>
+              <code>sudo bash install.sh</code>
+            </div>
+            <p style="margin-top: var(--sp-3);">You'll be asked for your password. Type it (you won't see it) and press Enter.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>🚨 "Command not found" error</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <p><strong>This means:</strong> Homebrew isn't in your PATH yet.</p>
+            <p><strong>Fix:</strong> Close Terminal and open a new window, then try again.</p>
+            <p>If that doesn't work, run:</p>
+            <div class="command-block">
+              <button class="btn-copy" onclick="copyCommand(this, 'eval \"$(/opt/homebrew/bin/brew shellenv)\"')" aria-label="Copy brew shellenv command">Copy</button>
+              <code>eval "$(/opt/homebrew/bin/brew shellenv)"</code>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>🚨 "Connection refused" when opening dashboard</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <p><strong>This means:</strong> The gateway didn't start.</p>
+            <p><strong>Fix:</strong> Start it manually:</p>
+            <div class="command-block">
+              <button class="btn-copy" onclick="copyCommand(this, 'openclaw gateway start')" aria-label="Copy openclaw gateway start command">Copy</button>
+              <code>openclaw gateway start</code>
+            </div>
+            <p style="margin-top: var(--sp-3);">Wait 10 seconds, then try opening the dashboard again.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>🚨 Bot isn't responding</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <p><strong>Check if gateway is running:</strong></p>
+            <div class="command-block">
+              <button class="btn-copy" onclick="copyCommand(this, 'openclaw gateway status')" aria-label="Copy openclaw gateway status command">Copy</button>
+              <code>openclaw gateway status</code>
+            </div>
+            <p style="margin-top: var(--sp-3);"><strong>If stopped, start it:</strong></p>
+            <div class="command-block">
+              <button class="btn-copy" onclick="copyCommand(this, 'openclaw gateway start')" aria-label="Copy openclaw gateway start command">Copy</button>
+              <code>openclaw gateway start</code>
+            </div>
+            <p style="margin-top: var(--sp-3);"><strong>Check logs for errors:</strong></p>
+            <div class="command-block">
+              <button class="btn-copy" onclick="copyCommand(this, 'tail -n 50 ~/.openclaw/logs/gateway.err.log')" aria-label="Copy tail logs command">Copy</button>
+              <code>tail -n 50 ~/.openclaw/logs/gateway.err.log</code>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>🚨 "API key invalid" error</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <p><strong>Common causes:</strong></p>
+            <ul>
+              <li>Extra spaces before/after the key when you pasted it</li>
+              <li>Copied the wrong key (check it starts with <code>sk-or-v1-</code> for OpenRouter or <code>sk-ant-</code> for Anthropic)</li>
+              <li>Key was revoked or deleted from provider dashboard</li>
+            </ul>
+            <p style="margin-top: var(--sp-4);"><strong>Fix:</strong> Re-run the setup and paste the key carefully.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>🗑️ How do I remove everything?</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <p><strong>Complete uninstall steps:</strong></p>
+            <ol style="margin-left: var(--sp-6); margin-top: var(--sp-2); line-height: 1.8;">
+              <li>Stop the bot:
+                <div class="command-block" style="margin-top: var(--sp-2);">
+                  <button class="btn-copy" onclick="copyCommand(this, 'openclaw gateway stop')" aria-label="Copy openclaw gateway stop command">Copy</button>
+                  <code>openclaw gateway stop</code>
+                </div>
+              </li>
+              <li style="margin-top: var(--sp-3);">Remove OpenClaw:
+                <div class="command-block" style="margin-top: var(--sp-2);">
+                  <button class="btn-copy" onclick="copyCommand(this, 'npm uninstall -g openclaw')" aria-label="Copy npm uninstall command">Copy</button>
+                  <code>npm uninstall -g openclaw</code>
+                </div>
+              </li>
+              <li style="margin-top: var(--sp-3);">Delete config:
+                <div class="command-block" style="margin-top: var(--sp-2);">
+                  <button class="btn-copy" onclick="copyCommand(this, 'rm -rf ~/.openclaw')" aria-label="Copy rm -rf ~/.openclaw command">Copy</button>
+                  <code>rm -rf ~/.openclaw</code>
+                </div>
+              </li>
+              <li style="margin-top: var(--sp-3);">(Optional) Remove the Mac user account you created for testing</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
+          <div class="accordion-title">
+            <span>🆘 Nuclear Option: Ask Claude</span>
+          </div>
+          <span class="accordion-icon">▸</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-body">
+            <p>If none of the above works, copy this prompt and paste your error into Claude.ai:</p>
+            <div class="command-block">
+              <button class="btn-copy" onclick="copyCommand(this, 'I\'m setting up OpenClaw on my Mac using ClawStarter and hit this error:\n\n[paste error here]\n\nI\'m on macOS [your version]. Help me fix it.')" aria-label="Copy Claude troubleshooting prompt">Copy</button>
+              <code>I'm setting up OpenClaw on my Mac using ClawStarter and hit this error:
+
+[paste error here]
+
+I'm on macOS [your version]. Help me fix it.</code>
+            </div>
+            <p style="margin-top: var(--sp-4);">Go to <a href="https://claude.ai" target="_blank" style="color: var(--accent);">claude.ai</a>, paste the prompt, replace [paste error here] with your actual error, and send.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <p>Built with 🦞 by the OpenClaw community</p>
+  <p>
+    <a href="https://github.com/jeremyknows/clawstarter" target="_blank">GitHub</a> &middot;
+    <a href="https://discord.gg/UCjDDjNcZq" target="_blank">Discord Community</a> &middot;
+    <a href="index.html">Back to Home</a>
+  </p>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   THEME TOGGLE
+   ══════════════════════════════════════════════════════════ */
+function toggleTheme() {
+  const html = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  btn.textContent = next === 'dark' ? '☀' : '🌙';
+  btn.setAttribute('aria-pressed', next === 'light');
+  safeSet('theme', next);
+}
+
+(function() {
+  const saved = safeGet('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('themeBtn');
+  btn.textContent = saved === 'dark' ? '☀' : '🌙';
+  btn.setAttribute('aria-pressed', saved === 'light');
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   PROGRESS TRACKING
+   ══════════════════════════════════════════════════════════ */
+function markStepComplete(step) {
+  const steps = ['download', 'run', 'chat'];
+  const index = steps.indexOf(step);
+  
+  for (let i = 0; i <= index; i++) {
+    const el = document.getElementById('step-' + steps[i]);
+    if (i < index) {
+      el.classList.add('completed');
+      el.classList.remove('active');
+    } else {
+      el.classList.add('active');
+      el.classList.remove('completed');
+    }
+  }
+  
+  safeSet('clawstarter-progress', step);
+}
+
+(function() {
+  const saved = safeGet('clawstarter-progress');
+  if (saved) markStepComplete(saved);
+  else document.getElementById('step-download').classList.add('active');
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   ACCORDION
+   ══════════════════════════════════════════════════════════ */
+function toggleAccordion(header) {
+  const item = header.parentElement;
+  const wasOpen = item.classList.contains('open');
+  
+  if (wasOpen) {
+    item.classList.remove('open');
+    header.setAttribute('aria-expanded', 'false');
+  } else {
+    item.classList.add('open');
+    header.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function handleAccordionKey(event, header) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    toggleAccordion(header);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COPY COMMAND
+   ══════════════════════════════════════════════════════════ */
+function copyCommand(btn, text) {
+  const doCopy = () => {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+    // Fallback for HTTP or old browsers
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return Promise.resolve();
+  };
+
+  doCopy().then(() => {
+    const original = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    alert('Failed to copy. Please copy manually.');
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLL TO SECTION
+   ══════════════════════════════════════════════════════════ */
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOCALSTORAGE SAFETY
+   ══════════════════════════════════════════════════════════ */
+function safeGet(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSet(key, val) {
+  try {
+    localStorage.setItem(key, val);
+  } catch {}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CHECKBOX PERSISTENCE
+   ══════════════════════════════════════════════════════════ */
+function saveCheckbox(id, checked) {
+  safeSet('clawstarter-' + id, checked ? '1' : '0');
+}
+
+(function() {
+  document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach((cb, i) => {
+    const id = 'check-' + (i + 1);
+    const saved = safeGet('clawstarter-' + id);
+    if (saved === '1') cb.checked = true;
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   SMOOTH SCROLL FOR ANCHOR LINKS
+   ══════════════════════════════════════════════════════════ */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════
+   BLINK CURSOR ANIMATION
+   ══════════════════════════════════════════════════════════ */
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+`;
+document.head.appendChild(style);
+</script>
+
+</body>
+</html>

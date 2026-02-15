@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# OpenClaw Quickstart Script v2.7.0-prism-fixed
-# SECURITY HARDENED: Phase 1 + Phase 2 + Phase 3 + PRISM Marathon Fixes
-# Updated: 2026-02-15
+# OpenClaw Quickstart Script v2.5.0-secure
+# SECURITY HARDENED: Phase 1 + Phase 2 Critical Fixes
+# Generated: 2026-02-11
+# DO NOT EDIT - This is the integrated secure version
 #
 # Security Fixes Applied:
 #   1.1 - API Key Security: macOS Keychain storage, no env exposure
@@ -17,45 +18,13 @@
 #   2.3 - Port Conflict Check: Verify port 18789 is free before start
 #   2.4 - Keychain Error Handling: Clear warnings and recovery options
 #
-# Phase 3 Critical Fixes (Prism Cycle 2):
-#   3.1 - Disk Space Check: Verify 500MB+ free before any file operations
-#   3.2 - Locked Keychain Handling: Timeout + retry loop in Python keychain_get
-#
-# PRISM Marathon Fixes (2026-02-15):
-#   P0 - stdin/TTY Fix: Handle piped execution (curl | bash)
-#   P1 - API Key Validation: Format checking for sk-or- and sk-ant- keys
-#   P1 - Permission Self-Heal: Auto chmod +x if needed
-#
 # Usage:
-#   bash openclaw-quickstart-v2.sh
-#   curl https://... | bash  (now works with stdin fix!)
+#   bash openclaw-quickstart-v2.5-SECURE.sh
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-# ─── Parse Arguments ───
-AUTO_YES=false
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -y|--yes) AUTO_YES=true; shift ;;
-        *) shift ;;
-    esac
-done
-
-# ═══════════════════════════════════════════════════════════════════
-# P1 FIX: Self-Heal Permission Denied Errors
-# ═══════════════════════════════════════════════════════════════════
-# Check if this script has execute permission, add it if missing
-if [ ! -x "$0" ] && [ -f "$0" ]; then
-    chmod +x "$0" 2>/dev/null || true
-fi
-
-# ═══════════════════════════════════════════════════════════════════
-# ERROR TRAPPING (v2.7 - Debug failing at Question 1→2 transition)
-# ═══════════════════════════════════════════════════════════════════
-trap 'echo -e "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; echo -e "❌ SCRIPT FAILED AT LINE $LINENO"; echo -e "Last command: $BASH_COMMAND"; echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; echo ""; echo "Please screenshot and send to Watson." >&2' ERR
-
 # ─── Constants ───
-readonly SCRIPT_VERSION="2.7.0-prism-fixed"
+readonly SCRIPT_VERSION="2.5.0-secure"
 readonly MIN_NODE_VERSION="22"
 readonly DEFAULT_GATEWAY_PORT=18789
 
@@ -86,9 +55,20 @@ readonly -a ALLOWED_SECURITY_LEVELS=("low" "medium" "high")
 readonly -a ALLOWED_PERSONALITIES=("casual" "professional" "direct")
 
 # ═══════════════════════════════════════════════════════════════════
-# Template Download (checksums re-enabled — bash 3.2 compatible via case statement)
+# SECURITY FIX 1.4: Template Checksums
 # ═══════════════════════════════════════════════════════════════════
 readonly TEMPLATE_BASE_URL="https://raw.githubusercontent.com/jeremyknows/clawstarter/main"
+readonly CACHE_DIR="$HOME/.openclaw/cache/templates"
+readonly VERIFICATION_LOG="$HOME/.openclaw/logs/template-verification.log"
+
+declare -A TEMPLATE_CHECKSUMS=(
+    ["workflows/content-creator/AGENTS.md"]="1d8513f149d635f69f5475da2861a896add0b30824374a4782ceabdc5ae09448"
+    ["workflows/content-creator/GETTING-STARTED.md"]="c73f1514e26a1912f8df5403555b051707b81629548de74278e6cd0d443a54d7"
+    ["workflows/workflow-optimizer/AGENTS.md"]="da75bbf0ab2d34da0351228290708bb704cad9937f0746f4f1bc94c19ae55019"
+    ["workflows/workflow-optimizer/GETTING-STARTED.md"]="b6af4dae46415ea455be3b8a9ea0a9d1808758a2d3ebd5b4382a614be6a00104"
+    ["workflows/app-builder/AGENTS.md"]="efebf563c01c50d452db6e09440a9c4bea8630702eaaaceb534ae78956c12f0e"
+    ["workflows/app-builder/GETTING-STARTED.md"]="0aa9079a39b50747dbf35b0147fe82cdf18eaa3ddc469d36d45f457edbdeafd0"
+)
 
 # ─── Colors ───
 GREEN='\033[0;32m'
@@ -112,35 +92,6 @@ warn()   { echo -e "  ${YELLOW}!${NC} $1"; }
 die() {
     echo -e "\n  ${FAIL} ${RED}ERROR:${NC} $1" >&2
     exit 1
-}
-
-# ═══════════════════════════════════════════════════════════════════
-# SECURITY FIX 3.1: Disk Space Pre-Flight Check
-# ═══════════════════════════════════════════════════════════════════
-
-check_disk_space() {
-    # Require at least 500MB free space
-    local required_mb=500
-    
-    # Get available space in MB (works on macOS)
-    local available
-    available=$(df -k / | awk 'NR==2 {print int($4/1024)}')
-    
-    if [[ $available -lt $required_mb ]]; then
-        echo ""
-        echo -e "  ${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "  ${RED}⚠️  Insufficient Disk Space${NC}"
-        echo -e "  ${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo ""
-        echo -e "  OpenClaw requires at least ${YELLOW}500MB${NC} of free disk space."
-        echo -e "  Currently available: ${YELLOW}${available}MB${NC}"
-        echo ""
-        echo -e "  ${YELLOW}→ Free up disk space and re-run this script${NC}"
-        echo ""
-        exit 1
-    fi
-    
-    pass "Disk space OK (${available}MB available, ${required_mb}MB required)"
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -410,37 +361,12 @@ validate_menu_selection() {
 }
 
 # Validate API key format (block dangerous characters)
-# P1 FIX: Added format validation for OpenRouter and Anthropic keys
 validate_api_key() {
     local key="$1"
     
     if [ -z "$key" ]; then
         echo "OK"
         return 0
-    fi
-    
-    # P1 FIX: Check for known API key formats
-    if [[ "$key" == sk-or-* ]]; then
-        # OpenRouter key format
-        if [ ${#key} -lt 40 ]; then
-            echo "ERROR: OpenRouter key seems too short (should be sk-or-... with more characters)"
-            return 1
-        fi
-    elif [[ "$key" == sk-ant-* ]]; then
-        # Anthropic key format
-        if [ ${#key} -lt 40 ]; then
-            echo "ERROR: Anthropic key seems too short (should be sk-ant-... with more characters)"
-            return 1
-        fi
-    elif [[ "$key" == sk-* ]]; then
-        # Unknown sk- prefix
-        warn "Warning: API key format not recognized (expected sk-or-... or sk-ant-...)"
-    fi
-    
-    # Check for spaces (common copy-paste error)
-    if [[ "$key" == *" "* ]]; then
-        echo "ERROR: API key contains spaces (likely a copy-paste error)"
-        return 1
     fi
     
     if [[ "$key" == *"'"* ]] || [[ "$key" == *'"'* ]] || [[ "$key" == *'`'* ]] || \
@@ -515,41 +441,6 @@ log_verification() {
     echo "[$timestamp] $1" >> "$VERIFICATION_LOG"
 }
 
-# ═══════════════════════════════════════════════════════════════════
-# Template Checksum Lookup (bash 3.2 compatible — no associative arrays)
-# Re-enabled by PRISM Marathon security review (Feb 15, 2026)
-# ═══════════════════════════════════════════════════════════════════
-get_template_checksum() {
-    local template_path="$1"
-    case "$template_path" in
-        "templates/workspace/AGENTS.md")
-            echo "e5e09e3e0bcf31d99102c50fce5920653f400c850952015199b5a51bca4a25c9" ;;
-        "templates/workspace/SOUL.md")
-            echo "e0a9dfc7fd1b3b6a0c9eb885a52de0b567c1e80b6f1a09a3a308fa6c7d7af5ae" ;;
-        "templates/workspace/IDENTITY.md")
-            echo "9211294e1af2b99a41a1fb3bf24281b639474720928de5b7acf784f8fed6c92e" ;;
-        "templates/workspace/HEARTBEAT.md")
-            echo "01a9dc083bcad03cf22b1c5cead26ca064aab1c1f1b64aa2059eac0eeec7e396" ;;
-        "templates/workspace/MEMORY.md")
-            echo "0c1be90c4f1fb1c3aa0515caa1487329cd9ee1055cdd865d86f178e034accd7d" ;;
-        "templates/workspace/BOOTSTRAP.md")
-            echo "8154c061ab34edadd2d1c4f68fb43e7edb3d4a6f129d340e0dcfea4cc7e261e6" ;;
-        "templates/workspace/USER.md")
-            echo "a8d650773c69b3c1801be24cffbcb4fe85d4acb9573d366e048a071f05c1c4a4" ;;
-        "templates/workspace/TOOLS.md")
-            echo "b8cfdc95177ec41c52d72307ecb42183606f08057787768eba6b92930cd2d04a" ;;
-        "workflows/content-creator/AGENTS.md")
-            echo "1d8513f149d635f69f5475da2861a896add0b30824374a4782ceabdc5ae09448" ;;
-        "workflows/workflow-optimizer/AGENTS.md")
-            echo "da75bbf0ab2d34da0351228290708bb704cad9937f0746f4f1bc94c19ae55019" ;;
-        "workflows/app-builder/AGENTS.md")
-            echo "efebf563c01c50d452db6e09440a9c4bea8630702eaaaceb534ae78956c12f0e" ;;
-        *)
-            echo ""  # Unknown template — skip verification
-            ;;
-    esac
-}
-
 verify_sha256() {
     local file_path="$1"
     local expected_checksum="$2"
@@ -581,45 +472,60 @@ verify_sha256() {
 verify_and_download_template() {
     local template_path="$1"
     local destination="$2"
+    local force_download="${3:-false}"
+    
+    local expected_checksum="${TEMPLATE_CHECKSUMS[$template_path]:-}"
     local template_url="${TEMPLATE_BASE_URL}/${template_path}"
     
-    # Get expected checksum (empty string = unknown template, skip verification)
-    local expected_checksum
-    expected_checksum=$(get_template_checksum "$template_path")
+    if [ -z "$expected_checksum" ]; then
+        warn "⚠️  No checksum defined for: $template_path"
+        log_verification "FAILED: No checksum for $template_path"
+        return 1
+    fi
+    
+    mkdir -p "$CACHE_DIR"
+    local cache_file="${CACHE_DIR}/${template_path//\//_}"
+    
+    if [ "$force_download" != "true" ] && [ -f "$cache_file" ]; then
+        if verify_sha256 "$cache_file" "$expected_checksum" 2>/dev/null; then
+            info "✓ Using cached template: $template_path"
+            cp "$cache_file" "$destination"
+            log_verification "SUCCESS: Cached $template_path → $destination"
+            return 0
+        else
+            warn "⚠️  Cached template corrupted, re-downloading..."
+            rm -f "$cache_file"
+        fi
+    fi
     
     local temp_file
     temp_file=$(mktemp)
-    chmod 600 "$temp_file"
+    chmod 600 "$temp_file"  # SECURITY FIX 1.3: Secure temp file
     
     info "Downloading: $template_path..."
     if ! curl -fsSL "$template_url" -o "$temp_file" 2>/dev/null; then
         rm -f "$temp_file"
         fail "❌ Download failed: $template_url"
+        log_verification "FAILED: Download error for $template_path"
         return 1
     fi
     
-    # Verify checksum if we have one for this template
-    if [ -n "$expected_checksum" ]; then
-        if verify_sha256 "$temp_file" "$expected_checksum"; then
-            pass "✓ Checksum verified: $template_path"
-        else
-            warn "⚠️  Checksum mismatch for $template_path — file may have been tampered with"
-            warn "    Continuing with download (template may have been updated upstream)"
-            # NOTE: We warn but don't fail — templates may legitimately change
-            # between checksum updates. A hard fail would break installs when
-            # templates are updated but checksums haven't been regenerated yet.
-            log_verification "CHECKSUM_WARN: $template_path mismatch (continued anyway)"
-        fi
-    else
-        info "No checksum defined for $template_path (skipping verification)"
+    if ! verify_sha256 "$temp_file" "$expected_checksum"; then
+        rm -f "$temp_file"
+        fail "❌ SECURITY ERROR: Checksum verification failed for $template_path"
+        log_verification "FAILED: Checksum mismatch for $template_path"
+        return 1
     fi
     
     mkdir -p "$(dirname "$destination")"
+    mkdir -p "$(dirname "$cache_file")"
+    
     cp "$temp_file" "$destination"
-    chmod 600 "$destination"
+    cp "$temp_file" "$cache_file"
     rm -f "$temp_file"
     
-    pass "✓ Installed: $template_path"
+    pass "✓ Verified and installed: $template_path"
+    log_verification "SUCCESS: Verified $template_path → $destination"
     return 0
 }
 
@@ -843,15 +749,7 @@ prompt() {
         echo -en "\n  ${CYAN}?${NC} ${question}: "
     fi
     
-    # P0 FIX: Handle piped execution (curl | bash)
-    if [ -t 0 ]; then
-        # stdin is a TTY (normal execution)
-        read -r response
-    else
-        # stdin is piped (redirect to /dev/tty)
-        read -r response < /dev/tty 2>/dev/null || response=""
-    fi
-    
+    read -r response
     if [ -z "$response" ] && [ -n "$default" ]; then
         echo "$default"
     else
@@ -875,15 +773,7 @@ prompt_validated() {
             echo -en "\n  ${CYAN}?${NC} ${question}: "
         fi
         
-        # P0 FIX: Handle piped execution (curl | bash)
-        if [ -t 0 ]; then
-            # stdin is a TTY (normal execution)
-            read -r response
-        else
-            # stdin is piped (redirect to /dev/tty)
-            read -r response < /dev/tty 2>/dev/null || response=""
-        fi
-        
+        read -r response
         if [ -z "$response" ] && [ -n "$default" ]; then
             response="$default"
         fi
@@ -905,22 +795,10 @@ prompt_validated() {
 }
 
 confirm() {
-    # Auto-accept if -y flag was passed
-    if [ "$AUTO_YES" = true ]; then
-        return 0
-    fi
-    
     local question="$1"
     local response
     echo -en "\n  ${CYAN}?${NC} ${question} [y/N]: "
-    
-    # Read from /dev/tty to work with curl | bash
-    if [ -t 0 ]; then
-        read -r response
-    else
-        read -r response < /dev/tty 2>/dev/null || return 1
-    fi
-    
+    read -r response
     case "$response" in
         [yY]|[yY][eE][sS]) return 0 ;;
         *) return 1 ;;
@@ -951,9 +829,6 @@ step1_install() {
     echo -e "  ${STEP} ${BOLD}Step 1: Install${NC}"
     echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
     echo ""
-    
-    # SECURITY FIX 3.1: Check disk space BEFORE any file operations
-    check_disk_space
     
     if [ "$(uname -s)" != "Darwin" ]; then
         die "This script is for macOS only."
@@ -1195,12 +1070,6 @@ step2_configure() {
     if [ "$model_validation" != "OK" ]; then
         die "Internal error: default model not in allowlist"
     fi
-    
-    # DEBUG: Confirm Question 1 complete
-    echo ""
-    echo -e "${GREEN}✓ Question 1 complete${NC} — API key configured"
-    echo ""
-    sleep 1
     
     # ─── Question 2: Use Case (Multi-Select with validation) ───
     echo ""
@@ -1533,7 +1402,7 @@ HOMEEOF
 }
 
 # ═══════════════════════════════════════════════════════════════════
-# STEP 3: Start Bot (SECURITY HARDENED - Phase 2 + 3 Critical Fixes)
+# STEP 3: Start Bot (SECURITY HARDENED - Phase 2 Critical Fixes)
 # ═══════════════════════════════════════════════════════════════════
 
 step3_start() {
@@ -1576,9 +1445,9 @@ step3_start() {
     touch "$config_file"
     chmod 600 "$config_file"
     
-    # SECURITY FIX 2.1 + 2.2 + 3.2: Generate config using Python that retrieves keys directly from Keychain
+    # SECURITY FIX 2.1 + 2.2: Generate config using Python that retrieves keys directly from Keychain
     # The heredoc is FULLY QUOTED ('PYEOF') to prevent ANY shell expansion
-    # Python retrieves keys from Keychain directly via subprocess with timeout + retry
+    # Python retrieves keys from Keychain directly via subprocess
     (
         umask 077
         python3 << 'PYEOF'
@@ -1589,72 +1458,23 @@ import re
 import subprocess
 
 def keychain_get(service, account):
-    """Retrieve password from Keychain with locked-keychain handling.
+    """Retrieve a secret from macOS Keychain directly in Python.
     
-    SECURITY FIX 2.1 + 3.2: This retrieves keys directly in Python, never exposing them
+    SECURITY FIX 2.1: This retrieves keys directly in Python, never exposing them
     to shell variables. The key exists only in this Python process's memory.
-    
-    SECURITY FIX 3.2: Includes timeout + retry loop for locked Keychain handling.
     """
-    max_retries = 3
-    retry_count = 0
-    
-    while retry_count < max_retries:
-        try:
-            result = subprocess.run(
-                ['security', 'find-generic-password',
-                 '-s', service,
-                 '-a', account,
-                 '-w'],
-                capture_output=True,
-                text=True,
-                timeout=5  # 5 second timeout
-            )
-            
-            if result.returncode == 0:
-                return result.stdout.strip()
-            elif result.returncode == 51:
-                # Keychain is locked (errSecInteractionNotAllowed)
-                retry_count += 1
-                if retry_count < max_retries:
-                    print(f"\n⚠️  Keychain is locked. Please unlock your Mac and press Enter to retry ({retry_count}/{max_retries})...")
-                    try:
-                        input()
-                    except EOFError:
-                        # Non-interactive mode
-                        print("\n❌ Keychain is locked and running non-interactively.")
-                        return None
-                    continue
-                else:
-                    print("\n❌ Keychain is locked and max retries reached.")
-                    print("Please unlock your Keychain or use manual .env setup.")
-                    return None
-            else:
-                # Other error (key not found, etc.) - return empty string, not None
-                # None means failure, empty string means "key doesn't exist"
-                return ""
-                
-        except subprocess.TimeoutExpired:
-            # Keychain prompt timed out (likely locked)
-            retry_count += 1
-            if retry_count < max_retries:
-                print(f"\n⚠️  Keychain access timed out (may be locked). Please unlock your Mac and press Enter to retry ({retry_count}/{max_retries})...")
-                try:
-                    input()
-                except EOFError:
-                    # Non-interactive mode
-                    print("\n❌ Keychain timed out and running non-interactively.")
-                    return None
-                continue
-            else:
-                print("\n❌ Keychain access timed out after multiple attempts.")
-                print("Please unlock your Keychain or use manual .env setup.")
-                return None
-        except Exception as e:
-            print(f"\n⚠️  Keychain error: {e}", file=sys.stderr)
-            return None
-    
-    return None
+    try:
+        result = subprocess.run(
+            ['security', 'find-generic-password', '-s', service, '-a', account, '-w'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+        return ""
+    except Exception:
+        return ""
 
 # Constants (must match shell script)
 KEYCHAIN_SERVICE = "ai.openclaw"
@@ -1668,25 +1488,11 @@ bot_name = os.environ.get('QUICKSTART_BOT_NAME', 'Atlas')
 security_level = os.environ.get('QUICKSTART_SECURITY_LEVEL', 'medium')
 config_path = os.path.expanduser('~/.openclaw/openclaw.json')
 
-# SECURITY FIX 2.1 + 3.2: Retrieve keys directly from Keychain in Python with retry
+# SECURITY FIX 2.1: Retrieve keys directly from Keychain in Python
 # Keys never appear in shell variables or process arguments
 openrouter_key = keychain_get(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT_OPENROUTER)
 anthropic_key = keychain_get(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT_ANTHROPIC)
 gateway_token = keychain_get(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT_GATEWAY)
-
-# SECURITY FIX 3.2: Check for locked keychain failures (None means failure)
-if openrouter_key is None or anthropic_key is None:
-    print("\n⚠️  Could not retrieve API key from Keychain.")
-    print("Continuing with manual .env setup...")
-    # Set to empty string so config continues without keys
-    if openrouter_key is None:
-        openrouter_key = ""
-    if anthropic_key is None:
-        anthropic_key = ""
-    # Mark that manual env is needed
-    print("\n📋 After setup, create ~/.openclaw/.env with your API key:")
-    print("   OPENROUTER_API_KEY=sk-or-your-key-here")
-    print("   (or ANTHROPIC_API_KEY for Anthropic keys)\n")
 
 # Generate gateway token if not exists
 if not gateway_token:
@@ -1765,7 +1571,7 @@ config = {
     },
     "meta": {
         "security_level": security_level,
-        "created_by": "clawstarter-v2.6-secure",
+        "created_by": "clawstarter-v2.5-secure",
         "keys_in_keychain": True
     }
 }
@@ -1940,8 +1746,6 @@ AGENTSTEMPLATE
     echo -e "  ${INFO} Template downloads verified via SHA256"
     echo -e "  ${INFO} LaunchAgent plist validated by plutil"
     echo -e "  ${INFO} Port conflicts detected before startup"
-    echo -e "  ${INFO} Disk space verified before file operations (500MB min)"
-    echo -e "  ${INFO} Keychain access with timeout + retry for locked state"
     echo ""
     
     # SECURITY FIX 2.4: Remind about manual .env if needed
@@ -1984,10 +1788,6 @@ main() {
     echo -e "  ${INFO} Phase 2.2: Fully quoted heredoc prevents injection"
     echo -e "  ${INFO} Phase 2.3: Port conflict detection before startup"
     echo -e "  ${INFO} Phase 2.4: Clear Keychain warnings + recovery options"
-    echo ""
-    echo -e "  ${GREEN}🔐 Phase 3 Critical Fixes (Prism Cycle 2):${NC}"
-    echo -e "  ${INFO} Phase 3.1: Disk space pre-flight check (500MB min)"
-    echo -e "  ${INFO} Phase 3.2: Locked Keychain timeout + retry loop"
     echo ""
     
     if ! confirm "Ready?"; then

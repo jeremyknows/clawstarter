@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# OpenClaw Quickstart Script v2.7.0-prism-fixed
-# SECURITY HARDENED: Phase 1 + Phase 2 + Phase 3 + PRISM Marathon Fixes
-# Updated: 2026-02-15
+# OpenClaw Quickstart Script v2.4.0-secure
+# SECURITY HARDENED: Phase 1 (API keys, injection, race conditions, checksums, plist)
+# Generated: 2026-02-11
+# DO NOT EDIT - This is the integrated secure version
 #
 # Security Fixes Applied:
 #   1.1 - API Key Security: macOS Keychain storage, no env exposure
@@ -11,51 +12,13 @@
 #   1.4 - Template Checksums: SHA256 verification for downloads
 #   1.5 - Plist Injection: XML escaping and path validation
 #
-# Phase 2 Critical Fixes (Prism Cycle 1):
-#   2.1 - Keychain Isolation: Python retrieves keys directly (no shell vars)
-#   2.2 - Quoted Heredoc: Python heredoc fully quoted to prevent injection
-#   2.3 - Port Conflict Check: Verify port 18789 is free before start
-#   2.4 - Keychain Error Handling: Clear warnings and recovery options
-#
-# Phase 3 Critical Fixes (Prism Cycle 2):
-#   3.1 - Disk Space Check: Verify 500MB+ free before any file operations
-#   3.2 - Locked Keychain Handling: Timeout + retry loop in Python keychain_get
-#
-# PRISM Marathon Fixes (2026-02-15):
-#   P0 - stdin/TTY Fix: Handle piped execution (curl | bash)
-#   P1 - API Key Validation: Format checking for sk-or- and sk-ant- keys
-#   P1 - Permission Self-Heal: Auto chmod +x if needed
-#
 # Usage:
-#   bash openclaw-quickstart-v2.sh
-#   curl https://... | bash  (now works with stdin fix!)
+#   bash openclaw-quickstart-v2.4-SECURE.sh
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-# ─── Parse Arguments ───
-AUTO_YES=false
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -y|--yes) AUTO_YES=true; shift ;;
-        *) shift ;;
-    esac
-done
-
-# ═══════════════════════════════════════════════════════════════════
-# P1 FIX: Self-Heal Permission Denied Errors
-# ═══════════════════════════════════════════════════════════════════
-# Check if this script has execute permission, add it if missing
-if [ ! -x "$0" ] && [ -f "$0" ]; then
-    chmod +x "$0" 2>/dev/null || true
-fi
-
-# ═══════════════════════════════════════════════════════════════════
-# ERROR TRAPPING (v2.7 - Debug failing at Question 1→2 transition)
-# ═══════════════════════════════════════════════════════════════════
-trap 'echo -e "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; echo -e "❌ SCRIPT FAILED AT LINE $LINENO"; echo -e "Last command: $BASH_COMMAND"; echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; echo ""; echo "Please screenshot and send to Watson." >&2' ERR
-
 # ─── Constants ───
-readonly SCRIPT_VERSION="2.7.0-prism-fixed"
+readonly SCRIPT_VERSION="2.4.0-secure"
 readonly MIN_NODE_VERSION="22"
 readonly DEFAULT_GATEWAY_PORT=18789
 
@@ -86,9 +49,20 @@ readonly -a ALLOWED_SECURITY_LEVELS=("low" "medium" "high")
 readonly -a ALLOWED_PERSONALITIES=("casual" "professional" "direct")
 
 # ═══════════════════════════════════════════════════════════════════
-# Template Download (checksums re-enabled — bash 3.2 compatible via case statement)
+# SECURITY FIX 1.4: Template Checksums
 # ═══════════════════════════════════════════════════════════════════
 readonly TEMPLATE_BASE_URL="https://raw.githubusercontent.com/jeremyknows/clawstarter/main"
+readonly CACHE_DIR="$HOME/.openclaw/cache/templates"
+readonly VERIFICATION_LOG="$HOME/.openclaw/logs/template-verification.log"
+
+declare -A TEMPLATE_CHECKSUMS=(
+    ["workflows/content-creator/AGENTS.md"]="1d8513f149d635f69f5475da2861a896add0b30824374a4782ceabdc5ae09448"
+    ["workflows/content-creator/GETTING-STARTED.md"]="c73f1514e26a1912f8df5403555b051707b81629548de74278e6cd0d443a54d7"
+    ["workflows/workflow-optimizer/AGENTS.md"]="da75bbf0ab2d34da0351228290708bb704cad9937f0746f4f1bc94c19ae55019"
+    ["workflows/workflow-optimizer/GETTING-STARTED.md"]="b6af4dae46415ea455be3b8a9ea0a9d1808758a2d3ebd5b4382a614be6a00104"
+    ["workflows/app-builder/AGENTS.md"]="efebf563c01c50d452db6e09440a9c4bea8630702eaaaceb534ae78956c12f0e"
+    ["workflows/app-builder/GETTING-STARTED.md"]="0aa9079a39b50747dbf35b0147fe82cdf18eaa3ddc469d36d45f457edbdeafd0"
+)
 
 # ─── Colors ───
 GREEN='\033[0;32m'
@@ -115,58 +89,13 @@ die() {
 }
 
 # ═══════════════════════════════════════════════════════════════════
-# SECURITY FIX 3.1: Disk Space Pre-Flight Check
+# SECURITY FIX 1.1: Keychain Functions
 # ═══════════════════════════════════════════════════════════════════
 
-check_disk_space() {
-    # Require at least 500MB free space
-    local required_mb=500
-    
-    # Get available space in MB (works on macOS)
-    local available
-    available=$(df -k / | awk 'NR==2 {print int($4/1024)}')
-    
-    if [[ $available -lt $required_mb ]]; then
-        echo ""
-        echo -e "  ${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "  ${RED}⚠️  Insufficient Disk Space${NC}"
-        echo -e "  ${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo ""
-        echo -e "  OpenClaw requires at least ${YELLOW}500MB${NC} of free disk space."
-        echo -e "  Currently available: ${YELLOW}${available}MB${NC}"
-        echo ""
-        echo -e "  ${YELLOW}→ Free up disk space and re-run this script${NC}"
-        echo ""
-        exit 1
-    fi
-    
-    pass "Disk space OK (${available}MB available, ${required_mb}MB required)"
-}
-
-# ═══════════════════════════════════════════════════════════════════
-# SECURITY FIX 1.1 + 2.4: Keychain Functions (Enhanced Error Handling)
-# ═══════════════════════════════════════════════════════════════════
-
-# SECURITY FIX 2.4: Warn user before Keychain prompt
-keychain_warn_user() {
-    echo ""
-    echo -e "  ${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "  ${YELLOW}📋 macOS Keychain Access Required${NC}"
-    echo -e "  ${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
-    echo -e "  macOS will ask for your password to securely store API keys."
-    echo -e "  This is ${BOLD}normal and recommended${NC} — it keeps your keys safe."
-    echo ""
-    echo -e "  ${DIM}If you see a Keychain dialog, click \"Allow\" or \"Always Allow\".${NC}"
-    echo ""
-}
-
-# Store a secret in macOS Keychain with enhanced error handling
-# SECURITY FIX 2.4: Returns specific error codes and messages
+# Store a secret in macOS Keychain
 keychain_store() {
     local account="$1"
     local secret="$2"
-    local result
     
     # Delete existing entry if present (silent fail OK)
     security delete-generic-password \
@@ -175,120 +104,12 @@ keychain_store() {
         2>/dev/null || true
     
     # Add new entry - secret passed via -w to avoid process args exposure
-    if ! result=$(security add-generic-password \
+    security add-generic-password \
         -s "$KEYCHAIN_SERVICE" \
         -a "$account" \
         -w "$secret" \
         -U \
-        2>&1); then
-        
-        # SECURITY FIX 2.4: Provide specific error message
-        case "$result" in
-            *"User interaction is not allowed"*)
-                echo "KEYCHAIN_NO_INTERACTION"
-                return 1
-                ;;
-            *"cancelled"*|*"denied"*|*"The user name or passphrase you entered is not correct"*)
-                echo "KEYCHAIN_DENIED"
-                return 1
-                ;;
-            *"errSec"*)
-                echo "KEYCHAIN_ERROR: $result"
-                return 1
-                ;;
-            *)
-                echo "KEYCHAIN_UNKNOWN: $result"
-                return 1
-                ;;
-        esac
-    fi
-    
-    echo "OK"
-    return 0
-}
-
-# SECURITY FIX 2.4: Wrapper with retry and fallback options
-keychain_store_with_recovery() {
-    local account="$1"
-    local secret="$2"
-    local friendly_name="$3"
-    local max_retries=2
-    local attempt=0
-    local result
-    
-    while [ $attempt -lt $max_retries ]; do
-        result=$(keychain_store "$account" "$secret")
-        
-        if [ "$result" = "OK" ]; then
-            return 0
-        fi
-        
-        ((attempt++)) || true
-        
-        echo ""
-        echo -e "  ${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "  ${RED}⚠️  Keychain Access Failed${NC}"
-        echo -e "  ${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo ""
-        
-        case "$result" in
-            "KEYCHAIN_DENIED")
-                echo -e "  You denied Keychain access for: ${BOLD}$friendly_name${NC}"
-                echo ""
-                echo -e "  ${BOLD}Options:${NC}"
-                echo "    1. Try again (click 'Allow' when prompted)"
-                echo "    2. Skip Keychain (use manual .env file instead)"
-                echo "    3. Cancel setup"
-                ;;
-            "KEYCHAIN_NO_INTERACTION")
-                echo -e "  Keychain requires user interaction but none was allowed."
-                echo -e "  This can happen in automated environments."
-                echo ""
-                echo -e "  ${BOLD}Options:${NC}"
-                echo "    1. Try again in an interactive terminal"
-                echo "    2. Skip Keychain (use manual .env file instead)"
-                echo "    3. Cancel setup"
-                ;;
-            *)
-                echo -e "  Keychain error for: ${BOLD}$friendly_name${NC}"
-                echo -e "  ${DIM}$result${NC}"
-                echo ""
-                echo -e "  ${BOLD}Options:${NC}"
-                echo "    1. Try again"
-                echo "    2. Skip Keychain (use manual .env file instead)"
-                echo "    3. Cancel setup"
-                ;;
-        esac
-        
-        echo ""
-        local choice
-        read -p "  Choose [1/2/3]: " choice
-        
-        case "$choice" in
-            1)
-                echo ""
-                info "Retrying Keychain access..."
-                continue
-                ;;
-            2)
-                echo ""
-                info "Skipping Keychain — you'll need to set up a .env file manually"
-                echo -e "  ${DIM}After setup, create ~/.openclaw/.env with:${NC}"
-                echo -e "  ${DIM}  OPENROUTER_API_KEY=your-key-here${NC}"
-                echo -e "  ${DIM}  (or ANTHROPIC_API_KEY for Anthropic keys)${NC}"
-                echo ""
-                # Return special code indicating manual setup needed
-                echo "MANUAL_ENV"
-                return 2
-                ;;
-            3|*)
-                echo ""
-                die "Setup cancelled. Your API key was NOT stored anywhere.\n  Run this script again when ready."
-                ;;
-        esac
-    done
-    
-    die "Keychain storage failed after $max_retries attempts"
+        2>/dev/null
 }
 
 # Retrieve a secret from macOS Keychain
@@ -410,37 +231,12 @@ validate_menu_selection() {
 }
 
 # Validate API key format (block dangerous characters)
-# P1 FIX: Added format validation for OpenRouter and Anthropic keys
 validate_api_key() {
     local key="$1"
     
     if [ -z "$key" ]; then
         echo "OK"
         return 0
-    fi
-    
-    # P1 FIX: Check for known API key formats
-    if [[ "$key" == sk-or-* ]]; then
-        # OpenRouter key format
-        if [ ${#key} -lt 40 ]; then
-            echo "ERROR: OpenRouter key seems too short (should be sk-or-... with more characters)"
-            return 1
-        fi
-    elif [[ "$key" == sk-ant-* ]]; then
-        # Anthropic key format
-        if [ ${#key} -lt 40 ]; then
-            echo "ERROR: Anthropic key seems too short (should be sk-ant-... with more characters)"
-            return 1
-        fi
-    elif [[ "$key" == sk-* ]]; then
-        # Unknown sk- prefix
-        warn "Warning: API key format not recognized (expected sk-or-... or sk-ant-...)"
-    fi
-    
-    # Check for spaces (common copy-paste error)
-    if [[ "$key" == *" "* ]]; then
-        echo "ERROR: API key contains spaces (likely a copy-paste error)"
-        return 1
     fi
     
     if [[ "$key" == *"'"* ]] || [[ "$key" == *'"'* ]] || [[ "$key" == *'`'* ]] || \
@@ -515,41 +311,6 @@ log_verification() {
     echo "[$timestamp] $1" >> "$VERIFICATION_LOG"
 }
 
-# ═══════════════════════════════════════════════════════════════════
-# Template Checksum Lookup (bash 3.2 compatible — no associative arrays)
-# Re-enabled by PRISM Marathon security review (Feb 15, 2026)
-# ═══════════════════════════════════════════════════════════════════
-get_template_checksum() {
-    local template_path="$1"
-    case "$template_path" in
-        "templates/workspace/AGENTS.md")
-            echo "e5e09e3e0bcf31d99102c50fce5920653f400c850952015199b5a51bca4a25c9" ;;
-        "templates/workspace/SOUL.md")
-            echo "e0a9dfc7fd1b3b6a0c9eb885a52de0b567c1e80b6f1a09a3a308fa6c7d7af5ae" ;;
-        "templates/workspace/IDENTITY.md")
-            echo "9211294e1af2b99a41a1fb3bf24281b639474720928de5b7acf784f8fed6c92e" ;;
-        "templates/workspace/HEARTBEAT.md")
-            echo "01a9dc083bcad03cf22b1c5cead26ca064aab1c1f1b64aa2059eac0eeec7e396" ;;
-        "templates/workspace/MEMORY.md")
-            echo "0c1be90c4f1fb1c3aa0515caa1487329cd9ee1055cdd865d86f178e034accd7d" ;;
-        "templates/workspace/BOOTSTRAP.md")
-            echo "8154c061ab34edadd2d1c4f68fb43e7edb3d4a6f129d340e0dcfea4cc7e261e6" ;;
-        "templates/workspace/USER.md")
-            echo "a8d650773c69b3c1801be24cffbcb4fe85d4acb9573d366e048a071f05c1c4a4" ;;
-        "templates/workspace/TOOLS.md")
-            echo "b8cfdc95177ec41c52d72307ecb42183606f08057787768eba6b92930cd2d04a" ;;
-        "workflows/content-creator/AGENTS.md")
-            echo "1d8513f149d635f69f5475da2861a896add0b30824374a4782ceabdc5ae09448" ;;
-        "workflows/workflow-optimizer/AGENTS.md")
-            echo "da75bbf0ab2d34da0351228290708bb704cad9937f0746f4f1bc94c19ae55019" ;;
-        "workflows/app-builder/AGENTS.md")
-            echo "efebf563c01c50d452db6e09440a9c4bea8630702eaaaceb534ae78956c12f0e" ;;
-        *)
-            echo ""  # Unknown template — skip verification
-            ;;
-    esac
-}
-
 verify_sha256() {
     local file_path="$1"
     local expected_checksum="$2"
@@ -581,45 +342,60 @@ verify_sha256() {
 verify_and_download_template() {
     local template_path="$1"
     local destination="$2"
+    local force_download="${3:-false}"
+    
+    local expected_checksum="${TEMPLATE_CHECKSUMS[$template_path]:-}"
     local template_url="${TEMPLATE_BASE_URL}/${template_path}"
     
-    # Get expected checksum (empty string = unknown template, skip verification)
-    local expected_checksum
-    expected_checksum=$(get_template_checksum "$template_path")
+    if [ -z "$expected_checksum" ]; then
+        warn "⚠️  No checksum defined for: $template_path"
+        log_verification "FAILED: No checksum for $template_path"
+        return 1
+    fi
+    
+    mkdir -p "$CACHE_DIR"
+    local cache_file="${CACHE_DIR}/${template_path//\//_}"
+    
+    if [ "$force_download" != "true" ] && [ -f "$cache_file" ]; then
+        if verify_sha256 "$cache_file" "$expected_checksum" 2>/dev/null; then
+            info "✓ Using cached template: $template_path"
+            cp "$cache_file" "$destination"
+            log_verification "SUCCESS: Cached $template_path → $destination"
+            return 0
+        else
+            warn "⚠️  Cached template corrupted, re-downloading..."
+            rm -f "$cache_file"
+        fi
+    fi
     
     local temp_file
     temp_file=$(mktemp)
-    chmod 600 "$temp_file"
+    chmod 600 "$temp_file"  # SECURITY FIX 1.3: Secure temp file
     
     info "Downloading: $template_path..."
     if ! curl -fsSL "$template_url" -o "$temp_file" 2>/dev/null; then
         rm -f "$temp_file"
         fail "❌ Download failed: $template_url"
+        log_verification "FAILED: Download error for $template_path"
         return 1
     fi
     
-    # Verify checksum if we have one for this template
-    if [ -n "$expected_checksum" ]; then
-        if verify_sha256 "$temp_file" "$expected_checksum"; then
-            pass "✓ Checksum verified: $template_path"
-        else
-            warn "⚠️  Checksum mismatch for $template_path — file may have been tampered with"
-            warn "    Continuing with download (template may have been updated upstream)"
-            # NOTE: We warn but don't fail — templates may legitimately change
-            # between checksum updates. A hard fail would break installs when
-            # templates are updated but checksums haven't been regenerated yet.
-            log_verification "CHECKSUM_WARN: $template_path mismatch (continued anyway)"
-        fi
-    else
-        info "No checksum defined for $template_path (skipping verification)"
+    if ! verify_sha256 "$temp_file" "$expected_checksum"; then
+        rm -f "$temp_file"
+        fail "❌ SECURITY ERROR: Checksum verification failed for $template_path"
+        log_verification "FAILED: Checksum mismatch for $template_path"
+        return 1
     fi
     
     mkdir -p "$(dirname "$destination")"
+    mkdir -p "$(dirname "$cache_file")"
+    
     cp "$temp_file" "$destination"
-    chmod 600 "$destination"
+    cp "$temp_file" "$cache_file"
     rm -f "$temp_file"
     
-    pass "✓ Installed: $template_path"
+    pass "✓ Verified and installed: $template_path"
+    log_verification "SUCCESS: Verified $template_path → $destination"
     return 0
 }
 
@@ -732,103 +508,6 @@ PLISTEOF
 }
 
 # ═══════════════════════════════════════════════════════════════════
-# SECURITY FIX 2.3: Port Conflict Detection
-# ═══════════════════════════════════════════════════════════════════
-
-check_port_available() {
-    local port="$1"
-    local pid
-    
-    # Check if port is in use
-    pid=$(lsof -ti :"$port" 2>/dev/null || echo "")
-    
-    if [ -n "$pid" ]; then
-        echo "$pid"
-        return 1
-    fi
-    
-    return 0
-}
-
-handle_port_conflict() {
-    local port="$1"
-    local blocking_pid="$2"
-    local blocking_process
-    
-    # Get process name
-    blocking_process=$(ps -p "$blocking_pid" -o comm= 2>/dev/null || echo "unknown")
-    
-    echo ""
-    echo -e "  ${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "  ${RED}⚠️  Port $port is already in use${NC}"
-    echo -e "  ${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
-    echo -e "  Process: ${BOLD}$blocking_process${NC} (PID: $blocking_pid)"
-    echo ""
-    echo -e "  ${BOLD}This could be:${NC}"
-    echo -e "    • An existing OpenClaw gateway (from previous install)"
-    echo -e "    • Another service using port $port"
-    echo ""
-    echo -e "  ${BOLD}Options:${NC}"
-    echo "    1. Kill the blocking process and continue"
-    echo "    2. View process details (then choose)"
-    echo "    3. Cancel setup (fix manually)"
-    echo ""
-    
-    local choice
-    read -p "  Choose [1/2/3]: " choice
-    
-    case "$choice" in
-        1)
-            echo ""
-            info "Stopping process $blocking_pid..."
-            if kill "$blocking_pid" 2>/dev/null; then
-                sleep 1
-                # Verify it's gone
-                if ! lsof -ti :"$port" >/dev/null 2>&1; then
-                    pass "Port $port is now free"
-                    return 0
-                else
-                    warn "Process may have restarted. Trying SIGKILL..."
-                    kill -9 "$blocking_pid" 2>/dev/null || true
-                    sleep 1
-                    if ! lsof -ti :"$port" >/dev/null 2>&1; then
-                        pass "Port $port is now free"
-                        return 0
-                    fi
-                fi
-            fi
-            
-            echo ""
-            fail "Could not free port $port"
-            echo -e "  ${DIM}Try manually: kill $blocking_pid${NC}"
-            echo -e "  ${DIM}Or: sudo lsof -ti :$port | xargs kill${NC}"
-            return 1
-            ;;
-        2)
-            echo ""
-            echo -e "  ${BOLD}Process Details:${NC}"
-            ps -p "$blocking_pid" -o pid,user,comm,args 2>/dev/null || echo "  (process no longer exists)"
-            echo ""
-            lsof -i :"$port" 2>/dev/null || echo "  (no port info available)"
-            echo ""
-            # Recursive call to re-prompt
-            handle_port_conflict "$port" "$blocking_pid"
-            return $?
-            ;;
-        3|*)
-            echo ""
-            echo -e "  ${DIM}To fix manually:${NC}"
-            echo -e "  ${DIM}  1. Stop the service: kill $blocking_pid${NC}"
-            echo -e "  ${DIM}  2. Or change OpenClaw port in ~/.openclaw/openclaw.json${NC}"
-            echo -e "  ${DIM}  3. Run this script again${NC}"
-            echo ""
-            die "Setup cancelled due to port conflict"
-            ;;
-    esac
-}
-
-# ═══════════════════════════════════════════════════════════════════
 # UI Functions
 # ═══════════════════════════════════════════════════════════════════
 
@@ -843,15 +522,7 @@ prompt() {
         echo -en "\n  ${CYAN}?${NC} ${question}: "
     fi
     
-    # P0 FIX: Handle piped execution (curl | bash)
-    if [ -t 0 ]; then
-        # stdin is a TTY (normal execution)
-        read -r response
-    else
-        # stdin is piped (redirect to /dev/tty)
-        read -r response < /dev/tty 2>/dev/null || response=""
-    fi
-    
+    read -r response
     if [ -z "$response" ] && [ -n "$default" ]; then
         echo "$default"
     else
@@ -875,15 +546,7 @@ prompt_validated() {
             echo -en "\n  ${CYAN}?${NC} ${question}: "
         fi
         
-        # P0 FIX: Handle piped execution (curl | bash)
-        if [ -t 0 ]; then
-            # stdin is a TTY (normal execution)
-            read -r response
-        else
-            # stdin is piped (redirect to /dev/tty)
-            read -r response < /dev/tty 2>/dev/null || response=""
-        fi
-        
+        read -r response
         if [ -z "$response" ] && [ -n "$default" ]; then
             response="$default"
         fi
@@ -905,22 +568,10 @@ prompt_validated() {
 }
 
 confirm() {
-    # Auto-accept if -y flag was passed
-    if [ "$AUTO_YES" = true ]; then
-        return 0
-    fi
-    
     local question="$1"
     local response
     echo -en "\n  ${CYAN}?${NC} ${question} [y/N]: "
-    
-    # Read from /dev/tty to work with curl | bash
-    if [ -t 0 ]; then
-        read -r response
-    else
-        read -r response < /dev/tty 2>/dev/null || return 1
-    fi
-    
+    read -r response
     case "$response" in
         [yY]|[yY][eE][sS]) return 0 ;;
         *) return 1 ;;
@@ -951,9 +602,6 @@ step1_install() {
     echo -e "  ${STEP} ${BOLD}Step 1: Install${NC}"
     echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
     echo ""
-    
-    # SECURITY FIX 3.1: Check disk space BEFORE any file operations
-    check_disk_space
     
     if [ "$(uname -s)" != "Darwin" ]; then
         die "This script is for macOS only."
@@ -1088,9 +736,6 @@ guided_api_signup() {
 # STEP 2: Configuration (SECURITY HARDENED)
 # ═══════════════════════════════════════════════════════════════════
 
-# Track if we need manual .env setup (SECURITY FIX 2.4)
-NEEDS_MANUAL_ENV=false
-
 step2_configure() {
     echo ""
     echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
@@ -1122,12 +767,7 @@ step2_configure() {
         api_key=$(guided_api_signup)
     fi
     
-    # SECURITY FIX 2.4: Warn user before Keychain access
-    if [[ "$api_key" != "OPENCODE_FREE" ]] && [ -n "$api_key" ]; then
-        keychain_warn_user
-    fi
-    
-    # SECURITY FIX 1.1 + 2.4: Store keys in Keychain with error handling
+    # SECURITY FIX 1.1: Store keys in Keychain instead of environment
     if [[ "$api_key" == "OPENCODE_FREE" ]]; then
         provider="opencode"
         default_model="opencode/kimi-k2.5-free"
@@ -1135,54 +775,19 @@ step2_configure() {
     elif [[ "$api_key" == sk-or-* ]]; then
         provider="openrouter"
         default_model="openrouter/moonshotai/kimi-k2.5"
-        
-        # SECURITY FIX 2.4: Use enhanced keychain storage with recovery
-        local store_result
-        store_result=$(keychain_store_with_recovery "$KEYCHAIN_ACCOUNT_OPENROUTER" "$api_key" "OpenRouter API Key")
-        local store_status=$?
-        
-        if [ $store_status -eq 0 ]; then
-            pass "OpenRouter key stored in Keychain"
-        elif [ "$store_result" = "MANUAL_ENV" ]; then
-            NEEDS_MANUAL_ENV=true
-            pass "Will use manual .env setup"
-        else
-            die "Failed to store API key"
-        fi
+        keychain_store "$KEYCHAIN_ACCOUNT_OPENROUTER" "$api_key"
+        pass "OpenRouter key stored in Keychain"
     elif [[ "$api_key" == sk-ant-* ]]; then
         provider="anthropic"
         default_model="anthropic/claude-sonnet-4-5"
-        
-        # SECURITY FIX 2.4: Use enhanced keychain storage with recovery
-        local store_result
-        store_result=$(keychain_store_with_recovery "$KEYCHAIN_ACCOUNT_ANTHROPIC" "$api_key" "Anthropic API Key")
-        local store_status=$?
-        
-        if [ $store_status -eq 0 ]; then
-            pass "Anthropic key stored in Keychain"
-        elif [ "$store_result" = "MANUAL_ENV" ]; then
-            NEEDS_MANUAL_ENV=true
-            pass "Will use manual .env setup"
-        else
-            die "Failed to store API key"
-        fi
+        keychain_store "$KEYCHAIN_ACCOUNT_ANTHROPIC" "$api_key"
+        pass "Anthropic key stored in Keychain"
     else
         provider="openrouter"
         default_model="openrouter/moonshotai/kimi-k2.5"
         if [ -n "$api_key" ]; then
-            # SECURITY FIX 2.4: Use enhanced keychain storage with recovery
-            local store_result
-            store_result=$(keychain_store_with_recovery "$KEYCHAIN_ACCOUNT_OPENROUTER" "$api_key" "API Key")
-            local store_status=$?
-            
-            if [ $store_status -eq 0 ]; then
-                warn "Unknown key format — stored as OpenRouter in Keychain"
-            elif [ "$store_result" = "MANUAL_ENV" ]; then
-                NEEDS_MANUAL_ENV=true
-                pass "Will use manual .env setup"
-            else
-                die "Failed to store API key"
-            fi
+            keychain_store "$KEYCHAIN_ACCOUNT_OPENROUTER" "$api_key"
+            warn "Unknown key format — stored as OpenRouter in Keychain"
         fi
     fi
     
@@ -1195,12 +800,6 @@ step2_configure() {
     if [ "$model_validation" != "OK" ]; then
         die "Internal error: default model not in allowlist"
     fi
-    
-    # DEBUG: Confirm Question 1 complete
-    echo ""
-    echo -e "${GREEN}✓ Question 1 complete${NC} — API key configured"
-    echo ""
-    sleep 1
     
     # ─── Question 2: Use Case (Multi-Select with validation) ───
     echo ""
@@ -1533,7 +1132,7 @@ HOMEEOF
 }
 
 # ═══════════════════════════════════════════════════════════════════
-# STEP 3: Start Bot (SECURITY HARDENED - Phase 2 + 3 Critical Fixes)
+# STEP 3: Start Bot (SECURITY HARDENED)
 # ═══════════════════════════════════════════════════════════════════
 
 step3_start() {
@@ -1576,138 +1175,40 @@ step3_start() {
     touch "$config_file"
     chmod 600 "$config_file"
     
-    # SECURITY FIX 2.1 + 2.2 + 3.2: Generate config using Python that retrieves keys directly from Keychain
-    # The heredoc is FULLY QUOTED ('PYEOF') to prevent ANY shell expansion
-    # Python retrieves keys from Keychain directly via subprocess with timeout + retry
+    # SECURITY FIX 1.1: Read keys from Keychain for config generation
+    local openrouter_key=""
+    local anthropic_key=""
+    openrouter_key=$(keychain_get "$KEYCHAIN_ACCOUNT_OPENROUTER")
+    anthropic_key=$(keychain_get "$KEYCHAIN_ACCOUNT_ANTHROPIC")
+    
+    # Generate or retrieve gateway token from Keychain
+    local gateway_token=""
+    if keychain_exists "$KEYCHAIN_ACCOUNT_GATEWAY"; then
+        gateway_token=$(keychain_get "$KEYCHAIN_ACCOUNT_GATEWAY")
+    else
+        gateway_token=$(openssl rand -hex 32)
+        keychain_store "$KEYCHAIN_ACCOUNT_GATEWAY" "$gateway_token"
+    fi
+    
+    # SECURITY FIX 1.3: Generate config with umask protection
     (
         umask 077
-        python3 << 'PYEOF'
+        python3 << PYEOF
 import json
 import sys
 import os
 import re
-import subprocess
 
-def keychain_get(service, account):
-    """Retrieve password from Keychain with locked-keychain handling.
-    
-    SECURITY FIX 2.1 + 3.2: This retrieves keys directly in Python, never exposing them
-    to shell variables. The key exists only in this Python process's memory.
-    
-    SECURITY FIX 3.2: Includes timeout + retry loop for locked Keychain handling.
-    """
-    max_retries = 3
-    retry_count = 0
-    
-    while retry_count < max_retries:
-        try:
-            result = subprocess.run(
-                ['security', 'find-generic-password',
-                 '-s', service,
-                 '-a', account,
-                 '-w'],
-                capture_output=True,
-                text=True,
-                timeout=5  # 5 second timeout
-            )
-            
-            if result.returncode == 0:
-                return result.stdout.strip()
-            elif result.returncode == 51:
-                # Keychain is locked (errSecInteractionNotAllowed)
-                retry_count += 1
-                if retry_count < max_retries:
-                    print(f"\n⚠️  Keychain is locked. Please unlock your Mac and press Enter to retry ({retry_count}/{max_retries})...")
-                    try:
-                        input()
-                    except EOFError:
-                        # Non-interactive mode
-                        print("\n❌ Keychain is locked and running non-interactively.")
-                        return None
-                    continue
-                else:
-                    print("\n❌ Keychain is locked and max retries reached.")
-                    print("Please unlock your Keychain or use manual .env setup.")
-                    return None
-            else:
-                # Other error (key not found, etc.) - return empty string, not None
-                # None means failure, empty string means "key doesn't exist"
-                return ""
-                
-        except subprocess.TimeoutExpired:
-            # Keychain prompt timed out (likely locked)
-            retry_count += 1
-            if retry_count < max_retries:
-                print(f"\n⚠️  Keychain access timed out (may be locked). Please unlock your Mac and press Enter to retry ({retry_count}/{max_retries})...")
-                try:
-                    input()
-                except EOFError:
-                    # Non-interactive mode
-                    print("\n❌ Keychain timed out and running non-interactively.")
-                    return None
-                continue
-            else:
-                print("\n❌ Keychain access timed out after multiple attempts.")
-                print("Please unlock your Keychain or use manual .env setup.")
-                return None
-        except Exception as e:
-            print(f"\n⚠️  Keychain error: {e}", file=sys.stderr)
-            return None
-    
-    return None
-
-# Constants (must match shell script)
-KEYCHAIN_SERVICE = "ai.openclaw"
-KEYCHAIN_ACCOUNT_OPENROUTER = "openrouter-api-key"
-KEYCHAIN_ACCOUNT_ANTHROPIC = "anthropic-api-key"
-KEYCHAIN_ACCOUNT_GATEWAY = "gateway-token"
-
-# Get values from environment (safe - already validated in shell)
+# Get values from environment (safe - already validated)
 model = os.environ.get('QUICKSTART_DEFAULT_MODEL', 'opencode/kimi-k2.5-free')
 bot_name = os.environ.get('QUICKSTART_BOT_NAME', 'Atlas')
 security_level = os.environ.get('QUICKSTART_SECURITY_LEVEL', 'medium')
-config_path = os.path.expanduser('~/.openclaw/openclaw.json')
+config_path = '$config_file'
 
-# SECURITY FIX 2.1 + 3.2: Retrieve keys directly from Keychain in Python with retry
-# Keys never appear in shell variables or process arguments
-openrouter_key = keychain_get(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT_OPENROUTER)
-anthropic_key = keychain_get(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT_ANTHROPIC)
-gateway_token = keychain_get(KEYCHAIN_SERVICE, KEYCHAIN_ACCOUNT_GATEWAY)
-
-# SECURITY FIX 3.2: Check for locked keychain failures (None means failure)
-if openrouter_key is None or anthropic_key is None:
-    print("\n⚠️  Could not retrieve API key from Keychain.")
-    print("Continuing with manual .env setup...")
-    # Set to empty string so config continues without keys
-    if openrouter_key is None:
-        openrouter_key = ""
-    if anthropic_key is None:
-        anthropic_key = ""
-    # Mark that manual env is needed
-    print("\n📋 After setup, create ~/.openclaw/.env with your API key:")
-    print("   OPENROUTER_API_KEY=sk-or-your-key-here")
-    print("   (or ANTHROPIC_API_KEY for Anthropic keys)\n")
-
-# Generate gateway token if not exists
-if not gateway_token:
-    import secrets
-    gateway_token = secrets.token_hex(32)
-    # Store in Keychain
-    try:
-        # Delete existing if any
-        subprocess.run(
-            ['security', 'delete-generic-password', '-s', KEYCHAIN_SERVICE, '-a', KEYCHAIN_ACCOUNT_GATEWAY],
-            capture_output=True, timeout=10
-        )
-    except Exception:
-        pass
-    try:
-        subprocess.run(
-            ['security', 'add-generic-password', '-s', KEYCHAIN_SERVICE, '-a', KEYCHAIN_ACCOUNT_GATEWAY, '-w', gateway_token, '-U'],
-            capture_output=True, check=True, timeout=10
-        )
-    except Exception as e:
-        print(f"Warning: Could not store gateway token in Keychain: {e}", file=sys.stderr)
+# Keys passed via heredoc variable substitution (safer than command line)
+openrouter_key = '''$openrouter_key'''
+anthropic_key = '''$anthropic_key'''
+gateway_token = '''$gateway_token'''
 
 # SECURITY FIX 1.2: Validate inputs in Python too (defense in depth)
 ALLOWED_MODELS = [
@@ -1732,7 +1233,7 @@ if security_level not in ALLOWED_SECURITY_LEVELS:
     print(f"ERROR: Security level '{security_level}' not valid", file=sys.stderr)
     sys.exit(1)
 
-if not re.match(r'^[a-zA-Z][a-zA-Z0-9_-]{1,31}$', bot_name):
+if not re.match(r'^[a-zA-Z][a-zA-Z0-9_-]{1,31}\$', bot_name):
     print(f"ERROR: Invalid bot name format", file=sys.stderr)
     sys.exit(1)
 
@@ -1765,7 +1266,7 @@ config = {
     },
     "meta": {
         "security_level": security_level,
-        "created_by": "clawstarter-v2.6-secure",
+        "created_by": "clawstarter-v2.4-secure",
         "keys_in_keychain": True
     }
 }
@@ -1800,17 +1301,7 @@ PYEOF
     
     # Verify permissions
     chmod 600 "$config_file"
-    pass "Config created (keys retrieved directly by Python from Keychain)"
-    
-    # SECURITY FIX 2.4: If user chose manual .env, remind them
-    if [ "$NEEDS_MANUAL_ENV" = true ]; then
-        echo ""
-        warn "Manual .env setup required!"
-        echo -e "  ${BOLD}Create ~/.openclaw/.env with your API key:${NC}"
-        echo -e "  ${DIM}  OPENROUTER_API_KEY=sk-or-your-key-here${NC}"
-        echo -e "  ${DIM}  (or ANTHROPIC_API_KEY for Anthropic keys)${NC}"
-        echo ""
-    fi
+    pass "Config created (keys from Keychain)"
     
     # SECURITY FIX 1.3: Create workspace files with secure permissions
     mkdir -p "$workspace_dir/memory"
@@ -1890,16 +1381,6 @@ AGENTSTEMPLATE
     fi
     pass "LaunchAgent created (validated)"
     
-    # SECURITY FIX 2.3: Check for port conflicts BEFORE starting gateway
-    info "Checking if port $DEFAULT_GATEWAY_PORT is available..."
-    local blocking_pid
-    if blocking_pid=$(check_port_available "$DEFAULT_GATEWAY_PORT"); then
-        pass "Port $DEFAULT_GATEWAY_PORT is available"
-    else
-        # Port is in use
-        handle_port_conflict "$DEFAULT_GATEWAY_PORT" "$blocking_pid"
-    fi
-    
     # Start gateway
     launchctl unload "$launch_agent" 2>/dev/null || true
     launchctl load "$launch_agent" || die "Failed to start gateway"
@@ -1934,21 +1415,11 @@ AGENTSTEMPLATE
     echo ""
     echo -e "  ${GREEN}Security enhancements active:${NC}"
     echo -e "  ${INFO} API keys stored in macOS Keychain (not environment)"
-    echo -e "  ${INFO} Keys retrieved directly by Python (never in shell vars)"
     echo -e "  ${INFO} All inputs validated against strict allowlists"
     echo -e "  ${INFO} Files created with secure permissions (600)"
     echo -e "  ${INFO} Template downloads verified via SHA256"
     echo -e "  ${INFO} LaunchAgent plist validated by plutil"
-    echo -e "  ${INFO} Port conflicts detected before startup"
-    echo -e "  ${INFO} Disk space verified before file operations (500MB min)"
-    echo -e "  ${INFO} Keychain access with timeout + retry for locked state"
     echo ""
-    
-    # SECURITY FIX 2.4: Remind about manual .env if needed
-    if [ "$NEEDS_MANUAL_ENV" = true ]; then
-        echo -e "  ${YELLOW}⚠️  Don't forget to create ~/.openclaw/.env with your API key!${NC}"
-        echo ""
-    fi
     
     # Open dashboard
     if confirm "Open dashboard now?"; then
@@ -1978,16 +1449,6 @@ main() {
     echo -e "  ${INFO} Phase 1.3: Secure file creation (no race conditions)"
     echo -e "  ${INFO} Phase 1.4: SHA256 template verification"
     echo -e "  ${INFO} Phase 1.5: Plist injection protection"
-    echo ""
-    echo -e "  ${GREEN}🛡️  Phase 2 Critical Fixes (Prism Cycle 1):${NC}"
-    echo -e "  ${INFO} Phase 2.1: Python retrieves keys directly from Keychain"
-    echo -e "  ${INFO} Phase 2.2: Fully quoted heredoc prevents injection"
-    echo -e "  ${INFO} Phase 2.3: Port conflict detection before startup"
-    echo -e "  ${INFO} Phase 2.4: Clear Keychain warnings + recovery options"
-    echo ""
-    echo -e "  ${GREEN}🔐 Phase 3 Critical Fixes (Prism Cycle 2):${NC}"
-    echo -e "  ${INFO} Phase 3.1: Disk space pre-flight check (500MB min)"
-    echo -e "  ${INFO} Phase 3.2: Locked Keychain timeout + retry loop"
     echo ""
     
     if ! confirm "Ready?"; then

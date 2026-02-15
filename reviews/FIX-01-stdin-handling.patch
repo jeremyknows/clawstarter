@@ -1,0 +1,32 @@
+--- openclaw-quickstart-v2.sh	(original)
++++ openclaw-quickstart-v2.sh	(fixed)
+@@ -753,7 +753,13 @@ prompt() {
+         echo -en "\n  ${CYAN}?${NC} ${question}: "
+     fi
+     
+-    read -r response
++    # FIX: Use /dev/tty for piped execution (curl | bash)
++    if [ -t 0 ]; then
++        read -r response
++    else
++        read -r response < /dev/tty 2>/dev/null || response=""
++    fi
++    
+     if [ -z "$response" ] && [ -n "$default" ]; then
+         echo "$default"
+     else
+@@ -776,7 +782,13 @@ prompt_validated() {
+             echo -en "\n  ${CYAN}?${NC} ${question}: "
+         fi
+         
+-        read -r response
++        # FIX: Use /dev/tty for piped execution (curl | bash)
++        if [ -t 0 ]; then
++            read -r response
++        else
++            read -r response < /dev/tty 2>/dev/null || response=""
++        fi
++        
+         if [ -z "$response" ] && [ -n "$default" ]; then
+             response="$default"
+         fi

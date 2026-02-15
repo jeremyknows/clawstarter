@@ -1,0 +1,101 @@
+#!/bin/bash
+# stdin-tty-fix.patch
+# CRITICAL FIX for piped execution (curl | bash)
+#
+# This patch adds /dev/tty handling to prompt() and prompt_validated()
+# functions to support piped execution contexts.
+#
+# ISSUE: When script is run via `curl https://... | bash`, stdin is the
+# script itself (not the terminal). The `read` command consumes script
+# source code instead of user input, causing silent failures or infinite loops.
+#
+# FIX: Check if stdin is a TTY. If not, read from /dev/tty instead.
+# This pattern already exists in confirm() function (line 810) and works perfectly.
+#
+# APPLY WITH:
+#   cd ~/.openclaw/apps/clawstarter
+#   bash fixes/stdin-tty-fix.patch
+
+set -e
+
+SCRIPT_FILE="openclaw-quickstart-v2.sh"
+
+if [ ! -f "$SCRIPT_FILE" ]; then
+    echo "ERROR: $SCRIPT_FILE not found"
+    echo "Run this from the clawstarter directory"
+    exit 1
+fi
+
+echo "Applying stdin/TTY fix to $SCRIPT_FILE..."
+
+# Create backup
+cp "$SCRIPT_FILE" "${SCRIPT_FILE}.backup-$(date +%Y%m%d-%H%M%S)"
+echo "✓ Backup created"
+
+# Apply fix to prompt() function (around line 756)
+# Replace:
+#     read -r response
+# With:
+#     if [ -t 0 ]; then
+#         read -r response
+#     else
+#         read -r response < /dev/tty 2>/dev/null || response=""
+#     fi
+
+# For macOS sed compatibility, we'll use perl instead
+perl -i -pe '
+    # Fix prompt() function (first occurrence after "prompt() {")
+    if (/^    read -r response$/ && $. > 750 && $. < 770) {
+        $_ = q{    # FIX: Handle piped execution (curl | bash)
+    if [ -t 0 ]; then
+        # stdin is a TTY (normal execution)
+        read -r response
+    else
+        # stdin is piped (redirect to /dev/tty)
+        read -r response < /dev/tty 2>/dev/null || response=""
+    fi
+};
+    }
+' "$SCRIPT_FILE"
+
+# Apply fix to prompt_validated() function (around line 783)
+perl -i -pe '
+    # Fix prompt_validated() function (second occurrence)
+    if (/^        read -r response$/ && $. > 775 && $. < 795) {
+        $_ = q{        # FIX: Handle piped execution (curl | bash)
+        if [ -t 0 ]; then
+            # stdin is a TTY (normal execution)
+            read -r response
+        else
+            # stdin is piped (redirect to /dev/tty)
+            read -r response < /dev/tty 2>/dev/null || response=""
+        fi
+};
+    }
+' "$SCRIPT_FILE"
+
+echo "✓ Patch applied"
+
+# Verify syntax
+if bash -n "$SCRIPT_FILE"; then
+    echo "✓ Syntax check passed"
+else
+    echo "✗ Syntax check FAILED"
+    echo "Restoring backup..."
+    mv "${SCRIPT_FILE}.backup-"* "$SCRIPT_FILE"
+    exit 1
+fi
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✓ stdin/TTY fix applied successfully"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "NEXT STEPS:"
+echo "  1. Test piped execution: cat $SCRIPT_FILE | bash"
+echo "  2. Test direct execution: bash $SCRIPT_FILE"
+echo "  3. Verify prompts work in both modes"
+echo ""
+echo "If issues occur, restore backup:"
+echo "  cp ${SCRIPT_FILE}.backup-* $SCRIPT_FILE"
+echo ""

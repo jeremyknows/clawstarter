@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-# OpenClaw Quickstart Script v2.7.0-prism-fixed
-# SECURITY HARDENED: Phase 1 + Phase 2 + Phase 3 + PRISM Marathon Fixes
-# Updated: 2026-02-15
+# OpenClaw Quickstart Script v2.6.0-secure
+# SECURITY HARDENED: Phase 1 + Phase 2 + Phase 3 Critical Fixes
+# Generated: 2026-02-11
+# DO NOT EDIT - This is the integrated secure version
 #
 # Security Fixes Applied:
 #   1.1 - API Key Security: macOS Keychain storage, no env exposure
@@ -21,14 +22,8 @@
 #   3.1 - Disk Space Check: Verify 500MB+ free before any file operations
 #   3.2 - Locked Keychain Handling: Timeout + retry loop in Python keychain_get
 #
-# PRISM Marathon Fixes (2026-02-15):
-#   P0 - stdin/TTY Fix: Handle piped execution (curl | bash)
-#   P1 - API Key Validation: Format checking for sk-or- and sk-ant- keys
-#   P1 - Permission Self-Heal: Auto chmod +x if needed
-#
 # Usage:
-#   bash openclaw-quickstart-v2.sh
-#   curl https://... | bash  (now works with stdin fix!)
+#   bash openclaw-quickstart-v2.6-SECURE.sh
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
@@ -42,20 +37,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 # ═══════════════════════════════════════════════════════════════════
-# P1 FIX: Self-Heal Permission Denied Errors
-# ═══════════════════════════════════════════════════════════════════
-# Check if this script has execute permission, add it if missing
-if [ ! -x "$0" ] && [ -f "$0" ]; then
-    chmod +x "$0" 2>/dev/null || true
-fi
-
-# ═══════════════════════════════════════════════════════════════════
 # ERROR TRAPPING (v2.7 - Debug failing at Question 1→2 transition)
 # ═══════════════════════════════════════════════════════════════════
 trap 'echo -e "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; echo -e "❌ SCRIPT FAILED AT LINE $LINENO"; echo -e "Last command: $BASH_COMMAND"; echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; echo ""; echo "Please screenshot and send to Watson." >&2' ERR
 
 # ─── Constants ───
-readonly SCRIPT_VERSION="2.7.0-prism-fixed"
+readonly SCRIPT_VERSION="2.6.0-secure"
 readonly MIN_NODE_VERSION="22"
 readonly DEFAULT_GATEWAY_PORT=18789
 
@@ -86,7 +73,7 @@ readonly -a ALLOWED_SECURITY_LEVELS=("low" "medium" "high")
 readonly -a ALLOWED_PERSONALITIES=("casual" "professional" "direct")
 
 # ═══════════════════════════════════════════════════════════════════
-# Template Download (checksums re-enabled — bash 3.2 compatible via case statement)
+# Template Download (checksums disabled for bash 3.2 compatibility)
 # ═══════════════════════════════════════════════════════════════════
 readonly TEMPLATE_BASE_URL="https://raw.githubusercontent.com/jeremyknows/clawstarter/main"
 
@@ -410,37 +397,12 @@ validate_menu_selection() {
 }
 
 # Validate API key format (block dangerous characters)
-# P1 FIX: Added format validation for OpenRouter and Anthropic keys
 validate_api_key() {
     local key="$1"
     
     if [ -z "$key" ]; then
         echo "OK"
         return 0
-    fi
-    
-    # P1 FIX: Check for known API key formats
-    if [[ "$key" == sk-or-* ]]; then
-        # OpenRouter key format
-        if [ ${#key} -lt 40 ]; then
-            echo "ERROR: OpenRouter key seems too short (should be sk-or-... with more characters)"
-            return 1
-        fi
-    elif [[ "$key" == sk-ant-* ]]; then
-        # Anthropic key format
-        if [ ${#key} -lt 40 ]; then
-            echo "ERROR: Anthropic key seems too short (should be sk-ant-... with more characters)"
-            return 1
-        fi
-    elif [[ "$key" == sk-* ]]; then
-        # Unknown sk- prefix
-        warn "Warning: API key format not recognized (expected sk-or-... or sk-ant-...)"
-    fi
-    
-    # Check for spaces (common copy-paste error)
-    if [[ "$key" == *" "* ]]; then
-        echo "ERROR: API key contains spaces (likely a copy-paste error)"
-        return 1
     fi
     
     if [[ "$key" == *"'"* ]] || [[ "$key" == *'"'* ]] || [[ "$key" == *'`'* ]] || \
@@ -515,41 +477,6 @@ log_verification() {
     echo "[$timestamp] $1" >> "$VERIFICATION_LOG"
 }
 
-# ═══════════════════════════════════════════════════════════════════
-# Template Checksum Lookup (bash 3.2 compatible — no associative arrays)
-# Re-enabled by PRISM Marathon security review (Feb 15, 2026)
-# ═══════════════════════════════════════════════════════════════════
-get_template_checksum() {
-    local template_path="$1"
-    case "$template_path" in
-        "templates/workspace/AGENTS.md")
-            echo "e5e09e3e0bcf31d99102c50fce5920653f400c850952015199b5a51bca4a25c9" ;;
-        "templates/workspace/SOUL.md")
-            echo "e0a9dfc7fd1b3b6a0c9eb885a52de0b567c1e80b6f1a09a3a308fa6c7d7af5ae" ;;
-        "templates/workspace/IDENTITY.md")
-            echo "9211294e1af2b99a41a1fb3bf24281b639474720928de5b7acf784f8fed6c92e" ;;
-        "templates/workspace/HEARTBEAT.md")
-            echo "01a9dc083bcad03cf22b1c5cead26ca064aab1c1f1b64aa2059eac0eeec7e396" ;;
-        "templates/workspace/MEMORY.md")
-            echo "0c1be90c4f1fb1c3aa0515caa1487329cd9ee1055cdd865d86f178e034accd7d" ;;
-        "templates/workspace/BOOTSTRAP.md")
-            echo "8154c061ab34edadd2d1c4f68fb43e7edb3d4a6f129d340e0dcfea4cc7e261e6" ;;
-        "templates/workspace/USER.md")
-            echo "a8d650773c69b3c1801be24cffbcb4fe85d4acb9573d366e048a071f05c1c4a4" ;;
-        "templates/workspace/TOOLS.md")
-            echo "b8cfdc95177ec41c52d72307ecb42183606f08057787768eba6b92930cd2d04a" ;;
-        "workflows/content-creator/AGENTS.md")
-            echo "1d8513f149d635f69f5475da2861a896add0b30824374a4782ceabdc5ae09448" ;;
-        "workflows/workflow-optimizer/AGENTS.md")
-            echo "da75bbf0ab2d34da0351228290708bb704cad9937f0746f4f1bc94c19ae55019" ;;
-        "workflows/app-builder/AGENTS.md")
-            echo "efebf563c01c50d452db6e09440a9c4bea8630702eaaaceb534ae78956c12f0e" ;;
-        *)
-            echo ""  # Unknown template — skip verification
-            ;;
-    esac
-}
-
 verify_sha256() {
     local file_path="$1"
     local expected_checksum="$2"
@@ -583,10 +510,6 @@ verify_and_download_template() {
     local destination="$2"
     local template_url="${TEMPLATE_BASE_URL}/${template_path}"
     
-    # Get expected checksum (empty string = unknown template, skip verification)
-    local expected_checksum
-    expected_checksum=$(get_template_checksum "$template_path")
-    
     local temp_file
     temp_file=$(mktemp)
     chmod 600 "$temp_file"
@@ -598,25 +521,8 @@ verify_and_download_template() {
         return 1
     fi
     
-    # Verify checksum if we have one for this template
-    if [ -n "$expected_checksum" ]; then
-        if verify_sha256 "$temp_file" "$expected_checksum"; then
-            pass "✓ Checksum verified: $template_path"
-        else
-            warn "⚠️  Checksum mismatch for $template_path — file may have been tampered with"
-            warn "    Continuing with download (template may have been updated upstream)"
-            # NOTE: We warn but don't fail — templates may legitimately change
-            # between checksum updates. A hard fail would break installs when
-            # templates are updated but checksums haven't been regenerated yet.
-            log_verification "CHECKSUM_WARN: $template_path mismatch (continued anyway)"
-        fi
-    else
-        info "No checksum defined for $template_path (skipping verification)"
-    fi
-    
     mkdir -p "$(dirname "$destination")"
     cp "$temp_file" "$destination"
-    chmod 600 "$destination"
     rm -f "$temp_file"
     
     pass "✓ Installed: $template_path"
@@ -843,15 +749,7 @@ prompt() {
         echo -en "\n  ${CYAN}?${NC} ${question}: "
     fi
     
-    # P0 FIX: Handle piped execution (curl | bash)
-    if [ -t 0 ]; then
-        # stdin is a TTY (normal execution)
-        read -r response
-    else
-        # stdin is piped (redirect to /dev/tty)
-        read -r response < /dev/tty 2>/dev/null || response=""
-    fi
-    
+    read -r response
     if [ -z "$response" ] && [ -n "$default" ]; then
         echo "$default"
     else
@@ -875,15 +773,7 @@ prompt_validated() {
             echo -en "\n  ${CYAN}?${NC} ${question}: "
         fi
         
-        # P0 FIX: Handle piped execution (curl | bash)
-        if [ -t 0 ]; then
-            # stdin is a TTY (normal execution)
-            read -r response
-        else
-            # stdin is piped (redirect to /dev/tty)
-            read -r response < /dev/tty 2>/dev/null || response=""
-        fi
-        
+        read -r response
         if [ -z "$response" ] && [ -n "$default" ]; then
             response="$default"
         fi

