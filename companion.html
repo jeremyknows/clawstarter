@@ -1198,6 +1198,15 @@
           <label>
             <input type="checkbox" id="check-3" onchange="updateChecklistState()">
             <div>
+              <strong>Admin access on this Mac</strong><br>
+              <span style="color: var(--text-secondary);">The script needs to configure firewall, sleep, and auto-update settings. Check: System Settings → Users & Groups → your account should show "Admin" badge.</span>
+            </div>
+          </label>
+        </div>
+        <div class="checklist-item">
+          <label>
+            <input type="checkbox" id="check-4" onchange="updateChecklistState()">
+            <div>
               <strong>An AI provider API key (optional)</strong><br>
               <span style="color: var(--text-secondary);">Don't have an API key yet? No problem — you can set one up during installation, or skip it and use the free tier to try things out.</span><br>
               <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">Get an OpenRouter API key here</a> (recommended, $5-10 to start)
@@ -1248,13 +1257,14 @@
             <ol style="margin-left: var(--sp-6); line-height: 2;">
               <li>Click the <strong>Apple menu</strong>  (top left) → <strong>System Settings</strong></li>
               <li>Click <strong>Users & Groups</strong> in the sidebar</li>
-              <li>Click <strong>Add Account...</strong> (or <strong>Add User...</strong> on older macOS) — you may need to click the 🔒 lock first</li>
+              <li>Click the 🔒 lock (bottom left) and enter your password if locked</li>
+              <li>Click <strong>Add Account...</strong> (or <strong>Add User...</strong> on macOS 12 and earlier)</li>
               <li>Fill in:
                 <ul style="margin-left: var(--sp-4); margin-top: var(--sp-2); margin-bottom: var(--sp-2);">
                   <li><strong>Full Name:</strong> <code>Watson</code> (or any name for your bot)</li>
                   <li><strong>Account Name:</strong> <code>watson</code> (lowercase, no spaces)</li>
                   <li><strong>Password:</strong> Something you'll remember</li>
-                  <li><strong>Account Type:</strong> <code>Administrator</code> (required)</li>
+                  <li><strong>Account Type:</strong> <code>Administrator</code> (required for system setup)</li>
                 </ul>
               </li>
               <li>Click <strong>Create User</strong></li>
@@ -1368,15 +1378,9 @@
       <p class="step-description">Now we'll run the installer.</p>
     </div>
     <div class="step-content">
-      <div class="instruction warning" style="margin-bottom: var(--sp-6);">
-        <div class="instruction-title">⚠️ IMPORTANT: Password Visibility</div>
-        <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">When Terminal asks for your password, YOU WON'T SEE ANYTHING when you type. No dots, no stars, nothing.</p>
-        <p>This is NORMAL and secure. You'll see a 🔐 keyhole icon in your menu bar — that means macOS is waiting for your password. Just type it and press Enter.</p>
-      </div>
-
       <div class="instruction warning">
-        <div class="instruction-title">⚠️ Don't Press ⌘C During Installation</div>
-        <p>Don't press <kbd>⌘ Command</kbd> + <kbd>C</kbd> during installation — this will cancel the script.</p>
+        <div class="instruction-title">⚠️ Don't Close Terminal or Press ⌘C</div>
+        <p>Keep Terminal open until you see <strong>"SUCCESS!"</strong> — closing it or pressing <kbd>⌘ Command</kbd> + <kbd>C</kbd> will cancel the installation.</p>
       </div>
 
       <div class="command-block">
@@ -1393,7 +1397,7 @@
     </div>
     <div class="step-navigation">
       <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-      <button class="btn btn-primary btn-large" onclick="nextStep()">Script running? →</button>
+      <button class="btn btn-primary btn-large" onclick="nextStep()">Pressed Enter? →</button>
     </div>
   </section>
 
@@ -1405,23 +1409,23 @@
       <p class="step-description">The script is running. Here's what you'll see.</p>
     </div>
     <div class="step-content">
+      <div class="instruction warning" style="font-size: 18px; margin-bottom: var(--sp-6);">
+        <div class="instruction-title" style="font-size: 20px;">🔐 PASSWORD PROMPT HEADS-UP</div>
+        <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">When macOS asks for your password, YOU WON'T SEE ANYTHING when you type.</p>
+        <p style="font-size: 16px;">No dots, no stars, nothing. This is normal! Look for the 🔐 keyhole icon in your menu bar — that means macOS is waiting. Just type your password and press <kbd>Enter</kbd>.</p>
+      </div>
+
       <div class="terminal">
-        <span class="terminal-output">═══ Installing Homebrew...</span><br>
-        <span class="terminal-output">═══ Installing Node.js...</span><br>
-        <span class="terminal-output">═══ Installing OpenClaw...</span><br>
+        <span class="terminal-output">═══════════════════════════════════════════════════════════════</span><br>
+        <span class="terminal-output">Installing Homebrew...</span><br>
+        <span class="terminal-output">═══════════════════════════════════════════════════════════════</span><br>
         <span class="terminal-output">[Text scrolling by — this is normal]</span>
       </div>
 
       <div class="instruction">
         <div class="instruction-title">⏱️ This takes 2-5 minutes</div>
-        <p>You'll see text scrolling — that's normal. The script is installing dependencies.</p>
-        <p><strong>Don't close Terminal or press anything.</strong> Just wait.</p>
-      </div>
-
-      <div class="instruction warning">
-        <div class="instruction-title">🔑 If you see a password prompt:</div>
-        <p>Remember: <strong>YOU WON'T SEE ANYTHING</strong> when you type your password.</p>
-        <p>Type it anyway and press <kbd>Enter</kbd>. It's working even though you can't see it!</p>
+        <p>You'll see text scrolling — that's the script installing Homebrew, Node.js, and OpenClaw.</p>
+        <p><strong>Don't close Terminal.</strong> Just wait for the next prompt.</p>
       </div>
 
       <p style="margin-top: var(--sp-6); text-align: center; color: var(--text-secondary);">
@@ -1430,7 +1434,7 @@
     </div>
     <div class="step-navigation">
       <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-      <button class="btn btn-primary btn-large" onclick="nextStep()">See a question on screen? →</button>
+      <button class="btn btn-primary btn-large" onclick="nextStep()">See "Which AI provider?" →</button>
     </div>
   </section>
 
@@ -1590,10 +1594,10 @@
 
       <h3 style="font-size: 20px; margin-bottom: var(--sp-4);">Try your first prompt:</h3>
       <div class="command-block">
-        <button class="btn-copy" onclick="copyCommand(this, 'Please read ~/.openclaw/workspace/BOOTSTRAP.md and walk me through the setup questions one by one.')" aria-label="Copy first prompt">Copy</button>
-        <code>Please read ~/.openclaw/workspace/BOOTSTRAP.md and walk me through the setup questions one by one.</code>
+        <button class="btn-copy" onclick="copyCommand(this, 'Read BOOTSTRAP.md and run through the setup questions with me.')" aria-label="Copy first prompt">Copy</button>
+        <code>Read BOOTSTRAP.md and run through the setup questions with me.</code>
       </div>
-      <p style="margin-top: var(--sp-2); color: var(--text-secondary); font-size: 14px;">This tells your bot to read the personalization file and ask you 9 questions to learn your preferences.</p>
+      <p style="margin-top: var(--sp-2); color: var(--text-secondary); font-size: 14px;">This tells your bot to read the personalization file and ask you questions to learn who you are and how to help you.</p>
 
       <div class="expandable">
         <div class="expandable-item">
@@ -1850,7 +1854,7 @@
 
       <div class="help-item">
         <div class="help-item-header" onclick="toggleHelpItem(this)">
-          <div class="help-item-title">🆘 Nuclear Option: Ask Claude</div>
+          <div class="help-item-title">🆘 Still Stuck? Ask Claude for Help</div>
           <span class="help-item-icon">▸</span>
         </div>
         <div class="help-item-content">
@@ -2043,9 +2047,12 @@ function updateChecklistState() {
   const check2 = document.getElementById('check-2');
   const check3 = document.getElementById('check-3');
   
+  const check4 = document.getElementById('check-4');
+  
   safeSet('check-1', check1.checked ? '1' : '0');
   safeSet('check-2', check2.checked ? '1' : '0');
   safeSet('check-3', check3.checked ? '1' : '0');
+  safeSet('check-4', check4.checked ? '1' : '0');
   
   // Enable next button if all checked (or allow skip)
   // For now, we allow proceeding regardless
@@ -2139,9 +2146,11 @@ function toggleExpandable(header) {
   const check1 = safeGet('check-1') === '1';
   const check2 = safeGet('check-2') === '1';
   const check3 = safeGet('check-3') === '1';
+  const check4 = safeGet('check-4') === '1';
   if (check1) document.getElementById('check-1').checked = true;
   if (check2) document.getElementById('check-2').checked = true;
   if (check3) document.getElementById('check-3').checked = true;
+  if (check4) document.getElementById('check-4').checked = true;
   
   // Load path selection
   const savedPath = safeGet('clawstarter-path');
