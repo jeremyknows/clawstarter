@@ -1604,7 +1604,56 @@
         <p style="margin-top: var(--sp-2); font-size: 14px; color: var(--text-secondary);">💡 <strong>If you created a separate user account:</strong> You can now log back into your main account. Your bot keeps running in the background — access it at <code>http://127.0.0.1:18789/</code> from any account on this Mac.</p>
       </div>
 
-      <h3 style="font-size: 20px; margin-bottom: var(--sp-4);">Try your first prompt:</h3>
+      <div class="instruction warning" style="margin-top: var(--sp-6);">
+        <div class="instruction-title">🔑 Connecting to the Dashboard</div>
+        <p>The terminal showed you a <strong>gateway token</strong> — think of it like a password that lets you control your bot.</p>
+        <ol style="margin-left: var(--sp-6); margin-top: var(--sp-3); line-height: 1.8;">
+          <li>Open the dashboard: <code>http://127.0.0.1:18789</code></li>
+          <li>Click <strong>Control UI</strong> (top-right corner)</li>
+          <li>Paste your gateway token</li>
+          <li>Click <strong>Connect</strong></li>
+        </ol>
+        
+        <details style="margin-top: var(--sp-4);">
+          <summary style="cursor: pointer; font-weight: 600; color: var(--text-heading);">❓ Troubleshooting</summary>
+          <div style="margin-top: var(--sp-3); padding-left: var(--sp-4); border-left: 2px solid var(--border);">
+            <p><strong>Don't see the token?</strong></p>
+            <div class="command-block" style="margin-top: var(--sp-2);">
+              <code>jq -r '.gateway.token' ~/.openclaw/openclaw.json</code>
+            </div>
+            
+            <p style="margin-top: var(--sp-4);"><strong>Dashboard shows "disconnected (1008): unauthorized"?</strong></p>
+            <p style="margin-top: var(--sp-2); font-size: 14px;">The token is missing or incorrect. Find it with the command above, then paste it in Control UI.</p>
+            
+            <p style="margin-top: var(--sp-4);"><strong>Dashboard won't load at all?</strong></p>
+            <p style="margin-top: var(--sp-2); font-size: 14px;">Check if the gateway is running:</p>
+            <div class="command-block" style="margin-top: var(--sp-2);">
+              <code>openclaw gateway status</code>
+            </div>
+            <p style="margin-top: var(--sp-2); font-size: 14px;">If not running, start it:</p>
+            <div class="command-block" style="margin-top: var(--sp-2);">
+              <code>openclaw gateway start</code>
+            </div>
+            
+            <p style="margin-top: var(--sp-4);"><strong>Port not listening?</strong></p>
+            <p style="margin-top: var(--sp-2); font-size: 14px;">Wait 10-15 seconds for the gateway to start, then refresh. Still not working? Restart:</p>
+            <div class="command-block" style="margin-top: var(--sp-2);">
+              <code>openclaw gateway restart</code>
+            </div>
+          </div>
+        </details>
+        
+        <div class="instruction danger" style="margin-top: var(--sp-4); font-size: 14px;">
+          <strong>⚠️ Security:</strong> The gateway token grants full control of your bot.
+          <ul style="margin-left: var(--sp-4); margin-top: var(--sp-2);">
+            <li>Don't share screenshots of the terminal during setup</li>
+            <li>Don't commit <code>openclaw.json</code> to git</li>
+            <li>Regenerate if exposed: <code>openclaw doctor --generate-gateway-token</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="font-size: 20px; margin-bottom: var(--sp-4); margin-top: var(--sp-8);">Try your first prompt:</h3>
       <div class="command-block">
         <button class="btn-copy" onclick="copyCommand(this, 'Read BOOTSTRAP.md and run through the setup questions with me.')" aria-label="Copy first prompt">Copy</button>
         <code>Read BOOTSTRAP.md and run through the setup questions with me.</code>
