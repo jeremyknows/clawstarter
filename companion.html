@@ -2088,16 +2088,37 @@ function updateChecklistState() {
   const check1 = document.getElementById('check-1');
   const check2 = document.getElementById('check-2');
   const check3 = document.getElementById('check-3');
-  
   const check4 = document.getElementById('check-4');
+  const check5 = document.getElementById('check-5');
+  const nextBtn = document.getElementById('checklist-next');
   
-  safeSet('check-1', check1.checked ? '1' : '0');
-  safeSet('check-2', check2.checked ? '1' : '0');
-  safeSet('check-3', check3.checked ? '1' : '0');
-  safeSet('check-4', check4.checked ? '1' : '0');
+  safeSet('check-1', check1?.checked ? '1' : '0');
+  safeSet('check-2', check2?.checked ? '1' : '0');
+  safeSet('check-3', check3?.checked ? '1' : '0');
+  safeSet('check-4', check4?.checked ? '1' : '0');
+  safeSet('check-5', check5?.checked ? '1' : '0');
   
-  // Enable next button if all checked (or allow skip)
-  // For now, we allow proceeding regardless
+  // Require checks 1-4 (check 5 is optional - account setup)
+  const allRequired = check1?.checked && check2?.checked && check3?.checked && check4?.checked;
+  
+  if (nextBtn) {
+    if (allRequired) {
+      nextBtn.disabled = false;
+      nextBtn.style.opacity = '1';
+      nextBtn.style.cursor = 'pointer';
+    } else {
+      nextBtn.disabled = true;
+      nextBtn.style.opacity = '0.5';
+      nextBtn.style.cursor = 'not-allowed';
+    }
+  }
+}
+
+// Initialize checklist state on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', updateChecklistState);
+} else {
+  updateChecklistState();
 }
 
 /* ═══════════════════════════════════════════════════════════
