@@ -2218,6 +2218,17 @@ step_run_doctor() {
         return 0
     fi
 
+    # Check for jq (needed for token extraction)
+    if ! command -v jq &>/dev/null; then
+        warn "jq not found — installing via Homebrew..."
+        if command -v brew &>/dev/null; then
+            brew install jq || warn "Failed to install jq — token extraction may not work"
+        else
+            warn "Homebrew not found — cannot install jq automatically"
+            info "Install manually: brew install jq"
+        fi
+    fi
+
     info "Running openclaw doctor to validate configuration..."
     echo ""
 
@@ -2254,7 +2265,10 @@ step_run_doctor() {
             echo -e "${BOLD}  🔑 Gateway Token Generated${NC}"
             echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
             echo ""
-            echo -e "  Your gateway token: ${CYAN}${gateway_token}${NC}"
+            echo -e "  ${DIM}Think of this like a password — it lets you control your bot${NC}"
+            echo ""
+            echo -e "  Your gateway token:"
+            echo -e "  ${CYAN}${gateway_token}${NC}"
             echo ""
             info "Save this token — you'll need it to connect the dashboard"
             info "You can always find it in: ${CONFIG_FILE}"
@@ -2392,9 +2406,11 @@ step_final_verify() {
         
         if [ -n "$gateway_token" ] && [ "$gateway_token" != "null" ]; then
             echo -e "  ${BOLD}2️⃣  Paste your gateway token when prompted:${NC}"
+            echo -e "     ${DIM}(Think of this like a password — it lets you control your bot)${NC}"
+            echo ""
             echo -e "     ${CYAN}${gateway_token}${NC}"
             echo ""
-            echo -e "     ${DIM}(Find it anytime in ~/.openclaw/openclaw.json)${NC}"
+            echo -e "     ${DIM}Find it anytime: jq -r '.gateway.token' ~/.openclaw/openclaw.json${NC}"
         else
             echo -e "  ${BOLD}2️⃣  Generate a gateway token:${NC}"
             echo -e "     ${CYAN}openclaw doctor --generate-gateway-token${NC}"

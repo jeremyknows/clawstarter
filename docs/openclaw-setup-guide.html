@@ -1304,12 +1304,23 @@ openclaw doctor</div><button class="copy-btn" onclick="copyCode('code-final')">C
     <p>Click it or paste it into your browser. You should see the OpenClaw dashboard.</p>
 
     <h3>2. Paste your gateway token</h3>
-    <p>The terminal also showed you a gateway token (a long random string).</p>
+    <p>The terminal showed you a <strong>gateway token</strong> — think of it like a password that lets you control your bot.</p>
     <ul style="margin-left: 20px; margin-top: 8px; margin-bottom: 8px;">
       <li>Click <strong>Control UI</strong> in the top-right corner of the dashboard</li>
       <li>Paste your token into the <strong>Gateway Token</strong> field</li>
       <li>Click <strong>Connect</strong></li>
     </ul>
+    
+    <div class="callout danger">
+      <span class="callout-icon">⚠️</span>
+      <div><strong>Security:</strong> The gateway token grants full control of your bot.
+        <ul style="margin-left: 16px; margin-top: 4px; font-size: 13px;">
+          <li>Don't share screenshots of the terminal during setup</li>
+          <li>Don't commit <code>openclaw.json</code> to git</li>
+          <li>Regenerate if exposed: <code>openclaw doctor --generate-gateway-token</code></li>
+        </ul>
+      </div>
+    </div>
     
     <div class="callout info">
       <span class="callout-icon">💡</span>
