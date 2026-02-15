@@ -7,9 +7,14 @@
 ## Before You Start
 
 ✅ **You need:**
-- A Mac (any model, macOS 12+)
+- A Mac (any model, macOS 13+ Ventura or newer)
 - $5-10 for AI credits ([OpenRouter](https://openrouter.ai/keys))
 - 15 minutes
+
+⚠️ **Important:** For security, your bot should run on a separate macOS user account (not your admin account). This isolates the bot from your personal files.
+
+**Already have a second user?** Great! Log into that account and continue.  
+**Don't have one?** Open `companion.html` in your browser and follow Step 3 to create one, then come back here.
 
 ✅ **You'll have:**
 - Running AI bot (web dashboard)

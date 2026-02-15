@@ -13,7 +13,7 @@ Your battle-tested OpenClaw production setup, packaged as a beginner-friendly in
 **Coverage:** 13/20 PRISM reviews complete (security ✅, UX ✅, docs ✅)
 
 **What works:**
-- ✅ One-command install (`openclaw-quickstart-v2.sh`)
+- ✅ One-command install (`openclaw-autosetup.sh`)
 - ✅ Security-hardened (Keychain isolation, input validation, atomic file ops)
 - ✅ Interactive companion page (`companion.html`)
 - ✅ Starter pack with 5 pre-configured cron jobs (~$0.37/month)
@@ -27,9 +27,11 @@ Your battle-tested OpenClaw production setup, packaged as a beginner-friendly in
 
 ## Quick Start
 
+⚠️ **Before you begin:** For security, create a separate macOS user account for your bot (not your admin account). This isolates the bot from your personal files. See `companion.html` Step 3 for instructions.
+
 **Option 1: One-Command Install** (recommended)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-autosetup.sh | bash
 ```
 
 **Option 2: Interactive Guide**  
@@ -109,8 +111,7 @@ Each workflow includes: domain-specific behavior patterns, one-command skill ins
 
 ```
 clawstarter/
-├── openclaw-quickstart-v2.sh          # Primary installer (v2.7.0-prism-fixed)
-├── openclaw-autosetup.sh              # Full automation (19 steps, resume support)
+├── openclaw-autosetup.sh              # Primary installer (19 steps, resume support)
 ├── openclaw-verify.sh                 # Post-install diagnostic (18 checks)
 ├── companion.html                     # Interactive setup walkthrough
 ├── index.html                         # Marketing landing page
