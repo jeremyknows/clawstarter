@@ -1213,6 +1213,20 @@
             </div>
           </label>
         </div>
+        <div class="checklist-item" style="border-left: 3px solid var(--accent); padding-left: var(--sp-3); background: var(--bg-surface);">
+          <label>
+            <input type="checkbox" id="check-5" onchange="updateChecklistState()">
+            <div>
+              <strong>Dedicated accounts for Google/Apple services (recommended)</strong><br>
+              <span style="color: var(--text-secondary);">If you plan to use email (Gmail) or iMessage/Notes, consider creating dedicated accounts for cleaner separation:</span>
+              <ul style="margin-left: 16px; margin-top: 6px; font-size: 14px; color: var(--text-secondary);">
+                <li><strong>Gmail:</strong> For Google services (calendar, email, drive). OAuth setup required.</li>
+                <li><strong>Apple ID</strong> (macOS only): For iMessage, Notes, Reminders. Keeps bot activity separate.</li>
+              </ul>
+              <span style="color: var(--text-secondary); font-size: 13px; margin-top: 4px; display: block;">You can use your personal accounts instead, but dedicated = cleaner isolation.</span>
+            </div>
+          </label>
+        </div>
       </fieldset>
     </div>
     <div class="step-navigation">
