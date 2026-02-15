@@ -42,18 +42,16 @@ Open **`companion.html`** in your browser and follow the step-by-step walkthroug
 | File | What it is | Best for |
 |------|-----------|----------|
 | `companion.html` | Interactive setup wizard (10 steps) | Most people (recommended) |
-| `OPENCLAW-SETUP-GUIDE.md` | Text version of the setup guide | People who prefer reading markdown |
+| `QUICKSTART.md` | Ultra-brief 3-step guide | "Just get it working" |
+| `docs/OPENCLAW-SETUP-GUIDE.md` | Comprehensive manual setup (8 steps, 45-90 min) | People who prefer detailed instructions |
 
 ### AI-Assisted Setup (optional)
 
-These are prompts you paste into an AI assistant so it can walk you through setup conversationally:
-
 | File | What it is | Best for |
 |------|-----------|----------|
-| `OPENCLAW-CLAUDE-SETUP-PROMPT.txt` | Prompt for [Claude.ai](https://claude.ai) | Chatting through setup with Claude in a browser |
-| `OPENCLAW-CLAUDE-CODE-SETUP.md` | Prompt for [Claude Code](https://claude.ai/claude-code) (CLI) | Having Claude Code run commands for you in Terminal |
+| `docs/OPENCLAW-CLAUDE-CODE-SETUP.md` | Prompt for Claude Code (CLI) | Having an AI agent run commands for you |
 
-The HTML guide also generates a customized version of the Claude.ai prompt on its final page, tailored to the choices you made in the configurator.
+The companion wizard also generates a customized setup prompt on its final page.
 
 ### Automation
 
@@ -66,8 +64,9 @@ The HTML guide also generates a customized version of the Claude.ai prompt on it
 
 | File | What it is |
 |------|-----------|
-| `OPENCLAW-FOUNDATION-PLAYBOOK-TEMPLATE.md` | Optional hardening guide (security audit, backups, monitoring). Do Phase 1 this week; the rest at your own pace. |
-| `templates/workspace-scaffold-prompt.md` | Standalone prompt — paste into your bot's first chat to scaffold workspace + run first-time personalization. Use this if you didn't run autosetup.sh and aren't following the Playbook. |
+| `docs/OPENCLAW-FOUNDATION-PLAYBOOK-TEMPLATE.md` | Optional hardening guide (security, backups, monitoring). 8 phases you can do at your own pace. |
+| `docs/CROSS-DEVICE-PROTOCOL.md` | Multi-device setup (access your bot from phone, laptop, remote machines) |
+| `templates/workspace-scaffold-prompt.md` | First-run workspace setup prompt |
 
 ### Starter Pack & Expansion Packs
 
