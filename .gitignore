@@ -32,3 +32,8 @@ IMPLEMENTATION-PLAN.md
 
 # Office files
 *.docx
+
+# Video files (too large for git)
+*.mp4
+*.MOV
+*.mov
