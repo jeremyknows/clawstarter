@@ -1190,7 +1190,7 @@
             <input type="checkbox" id="check-2" onchange="updateChecklistState()">
             <div>
               <strong>15-20 minutes of uninterrupted time</strong><br>
-              <span style="color: var(--text-secondary);">Find a quiet moment. You'll need to watch the Terminal as it installs.</span>
+              <span style="color: var(--text-secondary);">Find a quiet moment. <strong>Keep your Mac plugged in</strong> — sleep or battery drain can interrupt installation.</span>
             </div>
           </label>
         </div>
@@ -1280,7 +1280,8 @@
 
             <div class="instruction success" style="margin-top: var(--sp-4);">
               <div class="instruction-title">✅ Ready to continue?</div>
-              <p>Once you're logged into the bot user account, click "I'm in the bot account" below.</p>
+              <p>Once you're logged into the dedicated user account, click "I'm in the bot account" below.</p>
+              <p style="margin-top: var(--sp-2); font-size: 14px;"><strong>Quick check:</strong> Click Apple menu  → the username at the top should show your bot account name (e.g., "Watson").</p>
             </div>
           </div>
         </details>
@@ -1302,7 +1303,7 @@
     <div class="step-content">
       <div style="text-align: center; margin: var(--sp-8) 0;">
         <a href="openclaw-autosetup.sh" download="install.sh" class="btn btn-primary btn-large">
-          <span>📥 Download install.sh</span>
+          <span>📥 Download Install Script</span>
         </a>
         <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px;">
           File will download to your Downloads folder
@@ -1426,11 +1427,8 @@
         <div class="instruction-title">⏱️ This takes 2-5 minutes</div>
         <p>You'll see text scrolling — that's the script installing Homebrew, Node.js, and OpenClaw.</p>
         <p><strong>Don't close Terminal.</strong> Just wait for the next prompt.</p>
+        <p style="margin-top: var(--sp-2); color: var(--text-secondary); font-size: 14px;">💡 Already have Homebrew or Node.js? The script will detect and skip those steps automatically.</p>
       </div>
-
-      <p style="margin-top: var(--sp-6); text-align: center; color: var(--text-secondary);">
-        Still going? That's normal. Wait for the next prompt.
-      </p>
     </div>
     <div class="step-navigation">
       <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
@@ -1447,9 +1445,9 @@
     </div>
     <div class="step-content">
       <div class="instruction warning" style="margin-bottom: var(--sp-6);">
-        <div class="instruction-title">⚠️ IMPORTANT: OpenClaw Config Wizard</div>
-        <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">Press <kbd>ESC</kbd> (Escape key) to skip the config wizard</p>
-        <p>ClawStarter has a curated config ready for you. Skipping saves time and uses our recommended settings.</p>
+        <div class="instruction-title">⚠️ IMPORTANT: Skip the Config Wizard</div>
+        <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">When you see "OpenClaw Config Wizard", press <kbd>ESC</kbd> immediately</p>
+        <p>The wizard asks 20+ questions about tool permissions. ClawStarter already has a curated config — skipping saves 10 minutes.</p>
       </div>
 
       <h3 style="font-size: 20px; margin-bottom: var(--sp-4);">API Key Setup</h3>
@@ -1589,7 +1587,8 @@
     <div class="step-content">
       <div class="instruction success">
         <div class="instruction-title">🎉 You're all set!</div>
-        <p>Your bot will run BOOTSTRAP.md and ask you 9 personalization questions. This helps it learn your preferences.</p>
+        <p>Your bot is running! It will ask you personalization questions to learn your preferences.</p>
+        <p style="margin-top: var(--sp-2); font-size: 14px; color: var(--text-secondary);">💡 <strong>If you created a separate user account:</strong> You can now log back into your main account. Your bot keeps running in the background — access it at <code>http://127.0.0.1:18789/</code> from any account on this Mac.</p>
       </div>
 
       <h3 style="font-size: 20px; margin-bottom: var(--sp-4);">Try your first prompt:</h3>
