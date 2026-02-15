@@ -166,6 +166,28 @@ If your agent writes code, it should run it before declaring success.
 
 **Why it matters:** Using opus for simple tasks wastes money. Using nano for complex work wastes your time.
 
+### 4. Web Content: Markdown First
+When fetching web content, use `markdown.new` to get clean markdown instead of HTML bloat.
+
+**The pattern:**
+```
+# Instead of:
+web_fetch url="https://example.com/article"
+
+# Use:
+web_fetch url="https://markdown.new/https://example.com/article"
+```
+
+**Why it matters:** HTML wastes tokens. A typical blog post is 16,000 tokens as HTML but only 3,000 as markdown. **80% savings.**
+
+**Skip markdown.new for:**
+- API endpoints (already return JSON)
+- Raw files (.txt, .md, .json)
+- Internal/private URLs (don't proxy through external services)
+- When you need HTML structure for scraping
+
+**Reference:** [markdown-fetch skill](https://github.com/jeremyknows/markdown-fetch)
+
 ---
 
 ## 🔄 Memory Checkpoints (Important!)

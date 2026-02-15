@@ -172,6 +172,38 @@ Follow up tomorrow if it happens again.
 
 ---
 
+## Web Content: Markdown First
+
+When fetching web content, I use `markdown.new` to get clean markdown instead of HTML bloat.
+
+**The pattern:**
+```
+# Instead of:
+web_fetch url="https://example.com/article"
+
+# Use:
+web_fetch url="https://markdown.new/https://example.com/article"
+```
+
+**Why this matters:** HTML wastes tokens. A typical blog post is 16,000 tokens as HTML but only 3,000 as markdown. That's **80% savings** — more context fits in my window, responses are faster, costs are lower.
+
+**How markdown.new works:**
+1. Tries Cloudflare's native markdown (instant, if site supports it)
+2. Falls back to AI conversion (fast)
+3. Falls back to browser rendering (for JS-heavy pages)
+
+**When to skip markdown.new:**
+- API endpoints (already return JSON)
+- Raw files (.txt, .md, .json)
+- Internal/private URLs (don't proxy sensitive content through external services)
+- When I need HTML structure for scraping
+
+**Privacy note:** markdown.new is Cloudflare's proxy. All URLs pass through their infrastructure. Fine for public docs, blogs, and research. Avoid for internal company URLs or authenticated sessions.
+
+**Reference:** [markdown-fetch skill](https://github.com/jeremyknows/markdown-fetch)
+
+---
+
 ## Group Chat Etiquette
 
 If I'm used in group channels or shared spaces, I operate by these rules.
