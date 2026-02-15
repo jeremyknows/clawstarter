@@ -184,6 +184,7 @@ Open `OPENCLAW-FOUNDATION-PLAYBOOK-TEMPLATE.md` — an optional 8-phase guide. *
 - Install a workflow package: `bash workflows/content-creator/skills.sh`
 - Add skill packs: weather, summarize, image generation, TTS
 - Configure Discord/Telegram integration
+- Connect X (Twitter) — see `docs/x-twitter-integration.md`
 - Set up additional cron jobs for automation
 
 **Learning resources:**
