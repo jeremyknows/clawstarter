@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Step-by-step companion guide for setting up OpenClaw on your Mac. Walk through the Terminal install process with detailed guidance.">
-<title>ClawStarter Companion - Your OpenClaw Setup Guide</title>
+<meta name="description" content="Step-by-step wizard for setting up OpenClaw on your Mac. One step at a time.">
+<title>ClawStarter Setup Wizard - Your OpenClaw Setup Guide</title>
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://clawstarter.xyz/companion">
-<meta property="og:title" content="ClawStarter Companion - Your OpenClaw Setup Guide">
-<meta property="og:description" content="Step-by-step companion guide for setting up OpenClaw. Walk through the Terminal install process with detailed guidance.">
+<meta property="og:title" content="ClawStarter Setup Wizard - Your OpenClaw Setup Guide">
+<meta property="og:description" content="Step-by-step wizard for setting up OpenClaw. One step at a time.">
 <meta property="og:image" content="https://clawstarter.xyz/clawstarter-video-thumbnail.png">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="https://clawstarter.xyz/companion">
-<meta property="twitter:title" content="ClawStarter Companion - Your OpenClaw Setup Guide">
-<meta property="twitter:description" content="Step-by-step companion guide for setting up OpenClaw on your Mac.">
+<meta property="twitter:title" content="ClawStarter Setup Wizard - Your OpenClaw Setup Guide">
+<meta property="twitter:description" content="Step-by-step wizard for setting up OpenClaw on your Mac.">
 <meta property="twitter:image" content="https://clawstarter.xyz/clawstarter-video-thumbnail.png">
 
 <link rel="icon" type="image/png" href="favicon.png">
@@ -140,13 +140,29 @@
   /* ═══════════════════════════════════════════════════════════
      ANIMATIONS
      ══════════════════════════════════════════════════════════ */
-  @keyframes fade-up {
-    from { opacity: 0; transform: translateY(24px); }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  @keyframes fade-out {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-16px); }
+  }
+
+  @keyframes slide-in-right {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+
+  @keyframes slide-out-right {
+    from { transform: translateX(0); }
+    to { transform: translateX(100%); }
+  }
+
   @keyframes progress-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -157,9 +173,9 @@
   }
 
   /* ═══════════════════════════════════════════════════════════
-     STICKY PROGRESS HEADER
+     STICKY HEADER WITH PROGRESS
      ══════════════════════════════════════════════════════════ */
-  .progress-header {
+  .wizard-header {
     position: sticky;
     top: 0;
     left: 0;
@@ -169,101 +185,106 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-subtle);
-    padding: var(--sp-4) var(--sp-6);
   }
 
-  .progress-container {
+  .header-content {
     max-width: 960px;
     margin: 0 auto;
+    padding: var(--sp-4) var(--sp-6);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--sp-4);
-  }
-
-  .progress-step {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: var(--sp-2);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    opacity: 0.5;
-    transition: opacity 0.3s, color 0.3s;
-  }
-
-  .progress-step.active {
-    opacity: 1;
-    color: var(--accent);
-  }
-
-  .progress-step.completed {
-    opacity: 1;
-    color: var(--text-secondary);
-  }
-
-  .progress-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--text-tertiary);
-    transition: background 0.3s, transform 0.3s;
-  }
-
-  .progress-step.active .progress-dot {
-    background: var(--accent);
-    animation: progress-pulse 2s ease-in-out infinite;
-  }
-
-  .progress-step.completed .progress-dot {
-    background: var(--text-secondary);
-  }
-
-  .progress-arrow {
-    color: var(--border);
-    font-size: 12px;
-  }
-
-  @media (max-width: 768px) {
-    .progress-step span:not(.progress-dot) {
-      display: none;
-    }
-    .progress-arrow {
-      display: none;
-    }
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     NAVIGATION
-     ══════════════════════════════════════════════════════════ */
-  nav {
-    padding: 0 var(--sp-6);
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    max-width: 1200px;
-    margin: 0 auto;
+    gap: var(--sp-6);
   }
 
   .logo {
     display: flex;
     align-items: center;
     gap: var(--sp-2);
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--text-heading);
     text-decoration: none;
   }
 
   .logo-icon { 
-    width: 28px; 
-    height: 28px; 
+    width: 24px; 
+    height: 24px; 
     object-fit: contain;
   }
 
-  .theme-toggle {
+  .progress-bar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-3);
+  }
+
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .step-indicator.active {
+    color: var(--accent);
+  }
+
+  .step-indicator.completed {
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .step-indicator.disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  .step-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    transition: all 0.3s;
+  }
+
+  .step-indicator.active .step-dot {
+    background: var(--accent);
+    animation: progress-pulse 2s ease-in-out infinite;
+  }
+
+  .step-indicator.completed .step-dot {
+    background: var(--text-secondary);
+  }
+
+  .step-name {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .step-name {
+      display: inline;
+    }
+  }
+
+  .step-divider {
+    width: 24px;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .header-actions {
+    display: flex;
+    gap: var(--sp-2);
+  }
+
+  .theme-toggle, .help-toggle {
     width: 36px;
     height: 36px;
     border-radius: var(--r-md);
@@ -278,40 +299,58 @@
     transition: border-color 0.25s, color 0.25s, background 0.25s;
   }
 
-  .theme-toggle:hover {
+  .theme-toggle:hover, .help-toggle:hover {
     border-color: var(--accent);
     color: var(--accent);
     background: var(--accent-subtle);
   }
 
-  /* Focus indicators for accessibility */
-  .theme-toggle:focus-visible,
-  .btn:focus-visible,
-  .accordion-header:focus-visible,
-  a:focus-visible {
+  .theme-toggle:focus-visible, .help-toggle:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 
   /* ═══════════════════════════════════════════════════════════
-     CONTAINER
+     WIZARD STEPS CONTAINER
      ══════════════════════════════════════════════════════════ */
-  .container {
+  .wizard-container {
     max-width: 960px;
     margin: 0 auto;
     padding: 0 var(--sp-6);
+    min-height: calc(100vh - 120px);
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     HERO SECTION
-     ══════════════════════════════════════════════════════════ */
-  .hero {
-    padding: var(--sp-12) 0 var(--sp-16);
+  .wizard-step {
+    display: none;
+    padding: var(--sp-8) 0;
+    min-height: calc(100vh - 180px);
+  }
+
+  .wizard-step.active {
+    display: block;
+    animation: fade-in 0.4s var(--ease-out);
+  }
+
+  .wizard-step.exiting {
+    animation: fade-out 0.3s var(--ease-out);
+  }
+
+  .step-header {
     text-align: center;
+    margin-bottom: var(--sp-8);
   }
 
-  .hero h1 {
-    font-size: clamp(32px, 5vw, 48px);
+  .step-number {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--sp-2);
+  }
+
+  .step-title {
+    font-size: clamp(28px, 5vw, 40px);
     margin-bottom: var(--sp-3);
   }
 
@@ -322,34 +361,82 @@
     background-clip: text;
   }
 
-  .hero p {
-    font-size: clamp(16px, 2vw, 20px);
+  .step-description {
+    font-size: 18px;
     color: var(--text-secondary);
-    margin-bottom: var(--sp-8);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .step-content {
+    max-width: 700px;
+    margin: 0 auto;
   }
 
   /* ═══════════════════════════════════════════════════════════
-     SECTION
+     NAVIGATION BUTTONS
      ══════════════════════════════════════════════════════════ */
-  section {
-    padding: var(--sp-8) 0;
+  .step-navigation {
+    display: flex;
+    gap: var(--sp-4);
+    justify-content: center;
+    margin-top: var(--sp-8);
+    padding-top: var(--sp-8);
+    border-top: 1px solid var(--border-subtle);
   }
 
-  section h2 {
-    font-size: clamp(24px, 3vw, 32px);
-    margin-bottom: var(--sp-6);
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4) var(--sp-6);
+    font-size: 16px;
+    font-weight: 600;
+    font-family: var(--font-display);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s, background 0.25s;
+    border: none;
   }
 
-  section h3 {
-    font-size: clamp(20px, 2.5vw, 24px);
-    margin-bottom: var(--sp-4);
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-text);
+    box-shadow: var(--shadow-md);
   }
 
-  .section-intro {
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-subtle);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .btn-large {
+    padding: var(--sp-6) var(--sp-12);
     font-size: 18px;
-    color: var(--text-secondary);
-    margin-bottom: var(--sp-8);
-    line-height: 1.7;
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -360,27 +447,25 @@
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
     padding: var(--sp-6);
-    margin-bottom: var(--sp-8);
-  }
-
-  .checklist h3 {
-    font-size: 20px;
-    margin-bottom: var(--sp-4);
-    color: var(--accent);
+    margin: var(--sp-6) 0;
   }
 
   .checklist-item {
     display: flex;
     align-items: flex-start;
     gap: var(--sp-3);
-    margin-bottom: var(--sp-3);
-    padding: var(--sp-3);
+    margin-bottom: var(--sp-4);
+    padding: var(--sp-4);
     border-radius: var(--r-md);
     transition: background 0.2s;
   }
 
   .checklist-item:hover {
     background: var(--bg-card-hover);
+  }
+
+  .checklist-item:last-child {
+    margin-bottom: 0;
   }
 
   .checklist-item label {
@@ -404,22 +489,20 @@
     outline-offset: 2px;
   }
 
-  .checklist-item-text {
-    flex: 1;
-  }
-
   .checklist-item strong {
     color: var(--text-heading);
+    display: block;
+    margin-bottom: var(--sp-1);
   }
 
   /* ═══════════════════════════════════════════════════════════
-     PATH SELECTION
+     PATH CARDS
      ══════════════════════════════════════════════════════════ */
   .path-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--sp-4);
-    margin-bottom: var(--sp-8);
+    margin: var(--sp-6) 0;
   }
 
   @media (max-width: 768px) {
@@ -433,8 +516,15 @@
     border: 2px solid var(--border);
     border-radius: var(--r-lg);
     padding: var(--sp-6);
-    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    transition: all 0.3s;
     position: relative;
+    cursor: pointer;
+  }
+
+  .path-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-subtle);
+    box-shadow: var(--shadow-md);
   }
 
   .path-card.recommended::before {
@@ -450,79 +540,71 @@
     border-radius: var(--r-pill);
   }
 
-  .path-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+  .path-card:hover:not(.selected) {
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
   }
 
   .path-card h3 {
-    font-size: 22px;
+    font-size: 20px;
     margin-bottom: var(--sp-3);
-  }
-
-  .path-meta {
-    display: flex;
-    gap: var(--sp-4);
-    margin-bottom: var(--sp-4);
-    font-size: 13px;
-    color: var(--text-secondary);
-    font-family: var(--font-mono);
   }
 
   .path-card p {
     color: var(--text-secondary);
     line-height: 1.6;
-    margin-bottom: var(--sp-4);
+    margin-bottom: var(--sp-3);
+  }
+
+  .path-card p:last-child {
+    margin-bottom: 0;
   }
 
   /* ═══════════════════════════════════════════════════════════
-     BUTTON
+     INSTRUCTION BOXES
      ══════════════════════════════════════════════════════════ */
-  .btn {
-    display: inline-flex;
+  .instruction {
+    background: var(--accent-subtle);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--r-md);
+    padding: var(--sp-4);
+    margin: var(--sp-4) 0;
+  }
+
+  .instruction-title {
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: var(--sp-2);
+    display: flex;
     align-items: center;
     gap: var(--sp-2);
-    padding: var(--sp-4) var(--sp-6);
-    font-size: 16px;
-    font-weight: 600;
-    font-family: var(--font-display);
-    border-radius: var(--r-pill);
-    cursor: pointer;
-    text-decoration: none;
-    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s, background 0.25s;
-    border: none;
   }
 
-  .btn-primary {
-    background: var(--accent);
-    color: var(--accent-text);
-    box-shadow: var(--shadow-md);
-  }
-
-  .btn-primary:hover {
-    background: var(--accent-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .btn-secondary {
-    background: var(--bg-card);
+  .instruction p {
     color: var(--text-primary);
-    border: 1px solid var(--border);
+    margin-bottom: var(--sp-2);
   }
 
-  .btn-secondary:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-subtle);
+  .instruction p:last-child {
+    margin-bottom: 0;
   }
 
-  .btn-large {
-    padding: var(--sp-6) var(--sp-12);
-    font-size: 18px;
-    width: 100%;
-    justify-content: center;
+  .instruction.warning {
+    background: hsla(40, 60%, 50%, 0.1);
+    border-left-color: hsl(40, 80%, 60%);
+  }
+
+  .instruction.warning .instruction-title {
+    color: hsl(40, 80%, 60%);
+  }
+
+  .instruction.success {
+    background: hsla(130, 60%, 50%, 0.1);
+    border-left-color: hsl(130, 60%, 50%);
+  }
+
+  .instruction.success .instruction-title {
+    color: hsl(130, 60%, 50%);
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -592,6 +674,15 @@
     color: hsl(40, 80%, 60%);
   }
 
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  .cursor {
+    animation: blink 1s infinite;
+  }
+
   /* ═══════════════════════════════════════════════════════════
      COMMAND BLOCK
      ══════════════════════════════════════════════════════════ */
@@ -638,143 +729,6 @@
 
   .btn-copy.copied {
     background: hsl(130, 60%, 45%);
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     ACCORDION
-     ══════════════════════════════════════════════════════════ */
-  .accordion {
-    margin: var(--sp-6) 0;
-  }
-
-  .accordion-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    margin-bottom: var(--sp-3);
-    overflow: hidden;
-    transition: border-color 0.3s;
-  }
-
-  .accordion-item:hover {
-    border-color: var(--border-accent);
-  }
-
-  .accordion-header {
-    padding: var(--sp-4) var(--sp-6);
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: background 0.2s;
-  }
-
-  .accordion-header:hover {
-    background: var(--bg-card-hover);
-  }
-
-  .accordion-title {
-    font-weight: 600;
-    font-size: 18px;
-    color: var(--text-heading);
-    display: flex;
-    align-items: center;
-    gap: var(--sp-3);
-  }
-
-  .accordion-icon {
-    font-size: 14px;
-    color: var(--accent);
-    transition: transform 0.3s var(--ease-spring);
-  }
-
-  .accordion-item.open .accordion-icon {
-    transform: rotate(90deg);
-  }
-
-  .accordion-content {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.4s var(--ease-out), opacity 0.3s;
-    opacity: 0;
-  }
-
-  .accordion-item.open .accordion-content {
-    grid-template-rows: 1fr;
-    opacity: 1;
-  }
-
-  .accordion-body {
-    overflow: hidden;
-    padding: 0 var(--sp-6) 0 var(--sp-6);
-    color: var(--text-secondary);
-    line-height: 1.7;
-  }
-
-  .accordion-item.open .accordion-body {
-    padding-bottom: var(--sp-6);
-  }
-
-  .accordion-body h4 {
-    font-size: 16px;
-    margin: var(--sp-4) 0 var(--sp-2);
-    color: var(--text-heading);
-  }
-
-  .accordion-body p {
-    margin-bottom: var(--sp-3);
-  }
-
-  .accordion-body ul {
-    margin-left: var(--sp-6);
-    margin-bottom: var(--sp-3);
-  }
-
-  .accordion-body li {
-    margin-bottom: var(--sp-2);
-  }
-
-  .accordion-body strong {
-    color: var(--text-heading);
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     INSTRUCTION BOX
-     ══════════════════════════════════════════════════════════ */
-  .instruction {
-    background: var(--accent-subtle);
-    border-left: 4px solid var(--accent);
-    border-radius: var(--r-md);
-    padding: var(--sp-4);
-    margin: var(--sp-4) 0;
-  }
-
-  .instruction-title {
-    font-weight: 700;
-    color: var(--accent);
-    margin-bottom: var(--sp-2);
-    display: flex;
-    align-items: center;
-    gap: var(--sp-2);
-  }
-
-  .instruction p {
-    color: var(--text-primary);
-    margin-bottom: var(--sp-2);
-  }
-
-  .instruction p:last-child {
-    margin-bottom: 0;
-  }
-
-  .instruction.warning {
-    background: hsla(40, 60%, 50%, 0.1);
-    border-left-color: hsl(40, 80%, 60%);
-  }
-
-  .instruction.warning .instruction-title {
-    color: hsl(40, 80%, 60%);
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -844,6 +798,219 @@
   }
 
   /* ═══════════════════════════════════════════════════════════
+     HELP PANEL (SLIDE-OUT)
+     ══════════════════════════════════════════════════════════ */
+  .help-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 500px;
+    height: 100vh;
+    background: var(--bg-raised);
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    z-index: 2000;
+    transform: translateX(100%);
+    transition: transform 0.4s var(--ease-out);
+    overflow-y: auto;
+  }
+
+  .help-panel.open {
+    transform: translateX(0);
+  }
+
+  .help-panel-header {
+    padding: var(--sp-6);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg-raised);
+    z-index: 10;
+  }
+
+  .help-panel-title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .help-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r-sm);
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .help-close:hover {
+    background: var(--bg-card);
+    color: var(--text-heading);
+  }
+
+  .help-panel-content {
+    padding: var(--sp-6);
+  }
+
+  .help-section {
+    margin-bottom: var(--sp-6);
+  }
+
+  .help-section h3 {
+    font-size: 18px;
+    margin-bottom: var(--sp-3);
+    color: var(--accent);
+  }
+
+  .help-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    margin-bottom: var(--sp-3);
+    overflow: hidden;
+  }
+
+  .help-item-header {
+    padding: var(--sp-3) var(--sp-4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.2s;
+  }
+
+  .help-item-header:hover {
+    background: var(--bg-card-hover);
+  }
+
+  .help-item-title {
+    font-weight: 600;
+    color: var(--text-heading);
+  }
+
+  .help-item-icon {
+    color: var(--accent);
+    transition: transform 0.3s;
+  }
+
+  .help-item.open .help-item-icon {
+    transform: rotate(90deg);
+  }
+
+  .help-item-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s var(--ease-out);
+  }
+
+  .help-item.open .help-item-content {
+    grid-template-rows: 1fr;
+  }
+
+  .help-item-body {
+    overflow: hidden;
+    padding: 0 var(--sp-4);
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  .help-item.open .help-item-body {
+    padding-bottom: var(--sp-4);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     OVERLAY
+     ══════════════════════════════════════════════════════════ */
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: hsla(0, 0%, 0%, 0.6);
+    z-index: 1500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     EXPANDABLE SECTIONS
+     ══════════════════════════════════════════════════════════ */
+  .expandable {
+    margin: var(--sp-6) 0;
+  }
+
+  .expandable-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    margin-bottom: var(--sp-3);
+    overflow: hidden;
+  }
+
+  .expandable-header {
+    padding: var(--sp-4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.2s;
+  }
+
+  .expandable-header:hover {
+    background: var(--bg-card-hover);
+  }
+
+  .expandable-title {
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .expandable-icon {
+    color: var(--accent);
+    transition: transform 0.3s;
+  }
+
+  .expandable-item.open .expandable-icon {
+    transform: rotate(90deg);
+  }
+
+  .expandable-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s var(--ease-out);
+  }
+
+  .expandable-item.open .expandable-content {
+    grid-template-rows: 1fr;
+  }
+
+  .expandable-body {
+    overflow: hidden;
+    padding: 0 var(--sp-4);
+    color: var(--text-secondary);
+  }
+
+  .expandable-item.open .expandable-body {
+    padding-bottom: var(--sp-4);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
      FOOTER
      ══════════════════════════════════════════════════════════ */
   footer {
@@ -871,629 +1038,607 @@
   }
 
   /* ═══════════════════════════════════════════════════════════
-     RESPONSIVE
+     MOBILE RESPONSIVENESS
      ══════════════════════════════════════════════════════════ */
   @media (max-width: 768px) {
-    .hero {
-      padding: var(--sp-8) 0 var(--sp-12);
+    .wizard-container {
+      padding: 0 var(--sp-4);
     }
 
-    section {
+    .wizard-step {
       padding: var(--sp-6) 0;
     }
 
-    .accordion-title {
-      font-size: 16px;
+    .step-title {
+      font-size: 28px;
     }
 
-    .terminal {
-      font-size: 12px;
+    .help-panel {
+      max-width: 100%;
+    }
+
+    .btn-large {
+      padding: var(--sp-4) var(--sp-8);
+      font-size: 16px;
     }
   }
 </style>
 </head>
 <body>
 
-<!-- Progress Header -->
-<div class="progress-header" aria-label="Installation progress">
-  <div class="progress-container">
-    <div class="progress-step" id="step-download">
-      <span class="progress-dot"></span>
-      <span>Download</span>
+<!-- Overlay for help panel -->
+<div class="overlay" id="overlay" onclick="toggleHelp()"></div>
+
+<!-- Fixed Header -->
+<div class="wizard-header" role="banner">
+  <div class="header-content">
+    <a href="index.html" class="logo">
+      <img src="favicon.png" alt="ClawStarter" class="logo-icon">
+      <span>ClawStarter</span>
+    </a>
+
+    <div class="progress-bar" role="navigation" aria-label="Setup progress">
+      <div class="step-indicator" id="step-ind-1" onclick="jumpToStep(1)" role="button" tabindex="0" aria-label="Step 1: Welcome">
+        <span class="step-dot"></span>
+        <span class="step-name">Welcome</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step-indicator" id="step-ind-2" onclick="jumpToStep(2)" role="button" tabindex="0" aria-label="Step 2: Checklist">
+        <span class="step-dot"></span>
+        <span class="step-name">Checklist</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step-indicator" id="step-ind-3" onclick="jumpToStep(3)" role="button" tabindex="0" aria-label="Step 3: Path">
+        <span class="step-dot"></span>
+        <span class="step-name">Path</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step-indicator" id="step-ind-4" onclick="jumpToStep(4)" role="button" tabindex="0" aria-label="Step 4: Download">
+        <span class="step-dot"></span>
+        <span class="step-name">Download</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step-indicator" id="step-ind-5" onclick="jumpToStep(5)" role="button" tabindex="0" aria-label="Step 5: Terminal">
+        <span class="step-dot"></span>
+        <span class="step-name">Terminal</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step-indicator" id="step-ind-6" onclick="jumpToStep(6)" role="button" tabindex="0" aria-label="Step 6: Run">
+        <span class="step-dot"></span>
+        <span class="step-name">Run</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step-indicator" id="step-ind-7" onclick="jumpToStep(7)" role="button" tabindex="0" aria-label="Step 7: Install">
+        <span class="step-dot"></span>
+        <span class="step-name">Install</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step-indicator" id="step-ind-8" onclick="jumpToStep(8)" role="button" tabindex="0" aria-label="Step 8: Configure">
+        <span class="step-dot"></span>
+        <span class="step-name">Configure</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step-indicator" id="step-ind-9" onclick="jumpToStep(9)" role="button" tabindex="0" aria-label="Step 9: Success">
+        <span class="step-dot"></span>
+        <span class="step-name">Success</span>
+      </div>
+      <div class="step-divider"></div>
+      <div class="step-indicator" id="step-ind-10" onclick="jumpToStep(10)" role="button" tabindex="0" aria-label="Step 10: Next Steps">
+        <span class="step-dot"></span>
+        <span class="step-name">Next</span>
+      </div>
     </div>
-    <span class="progress-arrow">→</span>
-    <div class="progress-step" id="step-run">
-      <span class="progress-dot"></span>
-      <span>Run</span>
-    </div>
-    <span class="progress-arrow">→</span>
-    <div class="progress-step" id="step-chat">
-      <span class="progress-dot"></span>
-      <span>Chat</span>
+
+    <div class="header-actions">
+      <button class="help-toggle" onclick="toggleHelp()" id="helpBtn" aria-label="Toggle help panel">🔧</button>
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme" aria-pressed="false">☀</button>
     </div>
   </div>
 </div>
 
-<!-- Navigation -->
-<nav>
-  <a href="index.html" class="logo">
-    <img src="favicon.png" alt="ClawStarter" class="logo-icon">
-    <span>ClawStarter</span>
-  </a>
-  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme" aria-pressed="false">☀</button>
-</nav>
+<!-- Wizard Steps Container -->
+<div class="wizard-container">
 
-<!-- Main Content -->
-<div class="container">
-
-  <!-- Hero -->
-  <div class="hero">
-    <h1>Your Personal AI.<br><span class="mint-text">Running on Your Mac.</span></h1>
-    <p>Follow along step-by-step. We'll walk you through everything.</p>
-  </div>
-
-  <!-- Section 1: Before You Start -->
-  <section id="before-you-start">
-    <h2>Before You Start</h2>
-    <p class="section-intro">Make sure you have everything ready. This will only take 15-20 minutes.</p>
-    
-    <fieldset class="checklist">
-      <legend><h3>✅ Pre-Install Checklist</h3></legend>
-      <div class="checklist-item">
-        <label>
-          <input type="checkbox" onchange="saveCheckbox('check-1', this.checked)">
-          <div class="checklist-item-text">
-            <strong>Mac with macOS 13+ (Ventura or newer)</strong><br>
-            Check: Apple menu (top left) → About This Mac
-          </div>
-        </label>
-      </div>
-      <div class="checklist-item">
-        <label>
-          <input type="checkbox" onchange="saveCheckbox('check-2', this.checked)">
-          <div class="checklist-item-text">
-            <strong>15-20 minutes of uninterrupted time</strong><br>
-            Find a quiet moment. You'll need to watch the Terminal as it installs.
-          </div>
-        </label>
-      </div>
-      <div class="checklist-item">
-        <label>
-          <input type="checkbox" onchange="saveCheckbox('check-3', this.checked)">
-          <div class="checklist-item-text">
-            <strong>An AI provider API key (optional)</strong><br>
-            Don't have an API key yet? No problem — you can set one up during installation, or skip it and use the free tier to try things out.<br>
-            <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">Get an OpenRouter API key here</a> (recommended, $5-10 to start)
-          </div>
-        </label>
-      </div>
-    </fieldset>
-
-    <h3 style="margin-top: var(--sp-8); margin-bottom: var(--sp-4);">Choose Your Setup Path</h3>
-    <div class="path-grid">
-      <div class="path-card recommended">
-        <h3>Same Mac (Create a Second User)</h3>
-        <div class="path-meta">
-          <span>⏱️ 15 min</span>
-          <span>🧪 Testing</span>
-        </div>
-        <p>Install OpenClaw in a separate Mac user account on your current Mac. Perfect for trying it out without affecting your main setup.</p>
-        <p style="font-size: 14px; color: var(--accent);">Your main account and files stay completely untouched. You can delete this user anytime.</p>
-        <p style="font-size: 14px; color: var(--text-tertiary); margin-top: var(--sp-2);">Note: This Mac won't sleep while the bot is running (screen will turn off to save power).</p>
-      </div>
-      <div class="path-card">
-        <h3>Dedicated Mac</h3>
-        <div class="path-meta">
-          <span>⏱️ 20 min</span>
-          <span>🏠 24/7</span>
-        </div>
-        <p>Use a Mac Mini or old MacBook dedicated to running OpenClaw 24/7. Best for always-on personal AI.</p>
-        <p style="font-size: 14px; color: var(--text-tertiary);">Recommended for production use.</p>
-      </div>
+  <!-- Step 1: Welcome -->
+  <section class="wizard-step active" id="step-1" data-step="1">
+    <div class="step-header">
+      <div class="step-number">Step 1 of 10</div>
+      <h1 class="step-title">Your Personal AI.<br><span class="mint-text">Running on Your Mac.</span></h1>
+      <p class="step-description">This guide walks you through setup. One step at a time. It takes about 15-20 minutes.</p>
     </div>
-  </section>
-
-  <!-- Section 2: Download -->
-  <section id="download">
-    <h2>Step 1: Download the Script</h2>
-    <p class="section-intro">Click the button below to download the install script.</p>
-    
-    <div style="text-align: center; margin: var(--sp-8) 0;">
-      <a href="openclaw-quickstart-v2.sh" download="install.sh" class="btn btn-primary btn-large" onclick="markStepComplete('download')">
-        <span>📥 Download install.sh</span>
-      </a>
-      <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px;">
-        File will download to your Downloads folder
+    <div class="step-content">
+      <div class="instruction">
+        <div class="instruction-title">📖 What you'll do:</div>
+        <p>1. Download a simple install script</p>
+        <p>2. Run it in Terminal (we'll show you how)</p>
+        <p>3. Answer a few questions</p>
+        <p>4. Start chatting with your AI</p>
+      </div>
+      <p style="text-align: center; margin-top: var(--sp-6); color: var(--text-secondary);">
+        <strong>Estimated time:</strong> 15-20 minutes
       </p>
     </div>
+    <div class="step-navigation">
+      <button class="btn btn-primary btn-large" onclick="nextStep()">Let's Go →</button>
+    </div>
+  </section>
 
-    <details class="collapsible">
-      <summary>Advanced: Use curl command instead</summary>
-      <div class="collapsible-content">
-        <p>If you prefer the one-line install, copy this command:</p>
-        <div class="command-block">
-          <button class="btn-copy" onclick="copyCommand(this, 'curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash')" aria-label="Copy curl install command">Copy</button>
-          <code>curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash</code>
+  <!-- Step 2: Before You Start (Checklist) -->
+  <section class="wizard-step" id="step-2" data-step="2">
+    <div class="step-header">
+      <div class="step-number">Step 2 of 10</div>
+      <h2 class="step-title">Before You Start</h2>
+      <p class="step-description">Make sure you have everything ready.</p>
+    </div>
+    <div class="step-content">
+      <fieldset class="checklist">
+        <legend style="font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: var(--sp-4);">✅ Pre-Install Checklist</legend>
+        <div class="checklist-item">
+          <label>
+            <input type="checkbox" id="check-1" onchange="updateChecklistState()">
+            <div>
+              <strong>Mac with macOS 13+ (Ventura or newer)</strong><br>
+              <span style="color: var(--text-secondary);">Check: Apple menu (top left) → About This Mac</span>
+            </div>
+          </label>
         </div>
-        <p>Then skip to "Step 3: Run the Script" below.</p>
-      </div>
-    </details>
-
-    <div style="text-align: center; margin-top: var(--sp-8);">
-      <button class="btn btn-secondary" onclick="scrollToSection('open-terminal')">
-        ✅ Downloaded? Let's go →
-      </button>
+        <div class="checklist-item">
+          <label>
+            <input type="checkbox" id="check-2" onchange="updateChecklistState()">
+            <div>
+              <strong>15-20 minutes of uninterrupted time</strong><br>
+              <span style="color: var(--text-secondary);">Find a quiet moment. You'll need to watch the Terminal as it installs.</span>
+            </div>
+          </label>
+        </div>
+        <div class="checklist-item">
+          <label>
+            <input type="checkbox" id="check-3" onchange="updateChecklistState()">
+            <div>
+              <strong>An AI provider API key (optional)</strong><br>
+              <span style="color: var(--text-secondary);">Don't have an API key yet? No problem — you can set one up during installation, or skip it and use the free tier to try things out.</span><br>
+              <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">Get an OpenRouter API key here</a> (recommended, $5-10 to start)
+            </div>
+          </label>
+        </div>
+      </fieldset>
+    </div>
+    <div class="step-navigation">
+      <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+      <button class="btn btn-primary btn-large" id="checklist-next" onclick="nextStep()">All checked? →</button>
     </div>
   </section>
 
-  <!-- Section 3: Open Terminal -->
-  <section id="open-terminal">
-    <h2>Step 2: Open Terminal</h2>
-    <p class="section-intro">Terminal is a built-in Mac app. Here's how to find it.</p>
-
-    <div class="instruction">
-      <div class="instruction-title">👉 How to open Terminal:</div>
-      <p>1. Hold <kbd>⌘ Command</kbd> and press <kbd>Space</kbd></p>
-      <p>2. Type "Terminal"</p>
-      <p>3. Press <kbd>Enter</kbd></p>
+  <!-- Step 3: Choose Your Path -->
+  <section class="wizard-step" id="step-3" data-step="3">
+    <div class="step-header">
+      <div class="step-number">Step 3 of 10</div>
+      <h2 class="step-title">Choose Your Setup Path</h2>
+      <p class="step-description">How do you want to run your AI?</p>
     </div>
-
-    <div class="terminal">
-      <div class="terminal-header">
-        <div class="terminal-dot"></div>
-        <div class="terminal-dot"></div>
-        <div class="terminal-dot"></div>
-      </div>
-      <div>
-        <span class="terminal-prompt">Last login: Mon Feb 15 14:30:00 on ttys000</span><br>
-        <span class="terminal-prompt">YourMacBook:~ yourname$</span> <span style="animation: blink 1s infinite;">█</span>
+    <div class="step-content">
+      <div class="path-grid">
+        <div class="path-card recommended" id="path-same" onclick="selectPath('same')">
+          <h3>Same Mac (Second User)</h3>
+          <p>Install OpenClaw in a separate Mac user account on your current Mac. Perfect for trying it out without affecting your main setup.</p>
+          <p style="font-size: 14px; color: var(--accent);">Your main account and files stay completely untouched. You can delete this user anytime.</p>
+          <p style="font-size: 14px; color: var(--text-tertiary); margin-top: var(--sp-2);">Note: This Mac won't sleep while the bot is running (screen will turn off to save power).</p>
+        </div>
+        <div class="path-card" id="path-dedicated" onclick="selectPath('dedicated')">
+          <h3>Dedicated Mac</h3>
+          <p>Use a Mac Mini or old MacBook dedicated to running OpenClaw 24/7. Best for always-on personal AI.</p>
+          <p style="font-size: 14px; color: var(--text-tertiary);">Recommended for production use.</p>
+        </div>
       </div>
     </div>
-    <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px; text-align: center;">
-      ↑ This is what Terminal looks like
-    </p>
-
-    <h3 style="margin-top: var(--sp-8); margin-bottom: var(--sp-4);">Navigate to Downloads</h3>
-    <p>Type this command in Terminal and press <kbd>Enter</kbd>:</p>
-    <div class="command-block">
-      <button class="btn-copy" onclick="copyCommand(this, 'cd ~/Downloads')" aria-label="Copy cd ~/Downloads command">Copy</button>
-      <code>cd ~/Downloads</code>
+    <div class="step-navigation">
+      <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+      <button class="btn btn-primary btn-large" id="path-next" onclick="nextStep()">Got it →</button>
     </div>
   </section>
 
-  <!-- Section 4: Run the Script -->
-  <section id="run-script">
-    <h2>Step 3: Run the Script</h2>
-    <p class="section-intro">Now we'll run the installer. Copy this command and paste it into Terminal.</p>
-
-    <div class="instruction warning" style="margin-bottom: var(--sp-6);">
-      <div class="instruction-title">⚠️ IMPORTANT: Password Visibility</div>
-      <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">When Terminal asks for your password, YOU WON'T SEE ANYTHING when you type. No dots, no stars, nothing.</p>
-      <p>This is NORMAL and secure. Just type your password and press Enter.</p>
+  <!-- Step 4: Download -->
+  <section class="wizard-step" id="step-4" data-step="4">
+    <div class="step-header">
+      <div class="step-number">Step 4 of 10</div>
+      <h2 class="step-title">Download the Script</h2>
+      <p class="step-description">Click the button below to download the install script.</p>
     </div>
+    <div class="step-content">
+      <div style="text-align: center; margin: var(--sp-8) 0;">
+        <a href="openclaw-quickstart-v2.sh" download="install.sh" class="btn btn-primary btn-large">
+          <span>📥 Download install.sh</span>
+        </a>
+        <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px;">
+          File will download to your Downloads folder
+        </p>
+      </div>
 
-    <div class="instruction warning">
-      <div class="instruction-title">⚠️ Don't Press ⌘C During Installation</div>
-      <p>Don't press <kbd>⌘ Command</kbd> + <kbd>C</kbd> during installation — this will cancel the script.</p>
-      <p>If you need to copy text, use <kbd>⌘ Command</kbd> + <kbd>C</kbd> only BEFORE you start the script.</p>
-    </div>
-
-    <div class="command-block">
-      <button class="btn-copy" onclick="copyCommand(this, 'bash install.sh')" aria-label="Copy bash install.sh command">Copy</button>
-      <code>bash install.sh</code>
-    </div>
-
-    <div class="instruction">
-      <div class="instruction-title">👉 What to do:</div>
-      <p>1. Make sure Terminal is active (click on it)</p>
-      <p>2. Hold <kbd>⌘ Command</kbd> and press <kbd>V</kbd> to paste</p>
-      <p>3. Press <kbd>Enter</kbd></p>
-    </div>
-
-    <p style="margin-top: var(--sp-6); text-align: center; color: var(--text-secondary);">
-      ↓ Now follow along below as the script runs ↓
-    </p>
-  </section>
-
-  <!-- Section 5-11: Terminal Walkthrough -->
-  <section id="walkthrough">
-    <h2>What Terminal Will Show You</h2>
-    <p class="section-intro">Click each step to see what happens. These sections match what you'll see in Terminal.</p>
-
-    <div class="accordion">
-      
-      <!-- Step 5: Installing Dependencies -->
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>Step 5: Installing Dependencies</span>
+      <details class="collapsible">
+        <summary>Advanced: Use curl command instead</summary>
+        <div class="collapsible-content">
+          <p>If you prefer the one-line install, copy this command:</p>
+          <div class="command-block">
+            <button class="btn-copy" onclick="copyCommand(this, 'curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash')" aria-label="Copy curl install command">Copy</button>
+            <code>curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash</code>
           </div>
-          <span class="accordion-icon">▸</span>
+          <p>Then skip to "Step 6: Run the Script".</p>
         </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
-            <h4>What you'll see in Terminal:</h4>
-            <div class="terminal">
-              <span class="terminal-output">═══ Installing Homebrew...</span><br>
-              <span class="terminal-output">═══ Installing Node.js...</span><br>
-              <span class="terminal-output">[Text scrolling by — this is normal]</span>
-            </div>
+      </details>
+    </div>
+    <div class="step-navigation">
+      <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+      <button class="btn btn-primary btn-large" onclick="nextStep()">Downloaded? →</button>
+    </div>
+  </section>
 
-            <div class="instruction">
-              <div class="instruction-title">👉 What to do:</div>
-              <p><strong>Wait.</strong> This takes 2-5 minutes. You'll see text scrolling — that's normal.</p>
-            </div>
+  <!-- Step 5: Open Terminal -->
+  <section class="wizard-step" id="step-5" data-step="5">
+    <div class="step-header">
+      <div class="step-number">Step 5 of 10</div>
+      <h2 class="step-title">Open Terminal</h2>
+      <p class="step-description">Terminal is a built-in Mac app. Here's how to find it.</p>
+    </div>
+    <div class="step-content">
+      <div class="instruction">
+        <div class="instruction-title">👉 How to open Terminal:</div>
+        <p>1. Hold <kbd>⌘ Command</kbd> and press <kbd>Space</kbd></p>
+        <p>2. Type "Terminal"</p>
+        <p>3. Press <kbd>Enter</kbd></p>
+      </div>
 
-            <div class="instruction">
-              <div class="instruction-title">💡 What's happening:</div>
-              <p>The script is installing Homebrew (Mac's package manager) and Node.js (what OpenClaw needs to run).</p>
-            </div>
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot"></div>
+          <div class="terminal-dot"></div>
+          <div class="terminal-dot"></div>
+        </div>
+        <div>
+          <span class="terminal-prompt">Last login: Mon Feb 15 14:30:00 on ttys000</span><br>
+          <span class="terminal-prompt">YourMacBook:~ yourname$</span> <span class="cursor">█</span>
+        </div>
+      </div>
+      <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px; text-align: center;">
+        ↑ This is what Terminal looks like
+      </p>
 
-            <details class="collapsible">
-              <summary>🚨 If you're asked for your password:</summary>
-              <div class="collapsible-content">
-                <div class="instruction warning">
-                  <div class="instruction-title">⚠️ Password Prompt (DON'T PANIC!)</div>
-                  <p>When you type your password, <strong>YOU WON'T SEE ANYTHING</strong>.</p>
-                  <p>This is NORMAL. Terminal hides passwords for security.</p>
-                  <p><strong>What to do:</strong></p>
-                  <p>1. Type your Mac login password</p>
-                  <p>2. You'll see nothing — that's OK!</p>
-                  <p>3. Press <kbd>Enter</kbd></p>
-                  <p>If you make a mistake: The script will say "Sorry, try again"</p>
-                </div>
+      <h3 style="margin-top: var(--sp-8); margin-bottom: var(--sp-4); font-size: 20px;">Navigate to Downloads</h3>
+      <p>Type this command in Terminal and press <kbd>Enter</kbd>:</p>
+      <div class="command-block">
+        <button class="btn-copy" onclick="copyCommand(this, 'cd ~/Downloads')" aria-label="Copy cd ~/Downloads command">Copy</button>
+        <code>cd ~/Downloads</code>
+      </div>
+    </div>
+    <div class="step-navigation">
+      <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+      <button class="btn btn-primary btn-large" onclick="nextStep()">Terminal open? →</button>
+    </div>
+  </section>
+
+  <!-- Step 6: Run the Script -->
+  <section class="wizard-step" id="step-6" data-step="6">
+    <div class="step-header">
+      <div class="step-number">Step 6 of 10</div>
+      <h2 class="step-title">Run the Script</h2>
+      <p class="step-description">Now we'll run the installer.</p>
+    </div>
+    <div class="step-content">
+      <div class="instruction warning" style="margin-bottom: var(--sp-6);">
+        <div class="instruction-title">⚠️ IMPORTANT: Password Visibility</div>
+        <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">When Terminal asks for your password, YOU WON'T SEE ANYTHING when you type. No dots, no stars, nothing.</p>
+        <p>This is NORMAL and secure. Just type your password and press Enter.</p>
+      </div>
+
+      <div class="instruction warning">
+        <div class="instruction-title">⚠️ Don't Press ⌘C During Installation</div>
+        <p>Don't press <kbd>⌘ Command</kbd> + <kbd>C</kbd> during installation — this will cancel the script.</p>
+      </div>
+
+      <div class="command-block">
+        <button class="btn-copy" onclick="copyCommand(this, 'bash install.sh')" aria-label="Copy bash install.sh command">Copy</button>
+        <code>bash install.sh</code>
+      </div>
+
+      <div class="instruction">
+        <div class="instruction-title">👉 What to do:</div>
+        <p>1. Make sure Terminal is active (click on it)</p>
+        <p>2. Hold <kbd>⌘ Command</kbd> and press <kbd>V</kbd> to paste</p>
+        <p>3. Press <kbd>Enter</kbd></p>
+      </div>
+    </div>
+    <div class="step-navigation">
+      <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+      <button class="btn btn-primary btn-large" onclick="nextStep()">Script running? →</button>
+    </div>
+  </section>
+
+  <!-- Step 7: Watch It Install -->
+  <section class="wizard-step" id="step-7" data-step="7">
+    <div class="step-header">
+      <div class="step-number">Step 7 of 10</div>
+      <h2 class="step-title">Watch It Install</h2>
+      <p class="step-description">The script is running. Here's what you'll see.</p>
+    </div>
+    <div class="step-content">
+      <div class="terminal">
+        <span class="terminal-output">═══ Installing Homebrew...</span><br>
+        <span class="terminal-output">═══ Installing Node.js...</span><br>
+        <span class="terminal-output">═══ Installing OpenClaw...</span><br>
+        <span class="terminal-output">[Text scrolling by — this is normal]</span>
+      </div>
+
+      <div class="instruction">
+        <div class="instruction-title">⏱️ This takes 2-5 minutes</div>
+        <p>You'll see text scrolling — that's normal. The script is installing dependencies.</p>
+        <p><strong>Don't close Terminal or press anything.</strong> Just wait.</p>
+      </div>
+
+      <div class="instruction warning">
+        <div class="instruction-title">🔑 If you see a password prompt:</div>
+        <p>Remember: <strong>YOU WON'T SEE ANYTHING</strong> when you type your password.</p>
+        <p>Type it anyway and press <kbd>Enter</kbd>. It's working even though you can't see it!</p>
+      </div>
+
+      <p style="margin-top: var(--sp-6); text-align: center; color: var(--text-secondary);">
+        Still going? That's normal. Wait for the next prompt.
+      </p>
+    </div>
+    <div class="step-navigation">
+      <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+      <button class="btn btn-primary btn-large" onclick="nextStep()">See a question on screen? →</button>
+    </div>
+  </section>
+
+  <!-- Step 8: Answer the Questions -->
+  <section class="wizard-step" id="step-8" data-step="8">
+    <div class="step-header">
+      <div class="step-number">Step 8 of 10</div>
+      <h2 class="step-title">Answer the Questions</h2>
+      <p class="step-description">The script will ask you a few questions.</p>
+    </div>
+    <div class="step-content">
+      <div class="instruction warning" style="margin-bottom: var(--sp-6);">
+        <div class="instruction-title">⚠️ IMPORTANT: OpenClaw Config Wizard</div>
+        <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">Press <kbd>ESC</kbd> (Escape key) to skip the config wizard</p>
+        <p>ClawStarter has a curated config ready for you. Skipping saves time and uses our recommended settings.</p>
+      </div>
+
+      <h3 style="font-size: 20px; margin-bottom: var(--sp-4);">API Key Setup</h3>
+      <div class="terminal">
+        <span class="terminal-output">Which AI provider?</span><br>
+        <span class="terminal-output">1) OpenRouter (recommended - $5-10 to start)</span><br>
+        <span class="terminal-output">2) Anthropic (premium)</span><br>
+        <span class="terminal-output">3) Both</span><br>
+        <span class="terminal-prompt">Enter 1, 2, or 3:</span>
+      </div>
+
+      <div class="instruction">
+        <div class="instruction-title">👉 What to do (Option 1 — OpenRouter):</div>
+        <p>1. Type <strong>1</strong> and press <kbd>Enter</kbd></p>
+        <p>2. Paste your OpenRouter API key and press <kbd>Enter</kbd></p>
+      </div>
+
+      <div class="instruction">
+        <div class="instruction-title">💡 Typical costs: $5-15/month</div>
+        <p>• Simple chats: ~$0.01 each</p>
+        <p>• Complex tasks: ~$0.05-0.10 each</p>
+        <p>• You control your budget — set a limit in OpenRouter</p>
+      </div>
+
+      <details class="collapsible">
+        <summary>🔑 Don't have an API key? Get one now</summary>
+        <div class="collapsible-content">
+          <h4 style="margin-bottom: var(--sp-2);">OpenRouter (Recommended)</h4>
+          <ol style="margin-left: var(--sp-6); margin-top: var(--sp-2); line-height: 1.8;">
+            <li>Go to <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">openrouter.ai/keys</a></li>
+            <li>Sign up with email or Google</li>
+            <li>Add $5-10 in credits</li>
+            <li>Create an API key in Settings</li>
+            <li>Copy the key (starts with <code>sk-or-v1-</code>)</li>
+            <li>Return to Terminal and paste it</li>
+          </ol>
+          <h4 style="margin-top: var(--sp-4); margin-bottom: var(--sp-2);">Or: Use Free Tier</h4>
+          <p>Just press <kbd>Enter</kbd> to skip. You'll use OpenCode's free model (no signup needed).</p>
+        </div>
+      </details>
+
+      <h3 style="font-size: 20px; margin-top: var(--sp-8); margin-bottom: var(--sp-4);">Budget Selection</h3>
+      <div class="terminal">
+        <span class="terminal-output">Monthly spending budget?</span><br>
+        <span class="terminal-output">1) Budget (~$5-15/mo)</span><br>
+        <span class="terminal-output">2) Balanced (~$15-50/mo) ⭐ RECOMMENDED</span><br>
+        <span class="terminal-output">3) Premium ($50+/mo)</span><br>
+        <span class="terminal-prompt">Enter 1, 2, or 3:</span>
+      </div>
+
+      <div class="instruction">
+        <div class="instruction-title">👉 Recommended:</div>
+        <p>Type <strong>2</strong> (Balanced) and press <kbd>Enter</kbd></p>
+        <p>For all other questions: <strong>Press <kbd>Enter</kbd> to accept defaults</strong></p>
+      </div>
+    </div>
+    <div class="step-navigation">
+      <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+      <button class="btn btn-primary btn-large" onclick="nextStep()">See 'SUCCESS'? →</button>
+    </div>
+  </section>
+
+  <!-- Step 9: You're Live! -->
+  <section class="wizard-step" id="step-9" data-step="9">
+    <div class="step-header">
+      <div class="step-number">Step 9 of 10</div>
+      <h2 class="step-title">🎉 You're Live!</h2>
+      <p class="step-description">Your bot is running. Here's what you'll see.</p>
+    </div>
+    <div class="step-content">
+      <div class="terminal">
+        <span class="terminal-success">✓ Creating config file...</span><br>
+        <span class="terminal-success">✓ Setting up workspace...</span><br>
+        <span class="terminal-success">✓ Installing LaunchAgent...</span><br>
+        <span class="terminal-success">✓ Starting gateway...</span><br>
+        <br>
+        <span class="terminal-success">🎉 SUCCESS! Your bot is alive.</span><br>
+        <br>
+        <span class="terminal-output">Dashboard: http://127.0.0.1:18789/</span><br>
+        <span class="terminal-output">Gateway token: [long random string]</span><br>
+        <br>
+        <span class="terminal-warning">Save the token somewhere safe!</span>
+      </div>
+
+      <div class="instruction success">
+        <div class="instruction-title">🎊 Celebration!</div>
+        <p>Your personal AI is now running on your Mac.</p>
+      </div>
+
+      <div class="instruction">
+        <div class="instruction-title">👉 What to do:</div>
+        <p>1. Hold <kbd>⌘ Command</kbd> and press <kbd>A</kbd> to select all the Terminal output</p>
+        <p>2. Hold <kbd>⌘ Command</kbd> and press <kbd>C</kbd> to copy</p>
+        <p>3. Save it in Notes or a password manager</p>
+        <p>4. Click the dashboard URL or copy it to your browser:</p>
+      </div>
+
+      <div class="command-block">
+        <button class="btn-copy" onclick="copyCommand(this, 'http://127.0.0.1:18789/')" aria-label="Copy dashboard URL">Copy</button>
+        <code>http://127.0.0.1:18789/</code>
+      </div>
+    </div>
+    <div class="step-navigation">
+      <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+      <button class="btn btn-primary btn-large" onclick="nextStep()">Dashboard open? →</button>
+    </div>
+  </section>
+
+  <!-- Step 10: Now What? -->
+  <section class="wizard-step" id="step-10" data-step="10">
+    <div class="step-header">
+      <div class="step-number">Step 10 of 10</div>
+      <h2 class="step-title">Now What?</h2>
+      <p class="step-description">Your bot is ready. Here's what to do next.</p>
+    </div>
+    <div class="step-content">
+      <div class="instruction success">
+        <div class="instruction-title">🎉 You're all set!</div>
+        <p>Your bot will run BOOTSTRAP.md and ask you 9 personalization questions. This helps it learn your preferences.</p>
+      </div>
+
+      <h3 style="font-size: 20px; margin-bottom: var(--sp-4);">Try your first prompt:</h3>
+      <div class="command-block">
+        <button class="btn-copy" onclick="copyCommand(this, 'Hey! I just set you up. What can you help me with?')" aria-label="Copy first prompt">Copy</button>
+        <code>Hey! I just set you up. What can you help me with?</code>
+      </div>
+
+      <div class="expandable">
+        <div class="expandable-item">
+          <div class="expandable-header" onclick="toggleExpandable(this)">
+            <div class="expandable-title">💬 Add Discord (recommended)</div>
+            <span class="expandable-icon">▸</span>
+          </div>
+          <div class="expandable-content">
+            <div class="expandable-body">
+              <p>Want to chat with your bot via Discord? Copy this message and paste it into your bot's chat:</p>
+              <div class="command-block">
+                <button class="btn-copy" onclick="copyCommand(this, 'Help me set up Discord. I want to chat with you on Discord instead of the web dashboard.')" aria-label="Copy Discord setup request">Copy</button>
+                <code>Help me set up Discord. I want to chat with you on Discord instead of the web dashboard.</code>
               </div>
-            </details>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 6: Installing OpenClaw -->
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>Step 6: Installing OpenClaw</span>
-          </div>
-          <span class="accordion-icon">▸</span>
-        </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
-            <h4>What you'll see in Terminal:</h4>
-            <div class="terminal">
-              <span class="terminal-output">═══ Installing OpenClaw...</span><br>
-              <span class="terminal-output">[npm install output scrolling]</span><br>
-              <span class="terminal-success">✓ OpenClaw v2026.2.9 installed</span>
-            </div>
-
-            <div class="instruction">
-              <div class="instruction-title">👉 What to do:</div>
-              <p><strong>Wait about 1 minute.</strong> The script is downloading and installing OpenClaw.</p>
-            </div>
-
-            <div class="instruction">
-              <div class="instruction-title">💡 What's happening:</div>
-              <p>Installing the OpenClaw framework and all its dependencies.</p>
+              <p style="margin-top: var(--sp-3);">Your bot will walk you through the setup step-by-step. Takes about 10 minutes.</p>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Step 7: OpenClaw Config Wizard -->
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>Step 7: OpenClaw Config Wizard ⚠️ IMPORTANT</span>
+        <div class="expandable-item">
+          <div class="expandable-header" onclick="toggleExpandable(this)">
+            <div class="expandable-title">📱 Add other channels</div>
+            <span class="expandable-icon">▸</span>
           </div>
-          <span class="accordion-icon">▸</span>
-        </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
-            <h4>What you'll see in Terminal:</h4>
-            <div class="terminal">
-              <span class="terminal-output">OpenClaw has a built-in setup wizard.</span><br>
-              <span class="terminal-warning">Press ESCAPE to skip it (recommended for ClawStarter)</span><br>
-              <span class="terminal-output">Or press ENTER to run it now.</span>
-            </div>
-
-            <div class="instruction warning">
-              <div class="instruction-title">⚠️ IMPORTANT DECISION</div>
-              <p><strong>Press <kbd>ESC</kbd> (Escape key, top-left of keyboard)</strong></p>
-              <p>This skips the advanced wizard. Our installer handles the configuration for you.</p>
-            </div>
-
-            <div class="instruction">
-              <div class="instruction-title">💡 Why skip it?</div>
-              <p>The config wizard is for advanced users who want to customize everything. ClawStarter has a curated config ready for you. Skipping saves time.</p>
-            </div>
-
-            <details class="collapsible">
-              <summary>🔄 Can I run the wizard later?</summary>
-              <div class="collapsible-content">
-                <p>Yes! After setup is complete, you can run:</p>
-                <div class="command-block">
-                  <button class="btn-copy" onclick="copyCommand(this, 'openclaw init')" aria-label="Copy openclaw init command">Copy</button>
-                  <code>openclaw init</code>
-                </div>
-              </div>
-            </details>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 8: API Key Entry -->
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>Step 8: API Key Entry</span>
-          </div>
-          <span class="accordion-icon">▸</span>
-        </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
-            <h4>What you'll see in Terminal:</h4>
-            <div class="terminal">
-              <span class="terminal-output">Which AI provider?</span><br>
-              <span class="terminal-output">1) OpenRouter (recommended - $5-10 to start)</span><br>
-              <span class="terminal-output">2) Anthropic (premium)</span><br>
-              <span class="terminal-output">3) Both</span><br>
-              <span class="terminal-prompt">Enter 1, 2, or 3:</span>
-            </div>
-
-            <div class="instruction">
-              <div class="instruction-title">💡 Typical costs: $5-15/month in API usage</div>
-              <p>• Simple chats: ~$0.01 each</p>
-              <p>• Complex tasks: ~$0.05-0.10 each</p>
-              <p>• Most users spend $10-15/month</p>
-              <p>• You control your budget — set a limit in OpenRouter</p>
-            </div>
-
-            <div class="instruction">
-              <div class="instruction-title">👉 What to do (Option 1 — OpenRouter):</div>
-              <p>1. Type <strong>1</strong> and press <kbd>Enter</kbd></p>
-              <p>2. Paste your OpenRouter API key and press <kbd>Enter</kbd></p>
-            </div>
-
-            <div class="instruction">
-              <div class="instruction-title">👉 What to do (Option 2 — Free Tier):</div>
-              <p>If you don't have an API key yet, just press <kbd>Enter</kbd> to skip. You'll use OpenCode's free model (no signup needed).</p>
-            </div>
-
-            <details class="collapsible">
-              <summary>🔑 Don't have an API key? Get one now</summary>
-              <div class="collapsible-content">
-                <h4>OpenRouter (Recommended)</h4>
-                <ol style="margin-left: var(--sp-6); margin-top: var(--sp-2);">
-                  <li>Go to <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">openrouter.ai/keys</a></li>
-                  <li>Sign up with email or Google</li>
-                  <li>Add $5-10 in credits</li>
-                  <li>Create an API key in Settings</li>
-                  <li>Copy the key (starts with <code>sk-or-v1-</code>)</li>
-                  <li>Return to Terminal and paste it</li>
-                </ol>
-
-                <h4 style="margin-top: var(--sp-4);">Anthropic</h4>
-                <ol style="margin-left: var(--sp-6); margin-top: var(--sp-2);">
-                  <li>Go to <a href="https://console.anthropic.com" target="_blank" style="color: var(--accent);">console.anthropic.com</a></li>
-                  <li>Create account and add payment info</li>
-                  <li>Go to Settings → API Keys</li>
-                  <li>Create Key</li>
-                  <li>Copy the key (starts with <code>sk-ant-</code>)</li>
-                  <li>Return to Terminal and paste it</li>
-                </ol>
-              </div>
-            </details>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 9: Final Questions -->
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>Step 9: Final Questions</span>
-          </div>
-          <span class="accordion-icon">▸</span>
-        </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
-            <h4>What you'll see in Terminal:</h4>
-            <div class="terminal">
-              <span class="terminal-output">Monthly spending budget?</span><br>
-              <span class="terminal-output">1) Budget (~$5-15/mo)</span><br>
-              <span class="terminal-output">2) Balanced (~$15-50/mo) ⭐ RECOMMENDED</span><br>
-              <span class="terminal-output">3) Premium ($50+/mo)</span><br>
-              <span class="terminal-prompt">Enter 1, 2, or 3:</span>
-            </div>
-
-            <div class="instruction">
-              <div class="instruction-title">👉 What to do:</div>
-              <p>Type <strong>2</strong> (Balanced) and press <kbd>Enter</kbd></p>
-              <p>For all other questions: <strong>Press <kbd>Enter</kbd> to accept defaults</strong></p>
-            </div>
-
-            <div class="instruction">
-              <div class="instruction-title">💡 Can you change this later?</div>
-              <p>Yes! All settings can be changed anytime by editing config files.</p>
+          <div class="expandable-content">
+            <div class="expandable-body">
+              <ul style="margin-left: var(--sp-6); line-height: 1.8;">
+                <li><strong>Telegram</strong> — Fast mobile access (5 min setup)</li>
+                <li><strong>iMessage</strong> — Apple ecosystem users (15 min setup)</li>
+                <li><strong>Slack</strong> — <span style="color: var(--text-tertiary);">Coming soon</span></li>
+              </ul>
+              <p style="margin-top: var(--sp-3);">Ask your bot: "How do I set up [channel name]?"</p>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Step 10: Setup Complete -->
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>Step 10: Setup Complete! 🎉</span>
+        <div class="expandable-item">
+          <div class="expandable-header" onclick="toggleExpandable(this)">
+            <div class="expandable-title">📖 Understanding SOUL.md and AGENTS.md</div>
+            <span class="expandable-icon">▸</span>
           </div>
-          <span class="accordion-icon">▸</span>
-        </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
-            <h4>What you'll see in Terminal:</h4>
-            <div class="terminal">
-              <span class="terminal-success">✓ Creating config file...</span><br>
-              <span class="terminal-success">✓ Setting up workspace...</span><br>
-              <span class="terminal-success">✓ Installing LaunchAgent...</span><br>
-              <span class="terminal-success">✓ Starting gateway...</span><br>
-              <br>
-              <span class="terminal-success">🎉 SUCCESS! Your bot is alive.</span><br>
-              <br>
-              <span class="terminal-output">Dashboard: http://127.0.0.1:18789/</span><br>
-              <span class="terminal-output">Gateway token: [long random string]</span><br>
-              <br>
-              <span class="terminal-warning">Save the token somewhere safe!</span>
-            </div>
-
-            <div class="instruction">
-              <div class="instruction-title">👉 What to do:</div>
-              <p>1. Hold <kbd>⌘ Command</kbd> and press <kbd>A</kbd> to select all the Terminal output</p>
-              <p>2. Hold <kbd>⌘ Command</kbd> and press <kbd>C</kbd> to copy</p>
-              <p>3. Save it in Notes or a password manager</p>
-              <p>4. Click the dashboard URL or copy it to your browser</p>
-            </div>
-
-            <div style="text-align: center; margin-top: var(--sp-6);">
-              <button class="btn btn-primary btn-large" onclick="markStepComplete('chat'); scrollToSection('now-what')">
-                🎉 Start Chatting →
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Section 12: Now What? -->
-  <section id="now-what">
-    <h2>Now What?</h2>
-    <p class="section-intro">Your bot is running! Here's what to do next.</p>
-
-    <div class="accordion">
-      
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>💬 Talk to your bot</span>
-          </div>
-          <span class="accordion-icon">▸</span>
-        </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
-            <p>Your bot will run BOOTSTRAP.md and ask you 9 personalization questions. This helps it learn your preferences.</p>
-            <p><strong>Try these to get started:</strong></p>
-            <ul>
-              <li>"Hello! What's your name?"</li>
-              <li>"What can you help me with?"</li>
-              <li>"Search the web for the latest AI news"</li>
-              <li>"Tell me a joke"</li>
-            </ul>
-
-            <div class="instruction" style="margin-top: var(--sp-4);">
-              <div class="instruction-title">📝 Your bot's personality lives in two files:</div>
+          <div class="expandable-content">
+            <div class="expandable-body">
               <p><strong>SOUL.md</strong> — Who your bot IS (personality, boundaries, vibe)</p>
               <p><strong>AGENTS.md</strong> — How your bot WORKS (memory, tools, routines)</p>
-              <p style="margin-top: var(--sp-2);">You can edit these anytime to customize your AI's behavior.</p>
+              <p style="margin-top: var(--sp-3);">You can edit these anytime to customize your AI's behavior. They're in <code>~/.openclaw/workspace/</code></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="expandable-item">
+          <div class="expandable-header" onclick="toggleExpandable(this)">
+            <div class="expandable-title">💰 Cost breakdown</div>
+            <span class="expandable-icon">▸</span>
+          </div>
+          <div class="expandable-content">
+            <div class="expandable-body">
+              <p><strong>Typical monthly costs:</strong> $5-15</p>
+              <ul style="margin-left: var(--sp-6); line-height: 1.8; margin-top: var(--sp-2);">
+                <li>Simple chats: ~$0.01 each</li>
+                <li>Complex tasks: ~$0.05-0.10 each</li>
+                <li>Most users spend $10-15/month</li>
+              </ul>
+              <p style="margin-top: var(--sp-3);">You control your budget — set a spending limit in your provider dashboard.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="expandable-item">
+          <div class="expandable-header" onclick="toggleExpandable(this)">
+            <div class="expandable-title">🆘 Need help?</div>
+            <span class="expandable-icon">▸</span>
+          </div>
+          <div class="expandable-content">
+            <div class="expandable-body">
+              <p><strong>Join the community:</strong></p>
+              <p><a href="https://discord.gg/UCjDDjNcZq" target="_blank" style="color: var(--accent);">Discord Community</a> — Ask questions, share tips</p>
+              <p style="margin-top: var(--sp-3);"><strong>Troubleshooting:</strong></p>
+              <p>Click the 🔧 button in the header (top right) for common fixes.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>💬 Add Discord (recommended)</span>
-          </div>
-          <span class="accordion-icon">▸</span>
-        </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
-            <p>Want to chat with your bot via Discord? Copy this message and paste it into your bot's chat:</p>
-            <div class="command-block">
-              <button class="btn-copy" onclick="copyCommand(this, 'Help me set up Discord. I want to chat with you on Discord instead of the web dashboard.')" aria-label="Copy Discord setup request">Copy</button>
-              <code>Help me set up Discord. I want to chat with you on Discord instead of the web dashboard.</code>
-            </div>
-            <p style="margin-top: var(--sp-4);">Your bot will walk you through the setup step-by-step. Takes about 10 minutes.</p>
-          </div>
-        </div>
+      <div style="text-align: center; margin-top: var(--sp-8);">
+        <p style="font-size: 18px; color: var(--text-secondary); margin-bottom: var(--sp-4);">
+          🎊 <strong>Congratulations!</strong> You've completed the setup.
+        </p>
+        <a href="index.html" class="btn btn-secondary">← Back to Home</a>
       </div>
-
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>📱 Add other channels</span>
-          </div>
-          <span class="accordion-icon">▸</span>
-        </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
-            <ul>
-              <li><strong>Telegram</strong> — Fast mobile access (5 min setup)</li>
-              <li><strong>iMessage</strong> — Apple ecosystem users (15 min setup)</li>
-              <li><strong>Slack</strong> — <span style="color: var(--text-tertiary);">Coming soon</span></li>
-            </ul>
-            <p style="margin-top: var(--sp-4);">Ask your bot: "How do I set up [channel name]?"</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>🛠️ Try a skill pack</span>
-          </div>
-          <span class="accordion-icon">▸</span>
-        </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
-            <p>Skill packs add specialized capabilities to your bot:</p>
-            <ul>
-              <li><strong>Content Creator</strong> — Social media scheduling, image generation, content calendars</li>
-              <li><strong>App Builder</strong> — Code generation, project scaffolding, deployment automation</li>
-              <li><strong>Workflow Optimizer</strong> — Task automation, reminders, meeting prep</li>
-            </ul>
-            <p style="margin-top: var(--sp-4); color: var(--text-tertiary);">Skill packs coming soon. For now, your bot can do web search, file management, and conversations.</p>
-          </div>
-        </div>
-      </div>
-
     </div>
   </section>
 
-  <!-- Section 13: First 24 Hours -->
-  <section id="first-24-hours">
-    <h2>Your First 24 Hours</h2>
-    <p class="section-intro">What to expect as you get started with your personal AI.</p>
+</div>
 
-    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-6);">
-      <p style="margin-bottom: var(--sp-4);">Your bot will run BOOTSTRAP.md when you first chat — this asks 9 questions to personalize your AI.</p>
+<!-- Help Panel (Slide-out) -->
+<div class="help-panel" id="helpPanel">
+  <div class="help-panel-header">
+    <h2 class="help-panel-title">🔧 Troubleshooting</h2>
+    <button class="help-close" onclick="toggleHelp()" aria-label="Close help panel">×</button>
+  </div>
+  <div class="help-panel-content">
+    <div class="help-section">
+      <h3>Common Errors</h3>
       
-      <h3 style="font-size: 18px; margin-top: var(--sp-4); margin-bottom: var(--sp-3);">After setup:</h3>
-      <ul style="margin-left: var(--sp-6); line-height: 1.8;">
-        <li><strong>Hour 1:</strong> Try asking your bot to summarize a webpage, check the weather, or help draft an email</li>
-        <li><strong>Hour 2-4:</strong> Set up Discord (see above) so you can chat from your phone</li>
-        <li><strong>Day 1:</strong> Your bot starts building memory — it'll remember what you talked about</li>
-        <li><strong>By tomorrow:</strong> Check in and notice how it remembers yesterday's conversation</li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- Section 14: Troubleshooting -->
-  <section id="troubleshooting">
-    <h2>Troubleshooting</h2>
-    <p class="section-intro">Something went wrong? Here are common fixes.</p>
-
-    <div class="accordion">
-      
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>🚨 "Permission denied" error</span>
-          </div>
-          <span class="accordion-icon">▸</span>
+      <div class="help-item">
+        <div class="help-item-header" onclick="toggleHelpItem(this)">
+          <div class="help-item-title">🚨 "Permission denied" error</div>
+          <span class="help-item-icon">▸</span>
         </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
+        <div class="help-item-content">
+          <div class="help-item-body">
             <p><strong>Fix:</strong> Run the script with sudo:</p>
             <div class="command-block">
               <button class="btn-copy" onclick="copyCommand(this, 'sudo bash install.sh')" aria-label="Copy sudo bash install.sh command">Copy</button>
@@ -1504,18 +1649,16 @@
         </div>
       </div>
 
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>🚨 "Command not found" error</span>
-          </div>
-          <span class="accordion-icon">▸</span>
+      <div class="help-item">
+        <div class="help-item-header" onclick="toggleHelpItem(this)">
+          <div class="help-item-title">🚨 "Command not found" error</div>
+          <span class="help-item-icon">▸</span>
         </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
+        <div class="help-item-content">
+          <div class="help-item-body">
             <p><strong>This means:</strong> Homebrew isn't in your PATH yet.</p>
             <p><strong>Fix:</strong> Close Terminal and open a new window, then try again.</p>
-            <p>If that doesn't work, run:</p>
+            <p style="margin-top: var(--sp-3);">If that doesn't work, run:</p>
             <div class="command-block">
               <button class="btn-copy" onclick="copyCommand(this, 'eval \"$(/opt/homebrew/bin/brew shellenv)\"')" aria-label="Copy brew shellenv command">Copy</button>
               <code>eval "$(/opt/homebrew/bin/brew shellenv)"</code>
@@ -1524,15 +1667,13 @@
         </div>
       </div>
 
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>🚨 "Connection refused" when opening dashboard</span>
-          </div>
-          <span class="accordion-icon">▸</span>
+      <div class="help-item">
+        <div class="help-item-header" onclick="toggleHelpItem(this)">
+          <div class="help-item-title">🚨 "Connection refused" when opening dashboard</div>
+          <span class="help-item-icon">▸</span>
         </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
+        <div class="help-item-content">
+          <div class="help-item-body">
             <p><strong>This means:</strong> The gateway didn't start.</p>
             <p><strong>Fix:</strong> Start it manually:</p>
             <div class="command-block">
@@ -1544,15 +1685,13 @@
         </div>
       </div>
 
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>🚨 Bot isn't responding</span>
-          </div>
-          <span class="accordion-icon">▸</span>
+      <div class="help-item">
+        <div class="help-item-header" onclick="toggleHelpItem(this)">
+          <div class="help-item-title">🚨 Bot isn't responding</div>
+          <span class="help-item-icon">▸</span>
         </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
+        <div class="help-item-content">
+          <div class="help-item-body">
             <p><strong>Check if gateway is running:</strong></p>
             <div class="command-block">
               <button class="btn-copy" onclick="copyCommand(this, 'openclaw gateway status')" aria-label="Copy openclaw gateway status command">Copy</button>
@@ -1572,35 +1711,31 @@
         </div>
       </div>
 
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>🚨 "API key invalid" error</span>
-          </div>
-          <span class="accordion-icon">▸</span>
+      <div class="help-item">
+        <div class="help-item-header" onclick="toggleHelpItem(this)">
+          <div class="help-item-title">🚨 "API key invalid" error</div>
+          <span class="help-item-icon">▸</span>
         </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
+        <div class="help-item-content">
+          <div class="help-item-body">
             <p><strong>Common causes:</strong></p>
-            <ul>
+            <ul style="margin-left: var(--sp-6); line-height: 1.8; margin-top: var(--sp-2);">
               <li>Extra spaces before/after the key when you pasted it</li>
               <li>Copied the wrong key (check it starts with <code>sk-or-v1-</code> for OpenRouter or <code>sk-ant-</code> for Anthropic)</li>
               <li>Key was revoked or deleted from provider dashboard</li>
             </ul>
-            <p style="margin-top: var(--sp-4);"><strong>Fix:</strong> Re-run the setup and paste the key carefully.</p>
+            <p style="margin-top: var(--sp-3);"><strong>Fix:</strong> Re-run the setup and paste the key carefully.</p>
           </div>
         </div>
       </div>
 
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>🗑️ How do I remove everything?</span>
-          </div>
-          <span class="accordion-icon">▸</span>
+      <div class="help-item">
+        <div class="help-item-header" onclick="toggleHelpItem(this)">
+          <div class="help-item-title">🗑️ How do I remove everything?</div>
+          <span class="help-item-icon">▸</span>
         </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
+        <div class="help-item-content">
+          <div class="help-item-body">
             <p><strong>Complete uninstall steps:</strong></p>
             <ol style="margin-left: var(--sp-6); margin-top: var(--sp-2); line-height: 1.8;">
               <li>Stop the bot:
@@ -1627,15 +1762,13 @@
         </div>
       </div>
 
-      <div class="accordion-item">
-        <div class="accordion-header" onclick="toggleAccordion(this)" onkeydown="handleAccordionKey(event, this)" role="button" tabindex="0" aria-expanded="false">
-          <div class="accordion-title">
-            <span>🆘 Nuclear Option: Ask Claude</span>
-          </div>
-          <span class="accordion-icon">▸</span>
+      <div class="help-item">
+        <div class="help-item-header" onclick="toggleHelpItem(this)">
+          <div class="help-item-title">🆘 Nuclear Option: Ask Claude</div>
+          <span class="help-item-icon">▸</span>
         </div>
-        <div class="accordion-content">
-          <div class="accordion-body">
+        <div class="help-item-content">
+          <div class="help-item-body">
             <p>If none of the above works, copy this prompt and paste your error into Claude.ai:</p>
             <div class="command-block">
               <button class="btn-copy" onclick="copyCommand(this, 'I\'m setting up OpenClaw on my Mac using ClawStarter and hit this error:\n\n[paste error here]\n\nI\'m on macOS [your version]. Help me fix it.')" aria-label="Copy Claude troubleshooting prompt">Copy</button>
@@ -1651,8 +1784,7 @@ I'm on macOS [your version]. Help me fix it.</code>
       </div>
 
     </div>
-  </section>
-
+  </div>
 </div>
 
 <!-- Footer -->
@@ -1667,6 +1799,30 @@ I'm on macOS [your version]. Help me fix it.</code>
 
 <script>
 /* ═══════════════════════════════════════════════════════════
+   STATE MANAGEMENT
+   ══════════════════════════════════════════════════════════ */
+let currentStep = 1;
+const totalSteps = 10;
+let completedSteps = [];
+
+/* ═══════════════════════════════════════════════════════════
+   LOCALSTORAGE HELPERS
+   ══════════════════════════════════════════════════════════ */
+function safeGet(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSet(key, val) {
+  try {
+    localStorage.setItem(key, val);
+  } catch {}
+}
+
+/* ═══════════════════════════════════════════════════════════
    THEME TOGGLE
    ══════════════════════════════════════════════════════════ */
 function toggleTheme() {
@@ -1679,62 +1835,150 @@ function toggleTheme() {
   safeSet('theme', next);
 }
 
-(function() {
-  const saved = safeGet('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', saved);
-  const btn = document.getElementById('themeBtn');
-  btn.textContent = saved === 'dark' ? '☀' : '🌙';
-  btn.setAttribute('aria-pressed', saved === 'light');
-})();
+/* ═══════════════════════════════════════════════════════════
+   HELP PANEL TOGGLE
+   ══════════════════════════════════════════════════════════ */
+function toggleHelp() {
+  const panel = document.getElementById('helpPanel');
+  const overlay = document.getElementById('overlay');
+  const isOpen = panel.classList.contains('open');
+  
+  if (isOpen) {
+    panel.classList.remove('open');
+    overlay.classList.remove('visible');
+  } else {
+    panel.classList.add('open');
+    overlay.classList.add('visible');
+  }
+}
+
+function toggleHelpItem(header) {
+  const item = header.parentElement;
+  item.classList.toggle('open');
+}
 
 /* ═══════════════════════════════════════════════════════════
-   PROGRESS TRACKING
+   STEP NAVIGATION
    ══════════════════════════════════════════════════════════ */
-function markStepComplete(step) {
-  const steps = ['download', 'run', 'chat'];
-  const index = steps.indexOf(step);
-  
-  for (let i = 0; i <= index; i++) {
-    const el = document.getElementById('step-' + steps[i]);
-    if (i < index) {
-      el.classList.add('completed');
-      el.classList.remove('active');
+function updateStepIndicators() {
+  for (let i = 1; i <= totalSteps; i++) {
+    const indicator = document.getElementById('step-ind-' + i);
+    indicator.classList.remove('active', 'completed', 'disabled');
+    
+    if (i < currentStep) {
+      indicator.classList.add('completed');
+    } else if (i === currentStep) {
+      indicator.classList.add('active');
     } else {
-      el.classList.add('active');
-      el.classList.remove('completed');
+      indicator.classList.add('disabled');
     }
   }
-  
-  safeSet('clawstarter-progress', step);
 }
 
-(function() {
-  const saved = safeGet('clawstarter-progress');
-  if (saved) markStepComplete(saved);
-  else document.getElementById('step-download').classList.add('active');
-})();
+function showStep(stepNum) {
+  // Hide all steps
+  document.querySelectorAll('.wizard-step').forEach(step => {
+    step.classList.remove('active', 'exiting');
+    step.style.display = 'none';
+  });
+
+  // Show current step
+  const step = document.getElementById('step-' + stepNum);
+  step.style.display = 'block';
+  setTimeout(() => {
+    step.classList.add('active');
+  }, 10);
+
+  currentStep = stepNum;
+  updateStepIndicators();
+  
+  // Mark as completed if not already
+  if (!completedSteps.includes(stepNum)) {
+    completedSteps.push(stepNum);
+    safeSet('clawstarter-completed-steps', JSON.stringify(completedSteps));
+  }
+  
+  // Save current step
+  safeSet('clawstarter-current-step', stepNum);
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextStep() {
+  if (currentStep < totalSteps) {
+    showStep(currentStep + 1);
+  }
+}
+
+function prevStep() {
+  if (currentStep > 1) {
+    showStep(currentStep - 1);
+  }
+}
+
+function jumpToStep(stepNum) {
+  // Can only jump to completed steps or next step
+  if (completedSteps.includes(stepNum) || stepNum === currentStep + 1) {
+    showStep(stepNum);
+  }
+}
 
 /* ═══════════════════════════════════════════════════════════
-   ACCORDION
+   KEYBOARD NAVIGATION
    ══════════════════════════════════════════════════════════ */
-function toggleAccordion(header) {
-  const item = header.parentElement;
-  const wasOpen = item.classList.contains('open');
+document.addEventListener('keydown', function(e) {
+  // Don't trigger if help panel is open or user is typing in an input
+  if (document.getElementById('helpPanel').classList.contains('open')) return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   
-  if (wasOpen) {
-    item.classList.remove('open');
-    header.setAttribute('aria-expanded', 'false');
-  } else {
-    item.classList.add('open');
-    header.setAttribute('aria-expanded', 'true');
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    nextStep();
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    prevStep();
+  } else if (e.key === 'Escape') {
+    const panel = document.getElementById('helpPanel');
+    if (panel.classList.contains('open')) {
+      toggleHelp();
+    }
+  } else if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+    e.preventDefault();
+    toggleHelp();
   }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   CHECKLIST STATE
+   ══════════════════════════════════════════════════════════ */
+function updateChecklistState() {
+  const check1 = document.getElementById('check-1');
+  const check2 = document.getElementById('check-2');
+  const check3 = document.getElementById('check-3');
+  
+  safeSet('check-1', check1.checked ? '1' : '0');
+  safeSet('check-2', check2.checked ? '1' : '0');
+  safeSet('check-3', check3.checked ? '1' : '0');
+  
+  // Enable next button if all checked (or allow skip)
+  // For now, we allow proceeding regardless
 }
 
-function handleAccordionKey(event, header) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    toggleAccordion(header);
+/* ═══════════════════════════════════════════════════════════
+   PATH SELECTION
+   ══════════════════════════════════════════════════════════ */
+function selectPath(path) {
+  document.getElementById('path-same').classList.remove('selected');
+  document.getElementById('path-dedicated').classList.remove('selected');
+  
+  if (path === 'same') {
+    document.getElementById('path-same').classList.add('selected');
+  } else {
+    document.getElementById('path-dedicated').classList.add('selected');
   }
+  
+  safeSet('clawstarter-path', path);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1772,69 +2016,48 @@ function copyCommand(btn, text) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SCROLL TO SECTION
+   EXPANDABLE SECTIONS
    ══════════════════════════════════════════════════════════ */
-function scrollToSection(id) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+function toggleExpandable(header) {
+  const item = header.parentElement;
+  item.classList.toggle('open');
 }
 
 /* ═══════════════════════════════════════════════════════════
-   LOCALSTORAGE SAFETY
+   INITIALIZATION
    ══════════════════════════════════════════════════════════ */
-function safeGet(key) {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
+(function init() {
+  // Load theme
+  const savedTheme = safeGet('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  const themeBtn = document.getElementById('themeBtn');
+  themeBtn.textContent = savedTheme === 'dark' ? '☀' : '🌙';
+  themeBtn.setAttribute('aria-pressed', savedTheme === 'light');
+  
+  // Load progress
+  const savedStep = parseInt(safeGet('clawstarter-current-step')) || 1;
+  const savedCompleted = safeGet('clawstarter-completed-steps');
+  if (savedCompleted) {
+    completedSteps = JSON.parse(savedCompleted);
   }
-}
-
-function safeSet(key, val) {
-  try {
-    localStorage.setItem(key, val);
-  } catch {}
-}
-
-/* ═══════════════════════════════════════════════════════════
-   CHECKBOX PERSISTENCE
-   ══════════════════════════════════════════════════════════ */
-function saveCheckbox(id, checked) {
-  safeSet('clawstarter-' + id, checked ? '1' : '0');
-}
-
-(function() {
-  document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach((cb, i) => {
-    const id = 'check-' + (i + 1);
-    const saved = safeGet('clawstarter-' + id);
-    if (saved === '1') cb.checked = true;
-  });
+  
+  // Load checklist state
+  const check1 = safeGet('check-1') === '1';
+  const check2 = safeGet('check-2') === '1';
+  const check3 = safeGet('check-3') === '1';
+  if (check1) document.getElementById('check-1').checked = true;
+  if (check2) document.getElementById('check-2').checked = true;
+  if (check3) document.getElementById('check-3').checked = true;
+  
+  // Load path selection
+  const savedPath = safeGet('clawstarter-path');
+  if (savedPath) {
+    selectPath(savedPath);
+  }
+  
+  // Show current step
+  showStep(savedStep);
 })();
-
-/* ═══════════════════════════════════════════════════════════
-   SMOOTH SCROLL FOR ANCHOR LINKS
-   ══════════════════════════════════════════════════════════ */
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', function(e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-});
-
-/* ═══════════════════════════════════════════════════════════
-   BLINK CURSOR ANIMATION
-   ══════════════════════════════════════════════════════════ */
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes blink {
-    0%, 49% { opacity: 1; }
-    50%, 100% { opacity: 0; }
-  }
-`;
-document.head.appendChild(style);
 </script>
 
 </body>
