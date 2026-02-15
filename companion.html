@@ -701,15 +701,18 @@
     color: var(--text-code);
     display: block;
     padding: var(--sp-3) var(--sp-4);
+    padding-right: calc(var(--sp-4) + 60px); /* Make room for copy button */
     background: hsl(172, 12%, 8%);
     border-radius: var(--r-sm);
     user-select: all;
+    word-break: break-all;
   }
 
   .btn-copy {
     position: absolute;
-    top: var(--sp-2);
-    right: var(--sp-2);
+    top: 50%;
+    transform: translateY(-50%);
+    right: var(--sp-3);
     padding: var(--sp-2) var(--sp-3);
     font-size: 12px;
     font-weight: 600;
@@ -1144,7 +1147,7 @@
     <div class="step-header">
       <div class="step-number">Step 1 of 10</div>
       <h1 class="step-title">Your Personal AI.<br><span class="mint-text">Running on Your Mac.</span></h1>
-      <p class="step-description">This guide walks you through setup. One step at a time. It takes about 15-20 minutes.</p>
+      <p class="step-description">This guide walks you through a <strong>secure</strong> setup. One step at a time. Takes about 10 minutes.</p>
     </div>
     <div class="step-content">
       <div class="instruction">
@@ -1246,7 +1249,7 @@
     </div>
     <div class="step-content">
       <div style="text-align: center; margin: var(--sp-8) 0;">
-        <a href="openclaw-quickstart-v2.sh" download="install.sh" class="btn btn-primary btn-large">
+        <a href="openclaw-autosetup.sh" download="install.sh" class="btn btn-primary btn-large">
           <span>📥 Download install.sh</span>
         </a>
         <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px;">
@@ -1259,8 +1262,8 @@
         <div class="collapsible-content">
           <p>If you prefer the one-line install, copy this command:</p>
           <div class="command-block">
-            <button class="btn-copy" onclick="copyCommand(this, 'curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash')" aria-label="Copy curl install command">Copy</button>
-            <code>curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-quickstart-v2.sh | bash</code>
+            <button class="btn-copy" onclick="copyCommand(this, 'curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-autosetup.sh | bash')" aria-label="Copy curl install command">Copy</button>
+            <code>curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-autosetup.sh | bash</code>
           </div>
           <p>Then skip to "Step 6: Run the Script".</p>
         </div>
@@ -1303,7 +1306,7 @@
       </p>
 
       <h3 style="margin-top: var(--sp-8); margin-bottom: var(--sp-4); font-size: 20px;">Navigate to Downloads</h3>
-      <p>Type this command in Terminal and press <kbd>Enter</kbd>:</p>
+      <p>Copy and paste this command in Terminal, then press <kbd>Enter</kbd>:</p>
       <div class="command-block">
         <button class="btn-copy" onclick="copyCommand(this, 'cd ~/Downloads')" aria-label="Copy cd ~/Downloads command">Copy</button>
         <code>cd ~/Downloads</code>
@@ -1326,7 +1329,7 @@
       <div class="instruction warning" style="margin-bottom: var(--sp-6);">
         <div class="instruction-title">⚠️ IMPORTANT: Password Visibility</div>
         <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">When Terminal asks for your password, YOU WON'T SEE ANYTHING when you type. No dots, no stars, nothing.</p>
-        <p>This is NORMAL and secure. Just type your password and press Enter.</p>
+        <p>This is NORMAL and secure. You'll see a 🔐 keyhole icon in your menu bar — that means macOS is waiting for your password. Just type it and press Enter.</p>
       </div>
 
       <div class="instruction warning">
@@ -1434,7 +1437,7 @@
             <li>Sign up with email or Google</li>
             <li>Add $5-10 in credits</li>
             <li>Create an API key in Settings</li>
-            <li>Copy the key (starts with <code>sk-or-v1-</code>)</li>
+            <li>Copy the key (starts with <code>sk-or-v1-</code>) — <strong>save it somewhere safe!</strong> You won't be able to see it again.</li>
             <li>Return to Terminal and paste it</li>
           </ol>
           <h4 style="margin-top: var(--sp-4); margin-bottom: var(--sp-2);">Or: Use Free Tier</h4>
@@ -1456,6 +1459,27 @@
         <p>Type <strong>2</strong> (Balanced) and press <kbd>Enter</kbd></p>
         <p>For all other questions: <strong>Press <kbd>Enter</kbd> to accept defaults</strong></p>
       </div>
+
+      <details class="collapsible">
+        <summary>💰 What do I get at each budget level?</summary>
+        <div class="collapsible-content">
+          <table style="width: 100%; border-collapse: collapse; margin: var(--sp-4) 0;">
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: var(--sp-3);"><strong>Budget ($5-15)</strong></td>
+              <td style="padding: var(--sp-3);">~50-100 conversations/month. Good for occasional use, quick questions, light automation.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: var(--sp-3);"><strong>Balanced ($15-50)</strong></td>
+              <td style="padding: var(--sp-3);">~200-500 conversations/month. Daily use, writing, coding assistance, calendar management. <em>Most users pick this.</em></td>
+            </tr>
+            <tr>
+              <td style="padding: var(--sp-3);"><strong>Premium ($50+)</strong></td>
+              <td style="padding: var(--sp-3);">Heavy daily use, complex research, code generation, multi-agent workflows. Power user territory.</td>
+            </tr>
+          </table>
+          <p style="color: var(--text-secondary); font-size: 14px;">💡 You can always change this later in OpenRouter settings. Start balanced and adjust based on usage.</p>
+        </div>
+      </details>
     </div>
     <div class="step-navigation">
       <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
@@ -1524,9 +1548,10 @@
 
       <h3 style="font-size: 20px; margin-bottom: var(--sp-4);">Try your first prompt:</h3>
       <div class="command-block">
-        <button class="btn-copy" onclick="copyCommand(this, 'Hey! I just set you up. What can you help me with?')" aria-label="Copy first prompt">Copy</button>
-        <code>Hey! I just set you up. What can you help me with?</code>
+        <button class="btn-copy" onclick="copyCommand(this, 'Hey! I just finished setting you up via ClawStarter. Run through your bootstrap process to get to know me.')" aria-label="Copy first prompt">Copy</button>
+        <code>Hey! I just finished setting you up via ClawStarter. Run through your bootstrap process to get to know me.</code>
       </div>
+      <p style="margin-top: var(--sp-2); color: var(--text-secondary); font-size: 14px;">This triggers the 9 personalization questions so your bot learns your preferences.</p>
 
       <div class="expandable">
         <div class="expandable-item">
