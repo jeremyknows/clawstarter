@@ -1441,9 +1441,10 @@
             <label>
               <input type="checkbox" id="check-4" onchange="updateChecklistState()">
               <div>
-                <strong>An AI provider API key (optional)</strong><br>
-                <span style="color: var(--text-secondary);">Don't have an API key yet? No problem — you can set one up during installation, or skip it and use the free tier to try things out.</span><br>
-                <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">Get an OpenRouter API key here</a> (recommended, $5-10 to start)
+                <strong>An AI provider API key (optional but recommended)</strong><br>
+                <span style="color: var(--text-secondary);">You can set one up during installation. Two options:</span><br>
+                <a href="https://opencode.ai/auth" target="_blank" style="color: var(--accent);">OpenCode Zen</a> <span style="color: var(--text-secondary);">(free models available — no credit card needed) or</span>
+                <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">OpenRouter</a> <span style="color: var(--text-secondary);">($5-10 to start, more model options)</span>
               </div>
             </label>
           </div>
@@ -1508,9 +1509,10 @@
             <label>
               <input type="checkbox" id="win-check-5" onchange="updateWinChecklistState()">
               <div>
-                <strong>An AI provider API key (optional)</strong><br>
-                <span style="color: var(--text-secondary);">You can get one during setup or skip it and use the free tier first.</span><br>
-                <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">Get an OpenRouter API key here</a> (recommended, $5-10 to start)
+                <strong>An AI provider API key (optional but recommended)</strong><br>
+                <span style="color: var(--text-secondary);">You can get one during setup. Two options:</span><br>
+                <a href="https://opencode.ai/auth" target="_blank" style="color: var(--accent);">OpenCode Zen</a> <span style="color: var(--text-secondary);">(free models available — no credit card needed) or</span>
+                <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">OpenRouter</a> <span style="color: var(--text-secondary);">($5-10 to start, more model options)</span>
               </div>
             </label>
           </div>
@@ -1996,7 +1998,7 @@
         <p>The wizard will guide you through setup. Here's what to expect:</p>
         <ul style="margin-left: var(--sp-6); margin-top: var(--sp-3); line-height: 1.8;">
           <li><strong>AI Provider:</strong> Choose OpenRouter (recommended, $5-10 to start) or Anthropic</li>
-          <li><strong>API Key:</strong> Paste your API key (or press Enter to use free tier)</li>
+          <li><strong>API Key:</strong> Paste your OpenCode Zen or OpenRouter key (or press Enter to skip for now)</li>
           <li><strong>Gateway Port:</strong> Accept the default (18789)</li>
           <li><strong>Install Daemon:</strong> Say yes (keeps your bot running 24/7)</li>
         </ul>
@@ -2013,20 +2015,29 @@
       <details class="collapsible">
         <summary>🔑 Don't have an API key? Get one now</summary>
         <div class="collapsible-content">
-          <h4 style="margin-bottom: var(--sp-2);">OpenRouter (Recommended — $5-10 to start)</h4>
+
+          <h4 style="margin-bottom: var(--sp-2);">🆓 OpenCode Zen — Free to start</h4>
+          <p style="margin-bottom: var(--sp-2); color: var(--text-secondary); font-size: 14px;">Free models available (Kimi K2.5, MiniMax, GLM). No credit card needed to get started.</p>
+          <ol style="margin-left: var(--sp-6); margin-top: var(--sp-2); line-height: 1.8;">
+            <li>Go to <a href="https://opencode.ai/auth" target="_blank" style="color: var(--accent);">opencode.ai/auth</a></li>
+            <li>Sign up with email or GitHub</li>
+            <li>Copy your API key from the dashboard</li>
+            <li>Paste it when the installer asks for your key</li>
+          </ol>
+          <p style="margin-top: var(--sp-2); font-size: 14px; color: var(--text-secondary);">💡 The default model (Kimi K2.5 Free) runs at $0/month until you choose to upgrade.</p>
+
+          <h4 style="margin-top: var(--sp-6); margin-bottom: var(--sp-2);">💳 OpenRouter — More models, pay-as-you-go</h4>
+          <p style="margin-bottom: var(--sp-2); color: var(--text-secondary); font-size: 14px;">Best if you want access to GPT-4o, Claude, Gemini, and hundreds of other models.</p>
           <ol style="margin-left: var(--sp-6); margin-top: var(--sp-2); line-height: 1.8;">
             <li>Go to <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">openrouter.ai/keys</a></li>
             <li>Sign up with email or Google</li>
             <li>Add $5-10 in credits</li>
             <li>Create an API key (starts with <code>sk-or-v1-</code>)</li>
             <li><strong>Save it somewhere safe!</strong> You won't be able to see it again.</li>
-            <li>Return to Terminal and paste it when prompted</li>
+            <li>Paste it when the installer asks for your key</li>
           </ol>
-          
-          <h4 style="margin-top: var(--sp-4); margin-bottom: var(--sp-2);">Or: Use the Free Tier</h4>
-          <p>Just press <kbd>Enter</kbd> when asked for an API key. You'll use OpenCode's free model (no signup needed, limited features).</p>
-          
-          <h4 style="margin-top: var(--sp-4); margin-bottom: var(--sp-2);">💡 Typical Costs</h4>
+
+          <h4 style="margin-top: var(--sp-6); margin-bottom: var(--sp-2);">💡 Typical Costs (OpenRouter)</h4>
           <ul style="margin-left: var(--sp-6); line-height: 1.8;">
             <li>Simple chats: ~$0.01 each</li>
             <li>Complex tasks: ~$0.05-0.10 each</li>
