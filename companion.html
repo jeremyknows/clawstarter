@@ -1839,45 +1839,32 @@
         </div>
       </div>
 
-      <!-- Windows: openclaw onboard in Ubuntu -->
+      <!-- Windows: Watch the installer run (CORRECT ORDER: watch first, onboard after) -->
       <div data-os-show="windows" class="os-hidden">
-        <div class="instruction info" style="margin-bottom: var(--sp-4);">
-          <div class="instruction-title">🐧 You're now in Ubuntu</div>
-          <p>The Ubuntu terminal is open (the black window with <code>username@DESKTOP:~$</code>). This is normal — OpenClaw lives here.</p>
+        <div class="instruction info" style="margin-bottom: var(--sp-6);">
+          <div class="instruction-title">ℹ️ What the script is doing</div>
+          <p>The PowerShell window is automatically installing:</p>
+          <ol style="margin-left: var(--sp-6); margin-top: var(--sp-3); line-height: 2;">
+            <li><strong>WSL2</strong> — Windows Subsystem for Linux (Microsoft's official Linux layer)</li>
+            <li><strong>Ubuntu 22.04</strong> — A Linux environment where OpenClaw will run</li>
+            <li><strong>Node.js</strong> — The runtime OpenClaw needs</li>
+            <li><strong>OpenClaw</strong> — Your AI agent</li>
+          </ol>
+          <p style="margin-top: var(--sp-3); color: var(--text-secondary); font-size: 14px;">You don't need to do anything — just leave the PowerShell window open.</p>
         </div>
 
-        <p style="margin-bottom: var(--sp-3);">Copy this command and paste it into the Ubuntu terminal, then press <kbd>Enter</kbd>:</p>
-
-        <div class="command-block">
-          <button class="btn-copy" onclick="copyCommand(this, 'openclaw onboard --install-daemon')" aria-label="Copy onboard command">Copy</button>
-          <code>openclaw onboard --install-daemon</code>
+        <div class="instruction warning" style="margin-bottom: var(--sp-6);">
+          <div class="instruction-title">⚠️ Your PC may restart automatically</div>
+          <p>If this is the first time WSL2 is installed on your PC, Windows needs a restart to finish. The script will tell you and ask if you want to restart now (type <kbd>y</kbd>).</p>
+          <p style="margin-top: var(--sp-3); font-weight: 600;">💾 Save any open work before clicking Next!</p>
+          <p style="margin-top: var(--sp-2); font-size: 14px; color: var(--text-secondary);">After restart, come back to this page — the installer will resume automatically.</p>
         </div>
 
-        <div class="instruction" style="margin-top: var(--sp-4);">
-          <div class="instruction-title">👉 To paste in Ubuntu terminal:</div>
-          <p>1. Click inside the Ubuntu window</p>
-          <p>2. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> (note: Shift+V, not just V)</p>
-          <p>3. Press <kbd>Enter</kbd></p>
+        <div class="instruction">
+          <div class="instruction-title">⏱️ This takes 20-40 minutes</div>
+          <p>Most of the time is downloading Ubuntu (~500MB). The PowerShell window shows progress.</p>
+          <p><strong>Don't close the PowerShell window.</strong> You'll see a "Setup complete" message when it's done.</p>
         </div>
-
-        <div class="instruction warning" style="margin-top: var(--sp-4);">
-          <div class="instruction-title">⚠️ The onboarding wizard will ask questions</div>
-          <p>The wizard will ask for your AI provider API key and a few other settings. For most questions, press <kbd>Enter</kbd> to accept the default.</p>
-          <p style="margin-top: var(--sp-2); font-size: 14px;"><strong>Save the gateway token</strong> it shows you — you'll need it to connect to the dashboard.</p>
-        </div>
-
-        <details class="collapsible" style="margin-top: var(--sp-3);">
-          <summary>❓ Ubuntu didn't open automatically?</summary>
-          <div class="collapsible-content">
-            <p>Open Ubuntu manually:</p>
-            <ol style="margin-left: var(--sp-6); line-height: 2; margin-top: var(--sp-2);">
-              <li>Press the <kbd>Win</kbd> key</li>
-              <li>Type <strong>Ubuntu</strong></li>
-              <li>Click <strong>Ubuntu 22.04</strong></li>
-            </ol>
-            <p style="margin-top: var(--sp-2);">Then run: <code>openclaw onboard --install-daemon</code></p>
-          </div>
-        </details>
       </div>
 
     </div>
@@ -1885,19 +1872,22 @@
       <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
       <button class="btn btn-primary btn-large" onclick="nextStep()">
         <span data-os-show="mac">Pressed Enter? →</span>
-        <span data-os-show="windows" class="os-hidden">Onboarding complete? →</span>
+        <span data-os-show="windows" class="os-hidden">Script finished? →</span>
       </button>
     </div>
   </section>
 
-  <!-- Step 7: Watch It Install -->
+  <!-- Step 7: Watch It Install (Mac) / Set Up Ubuntu (Windows) -->
   <section class="wizard-step" id="step-7" data-step="7">
     <div class="step-header">
       <div class="step-number">Step 7 of 10</div>
-      <h2 class="step-title">Watch It Install</h2>
+      <h2 class="step-title">
+        <span data-os-show="mac">Watch It Install</span>
+        <span data-os-show="windows" class="os-hidden">Set Up Ubuntu &amp; Run OpenClaw</span>
+      </h2>
       <p class="step-description">
         <span data-os-show="mac">The script is running. Here's what you'll see.</span>
-        <span data-os-show="windows" class="os-hidden">The installer is running automatically. Sit tight.</span>
+        <span data-os-show="windows" class="os-hidden">Almost there — two quick steps in the Ubuntu window.</span>
       </p>
     </div>
     <div class="step-content">
@@ -1934,45 +1924,74 @@
         </div>
       </div>
 
-      <!-- Windows install wait -->
+      <!-- Windows: Ubuntu first-run + openclaw onboard -->
       <div data-os-show="windows" class="os-hidden">
+
         <div class="instruction info" style="margin-bottom: var(--sp-6);">
-          <div class="instruction-title">ℹ️ What the script is doing</div>
-          <p>The PowerShell window is automatically installing:</p>
-          <ol style="margin-left: var(--sp-6); margin-top: var(--sp-3); line-height: 2;">
-            <li><strong>WSL2</strong> — Windows Subsystem for Linux (Microsoft's official Linux layer)</li>
-            <li><strong>Ubuntu 22.04</strong> — A Linux environment where OpenClaw will run</li>
-            <li><strong>Node.js</strong> — The runtime OpenClaw needs</li>
-            <li><strong>OpenClaw</strong> — Your AI agent</li>
-          </ol>
-          <p style="margin-top: var(--sp-3); color: var(--text-secondary); font-size: 14px;">You don't need to do anything — just leave the PowerShell window open.</p>
+          <div class="instruction-title">🐧 What is Ubuntu?</div>
+          <p>Ubuntu is a mini Linux computer that lives inside Windows. OpenClaw runs inside it — this is totally normal and safe. You'll see a black terminal window; think of it like a command prompt with a different look.</p>
         </div>
 
-        <div class="instruction warning" style="margin-bottom: var(--sp-6);">
-          <div class="instruction-title">⚠️ Your PC may restart automatically</div>
-          <p>If this is the first time WSL2 is installed on your PC, Windows needs a restart to finish. The script will:</p>
-          <ol style="margin-left: var(--sp-6); margin-top: var(--sp-3); line-height: 2;">
-            <li>Tell you a restart is needed</li>
-            <li>Ask if you want to restart now (type <kbd>y</kbd>)</li>
-            <li>Automatically resume after restart — no action needed</li>
-          </ol>
-          <p style="margin-top: var(--sp-3); font-weight: 600;">Save any open work before the restart!</p>
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-4);">Part 1 — Create your Ubuntu username &amp; password</h3>
+
+        <div class="instruction warning" style="margin-bottom: var(--sp-4);">
+          <div class="instruction-title">⚠️ Ubuntu needs a one-time account setup</div>
+          <p>When Ubuntu opens for the first time, it asks you to create a username and password <strong>inside Ubuntu</strong>. This is separate from your Windows password — you can use anything you like.</p>
+          <p style="margin-top: var(--sp-2); font-size: 14px; color: var(--text-secondary);">Note: When typing the password, nothing will appear on screen. This is normal — just type it and press <kbd>Enter</kbd>.</p>
         </div>
 
         <div class="instruction">
-          <div class="instruction-title">⏱️ This takes 20-40 minutes</div>
-          <p>Most of the time is downloading Ubuntu (~500MB). The PowerShell window shows progress.</p>
-          <p><strong>Don't close the PowerShell window.</strong> You'll see a success message when it's done.</p>
+          <div class="instruction-title">👉 What to do:</div>
+          <p>1. Look for the Ubuntu terminal window (black, with text like <code>Enter new UNIX username:</code>)</p>
+          <p>2. Type a username (e.g. your first name, lowercase, no spaces) → press <kbd>Enter</kbd></p>
+          <p>3. Type a password → press <kbd>Enter</kbd></p>
+          <p>4. Type the password again to confirm → press <kbd>Enter</kbd></p>
         </div>
 
-        <div class="instruction info" style="margin-top: var(--sp-6);">
-          <div class="instruction-title">🐧 When it finishes: Ubuntu will open</div>
-          <p>When the script completes, an Ubuntu terminal will open (black window, different prompt). This is where OpenClaw runs.</p>
-          <div class="terminal" style="margin-top: var(--sp-3); font-size: 13px;">
-            <span class="terminal-prompt">ubuntu@DESKTOP-XYZ:~$</span> <span class="cursor">█</span>
-          </div>
-          <p style="margin-top: var(--sp-3);">↑ This is what you'll see. It's a Linux terminal — totally normal. The next step will walk you through what to type.</p>
+        <div class="terminal" style="margin: var(--sp-4) 0; font-size: 13px;">
+          <span class="terminal-output">Enter new UNIX username: <span style="color: #4ade80;">yourname</span></span><br>
+          <span class="terminal-output">New password: </span><br>
+          <span class="terminal-output">Retype new password: </span><br>
+          <span class="terminal-success">passwd: password updated successfully</span><br>
+          <span class="terminal-prompt">yourname@DESKTOP-XYZ:~$</span> <span class="cursor">█</span>
         </div>
+
+        <p style="margin-bottom: var(--sp-6); color: var(--text-secondary); font-size: 14px;">↑ Once you see your prompt like above, Ubuntu is ready.</p>
+
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-4);">Part 2 — Run the OpenClaw setup</h3>
+
+        <p style="margin-bottom: var(--sp-3);">Copy this command, paste it into the Ubuntu terminal, and press <kbd>Enter</kbd>:</p>
+
+        <div class="command-block">
+          <button class="btn-copy" onclick="copyCommand(this, 'openclaw onboard --install-daemon')" aria-label="Copy onboard command">Copy</button>
+          <code>openclaw onboard --install-daemon</code>
+        </div>
+
+        <div class="instruction" style="margin-top: var(--sp-4);">
+          <div class="instruction-title">👉 To paste in Ubuntu terminal:</div>
+          <p>1. Click inside the Ubuntu window</p>
+          <p>2. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> (Shift+V — not just V)</p>
+          <p>3. Press <kbd>Enter</kbd></p>
+        </div>
+
+        <div class="instruction warning" style="margin-top: var(--sp-4);">
+          <div class="instruction-title">⚠️ The onboarding wizard will ask questions</div>
+          <p>It will ask for your AI provider API key and a few settings. For most questions, press <kbd>Enter</kbd> to accept the default.</p>
+          <p style="margin-top: var(--sp-2); font-size: 14px;"><strong>Save the gateway token</strong> it shows you — you'll need it to connect to the dashboard.</p>
+        </div>
+
+        <details class="collapsible" style="margin-top: var(--sp-3);">
+          <summary>❓ Ubuntu window didn't open after install?</summary>
+          <div class="collapsible-content">
+            <p>Open Ubuntu manually:</p>
+            <ol style="margin-left: var(--sp-6); line-height: 2; margin-top: var(--sp-2);">
+              <li>Press the <kbd>Win</kbd> key</li>
+              <li>Type <strong>Ubuntu</strong></li>
+              <li>Click <strong>Ubuntu 22.04</strong></li>
+            </ol>
+            <p style="margin-top: var(--sp-2);">Complete the username/password setup (Part 1 above), then run <code>openclaw onboard --install-daemon</code></p>
+          </div>
+        </details>
       </div>
 
     </div>
@@ -1980,7 +1999,7 @@
       <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
       <button class="btn btn-primary btn-large" onclick="nextStep()">
         <span data-os-show="mac">See "Which AI provider?" →</span>
-        <span data-os-show="windows" class="os-hidden">Script finished? →</span>
+        <span data-os-show="windows" class="os-hidden">Onboarding complete? →</span>
       </button>
     </div>
   </section>
@@ -2126,7 +2145,7 @@
             <li>Run <code>openclaw gateway start</code> if the gateway isn't running</li>
             <li>Open <code>http://127.0.0.1:18789</code> in your browser</li>
           </ol>
-          <p style="margin-top: var(--sp-2); color: var(--text-secondary);">Your files live at <code>\\wsl$\Ubuntu\home\[username]\.openclaw\</code> in Windows Explorer.</p>
+          <p style="margin-top: var(--sp-2); color: var(--text-secondary);">Your files live at <code>\\wsl$\Ubuntu-22.04\home\[username]\.openclaw\</code> in Windows Explorer.</p>
         </div>
       </div>
 
@@ -2586,17 +2605,20 @@ const OSState = {
       btnWin.classList.toggle('active', os === 'windows');
     }
 
-    // Refresh step counter display; if current step is now hidden, advance to nearest visible
-    if (typeof currentStep !== 'undefined' && typeof getVisibleSteps === 'function') {
+    // Only update step UI if DOM is ready (step elements exist)
+    const domReady = !!document.getElementById('step-1');
+    if (domReady && typeof currentStep !== 'undefined' && typeof getVisibleSteps === 'function') {
       const visibleSteps = getVisibleSteps();
       // If current step is not visible for this OS, jump to nearest visible step
       if (!visibleSteps.includes(currentStep)) {
-        // Find closest visible step (prefer next, fallback prev)
         const next = visibleSteps.find(s => s > currentStep);
         const prev = [...visibleSteps].reverse().find(s => s < currentStep);
         const target = next || prev || visibleSteps[0];
         if (target) showStep(target);
-        return; // showStep will handle counter refresh
+        // Refresh checklist button state for new OS after redirect
+        if (os === 'mac') updateChecklistState();
+        else updateWinChecklistState();
+        return;
       }
       const visIndex = visibleSteps.indexOf(currentStep);
       const visNum = visIndex + 1;
@@ -2610,6 +2632,9 @@ const OSState = {
       const mobileFill = document.getElementById('mobile-progress-fill');
       if (mobileText) mobileText.textContent = 'Step ' + visNum + ' of ' + visTotal;
       if (mobileFill) mobileFill.style.width = ((visNum / visTotal) * 100) + '%';
+      // Refresh checklist button state when switching OS on step 2
+      if (os === 'mac') updateChecklistState();
+      else updateWinChecklistState();
     }
   },
 
@@ -2719,6 +2744,10 @@ function showStep(stepNum) {
 
   // Show current step
   const step = document.getElementById('step-' + stepNum);
+  if (!step) {
+    console.warn('showStep: step-' + stepNum + ' not found in DOM');
+    return;
+  }
   step.style.display = 'block';
   setTimeout(() => {
     step.classList.add('active');
