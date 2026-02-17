@@ -1231,7 +1231,7 @@ PYEOF
     info "Recommended providers:"
     echo ""
     echo -e "  ${BOLD}0. OpenCode Zen (FREE to start — recommended for new users)${NC}"
-    echo -e "     Free models available: Kimi K2.5, MiniMax, GLM — no credit card needed"
+    echo -e "     Free models available: Kimi K2.5, MiniMax, GLM (payment method required to sign up)"
     echo -e "     Sign up: ${CYAN}https://opencode.ai/auth${NC}"
     echo -e "     Copy your API key from the dashboard"
     echo -e "     ${DIM}(This is the default model provider — \$0/month on free models)${NC}"
