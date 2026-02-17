@@ -1216,6 +1216,45 @@
   input, select, textarea {
     font-size: 16px; /* Prevents iOS zoom on focus */
   }
+
+  /* ═══════════════════════════════════════════════════════════
+     OS-AWARE CONTENT (Windows / Mac conditional rendering)
+     ══════════════════════════════════════════════════════════ */
+
+  /* By default, OS-tagged elements are shown (body has data-os set by JS) */
+  [data-os-show].os-hidden { display: none !important; }
+
+  /* OS switcher in header */
+  .os-switcher {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    padding: 2px;
+    margin-right: var(--sp-2);
+  }
+  .os-switcher button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .os-switcher button.active {
+    background: var(--accent-muted);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .os-switcher button:hover:not(.active) {
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+  }
 </style>
 </head>
 <body>
@@ -1297,6 +1336,10 @@
     </div>
 
     <div class="header-actions">
+      <div class="os-switcher" id="osSwitcher" title="Switch operating system">
+        <button id="osBtnMac" onclick="OSState.override('mac')" aria-label="Switch to Mac setup">🍎 Mac</button>
+        <button id="osBtnWin" onclick="OSState.override('windows')" aria-label="Switch to Windows setup">🪟 Win</button>
+      </div>
       <button class="help-toggle" onclick="toggleHelp()" id="helpBtn" aria-label="Toggle help panel">🔧</button>
       <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme" aria-pressed="false">☀</button>
     </div>
@@ -1309,21 +1352,45 @@
   <!-- Step 1: Welcome -->
   <section class="wizard-step active" id="step-1" data-step="1">
     <div class="step-header">
-      <div class="step-number">Step 1 of 10</div>
-      <h1 class="step-title">Your Personal AI.<br><span class="mint-text">Running on Your Mac.</span></h1>
-      <p class="step-description">This guide walks you through a <strong>secure</strong> setup. One step at a time. Takes about 15 minutes.</p>
+      <div class="step-number" id="step1-counter">Step 1 of 10</div>
+      <h1 class="step-title">Your Personal AI.<br>
+        <span class="mint-text" data-os-show="mac">Running on Your Mac.</span>
+        <span class="mint-text os-hidden" data-os-show="windows">Running on Windows.</span>
+      </h1>
+      <p class="step-description">This guide walks you through a <strong>secure</strong> setup. One step at a time.</p>
     </div>
     <div class="step-content">
-      <div class="instruction">
-        <div class="instruction-title">📖 What you'll do:</div>
-        <p>1. Download a simple install script</p>
-        <p>2. Run it in Terminal (we'll show you how)</p>
-        <p>3. Answer a few questions</p>
-        <p>4. Start chatting with your AI</p>
+      <!-- Mac intro -->
+      <div data-os-show="mac">
+        <div class="instruction">
+          <div class="instruction-title">📖 What you'll do:</div>
+          <p>1. Download a simple install script</p>
+          <p>2. Run it in Terminal (we'll show you how)</p>
+          <p>3. Answer a few questions</p>
+          <p>4. Start chatting with your AI</p>
+        </div>
+        <p style="text-align: center; margin-top: var(--sp-6); color: var(--text-secondary);">
+          <strong>Estimated time:</strong> 15-20 minutes
+        </p>
       </div>
-      <p style="text-align: center; margin-top: var(--sp-6); color: var(--text-secondary);">
-        <strong>Estimated time:</strong> 15-20 minutes
-      </p>
+      <!-- Windows intro -->
+      <div data-os-show="windows" class="os-hidden">
+        <div class="instruction">
+          <div class="instruction-title">📖 What you'll do:</div>
+          <p>1. Download a PowerShell installer</p>
+          <p>2. Right-click → Run as Administrator</p>
+          <p>3. Wait ~20-40 minutes (fully automatic)</p>
+          <p>4. Open Ubuntu and answer a few questions</p>
+          <p>5. Start chatting with your AI</p>
+        </div>
+        <div class="instruction warning" style="margin-top: var(--sp-4);">
+          <div class="instruction-title">🪟 Heads up: Linux terminal incoming</div>
+          <p>OpenClaw runs inside Ubuntu (Linux) on Windows. After the installer finishes, a Ubuntu terminal will open — <strong>that's normal and expected</strong>. We'll walk you through it step by step.</p>
+        </div>
+        <p style="text-align: center; margin-top: var(--sp-6); color: var(--text-secondary);">
+          <strong>Estimated time:</strong> 20-40 minutes
+        </p>
+      </div>
     </div>
     <div class="step-navigation">
       <button class="btn btn-primary btn-large" onclick="nextStep()">Let's Go →</button>
@@ -1338,60 +1405,118 @@
       <p class="step-description">Make sure you have everything ready.</p>
     </div>
     <div class="step-content">
-      <fieldset class="checklist">
-        <legend style="font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: var(--sp-4);">✅ Pre-Install Checklist</legend>
-        <div class="checklist-item">
-          <label>
-            <input type="checkbox" id="check-1" onchange="updateChecklistState()">
-            <div>
-              <strong>Mac with macOS 13+ (Ventura or newer)</strong><br>
-              <span style="color: var(--text-secondary);">Check: Apple menu (top left) → About This Mac</span>
-            </div>
-          </label>
-        </div>
-        <div class="checklist-item">
-          <label>
-            <input type="checkbox" id="check-2" onchange="updateChecklistState()">
-            <div>
-              <strong>15-20 minutes of uninterrupted time</strong><br>
-              <span style="color: var(--text-secondary);">Find a quiet moment. <strong>Keep your Mac plugged in</strong> — sleep or battery drain can interrupt installation.</span>
-            </div>
-          </label>
-        </div>
-        <div class="checklist-item">
-          <label>
-            <input type="checkbox" id="check-3" onchange="updateChecklistState()">
-            <div>
-              <strong>Admin access on this Mac</strong><br>
-              <span style="color: var(--text-secondary);">The script needs to configure firewall, sleep, and auto-update settings. Check: System Settings → Users & Groups → your account should show "Admin" badge.</span>
-            </div>
-          </label>
-        </div>
-        <div class="checklist-item">
-          <label>
-            <input type="checkbox" id="check-4" onchange="updateChecklistState()">
-            <div>
-              <strong>An AI provider API key (optional)</strong><br>
-              <span style="color: var(--text-secondary);">Don't have an API key yet? No problem — you can set one up during installation, or skip it and use the free tier to try things out.</span><br>
-              <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">Get an OpenRouter API key here</a> (recommended, $5-10 to start)
-            </div>
-          </label>
-        </div>
-        <div class="checklist-item" style="border-left: 3px solid var(--accent); padding-left: var(--sp-3); background: var(--bg-surface);">
-          <label>
-            <input type="checkbox" id="check-5" onchange="updateChecklistState()">
-            <div>
-              <strong>Dedicated accounts for Google/Apple services (recommended)</strong><br>
-              <span style="color: var(--text-secondary);">If you plan to use email (Gmail) or iMessage/Notes, consider creating dedicated accounts for cleaner separation:</span>
-              <ul style="margin-left: 16px; margin-top: 6px; font-size: 14px; color: var(--text-secondary);">
-                <li><strong>Gmail:</strong> For Google services (calendar, email, drive). OAuth setup required.</li>
-                <li><strong>Apple ID</strong> (macOS only): For iMessage, Notes, Reminders. Keeps bot activity separate.</li>
-              </ul>
-              <span style="color: var(--text-secondary); font-size: 13px; margin-top: 4px; display: block;">You can use your personal accounts instead, but dedicated = cleaner isolation.</span>
-            </div>
-          </label>
-        </div>
-      </fieldset>
+
+      <!-- Mac checklist -->
+      <div data-os-show="mac">
+        <fieldset class="checklist">
+          <legend style="font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: var(--sp-4);">✅ Pre-Install Checklist</legend>
+          <div class="checklist-item">
+            <label>
+              <input type="checkbox" id="check-1" onchange="updateChecklistState()">
+              <div>
+                <strong>Mac with macOS 13+ (Ventura or newer)</strong><br>
+                <span style="color: var(--text-secondary);">Check: Apple menu (top left) → About This Mac</span>
+              </div>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label>
+              <input type="checkbox" id="check-2" onchange="updateChecklistState()">
+              <div>
+                <strong>15-20 minutes of uninterrupted time</strong><br>
+                <span style="color: var(--text-secondary);">Find a quiet moment. <strong>Keep your Mac plugged in</strong> — sleep or battery drain can interrupt installation.</span>
+              </div>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label>
+              <input type="checkbox" id="check-3" onchange="updateChecklistState()">
+              <div>
+                <strong>Admin access on this Mac</strong><br>
+                <span style="color: var(--text-secondary);">The script needs to configure firewall, sleep, and auto-update settings. Check: System Settings → Users & Groups → your account should show "Admin" badge.</span>
+              </div>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label>
+              <input type="checkbox" id="check-4" onchange="updateChecklistState()">
+              <div>
+                <strong>An AI provider API key (optional)</strong><br>
+                <span style="color: var(--text-secondary);">Don't have an API key yet? No problem — you can set one up during installation, or skip it and use the free tier to try things out.</span><br>
+                <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">Get an OpenRouter API key here</a> (recommended, $5-10 to start)
+              </div>
+            </label>
+          </div>
+          <div class="checklist-item" style="border-left: 3px solid var(--accent); padding-left: var(--sp-3); background: var(--bg-surface);">
+            <label>
+              <input type="checkbox" id="check-5" onchange="updateChecklistState()">
+              <div>
+                <strong>Dedicated accounts for Google/Apple services (recommended)</strong><br>
+                <span style="color: var(--text-secondary);">If you plan to use email (Gmail) or iMessage/Notes, consider creating dedicated accounts for cleaner separation:</span>
+                <ul style="margin-left: 16px; margin-top: 6px; font-size: 14px; color: var(--text-secondary);">
+                  <li><strong>Gmail:</strong> For Google services (calendar, email, drive). OAuth setup required.</li>
+                  <li><strong>Apple ID</strong> (macOS only): For iMessage, Notes, Reminders. Keeps bot activity separate.</li>
+                </ul>
+                <span style="color: var(--text-secondary); font-size: 13px; margin-top: 4px; display: block;">You can use your personal accounts instead, but dedicated = cleaner isolation.</span>
+              </div>
+            </label>
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- Windows checklist -->
+      <div data-os-show="windows" class="os-hidden">
+        <fieldset class="checklist">
+          <legend style="font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: var(--sp-4);">✅ Pre-Install Checklist</legend>
+          <div class="checklist-item">
+            <label>
+              <input type="checkbox" id="win-check-1" onchange="updateWinChecklistState()">
+              <div>
+                <strong>Windows 10 (version 2004 or later) or Windows 11</strong><br>
+                <span style="color: var(--text-secondary);">Check: press <kbd>Win</kbd>+<kbd>R</kbd>, type <code>winver</code>, press Enter. Need build 19041 or higher.</span>
+              </div>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label>
+              <input type="checkbox" id="win-check-2" onchange="updateWinChecklistState()">
+              <div>
+                <strong>Administrator account on this PC</strong><br>
+                <span style="color: var(--text-secondary);">Required to install WSL2. Check: Settings → Accounts → your account should show "Administrator".</span>
+              </div>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label>
+              <input type="checkbox" id="win-check-3" onchange="updateWinChecklistState()">
+              <div>
+                <strong>At least 4GB of free disk space</strong><br>
+                <span style="color: var(--text-secondary);">WSL2 + Ubuntu + Node.js + OpenClaw needs ~2-3GB. Check: File Explorer → This PC → look at C: drive free space.</span>
+              </div>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label>
+              <input type="checkbox" id="win-check-4" onchange="updateWinChecklistState()">
+              <div>
+                <strong>30-40 minutes of uninterrupted time</strong><br>
+                <span style="color: var(--text-secondary);">Downloading Ubuntu takes a while. <strong>Keep your PC plugged in</strong> — sleep or hibernate can interrupt the install.</span>
+              </div>
+            </label>
+          </div>
+          <div class="checklist-item">
+            <label>
+              <input type="checkbox" id="win-check-5" onchange="updateWinChecklistState()">
+              <div>
+                <strong>An AI provider API key (optional)</strong><br>
+                <span style="color: var(--text-secondary);">You can get one during setup or skip it and use the free tier first.</span><br>
+                <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">Get an OpenRouter API key here</a> (recommended, $5-10 to start)
+              </div>
+            </label>
+          </div>
+        </fieldset>
+      </div>
+
     </div>
     <div class="step-navigation">
       <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
@@ -1400,7 +1525,7 @@
   </section>
 
   <!-- Step 3: Choose Your Path -->
-  <section class="wizard-step" id="step-3" data-step="3">
+  <section class="wizard-step" id="step-3" data-step="3" data-os-step="mac">
     <div class="step-header">
       <div class="step-number">Step 3 of 10</div>
       <h2 class="step-title">Choose Your Setup Path</h2>
@@ -1474,53 +1599,99 @@
   <section class="wizard-step" id="step-4" data-step="4">
     <div class="step-header">
       <div class="step-number">Step 4 of 10</div>
-      <h2 class="step-title">Download the Script</h2>
+      <h2 class="step-title">Download the Installer</h2>
       <p class="step-description">Click the button below to download the install script.</p>
     </div>
     <div class="step-content">
-      <div style="text-align: center; margin: var(--sp-8) 0;">
-        <button class="btn btn-primary btn-large" onclick="showDownloadDisclaimer()" id="download-trigger-btn">
-          <span>📥 Download Install Script</span>
-        </button>
-        <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px;">
-          File will download to your Downloads folder
-        </p>
+
+      <!-- Mac download -->
+      <div data-os-show="mac">
+        <div style="text-align: center; margin: var(--sp-8) 0;">
+          <button class="btn btn-primary btn-large" onclick="showDownloadDisclaimer()" id="download-trigger-btn">
+            <span>📥 Download Install Script</span>
+          </button>
+          <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px;">
+            File will download to your Downloads folder
+          </p>
+        </div>
+
+        <!-- Mac Download Disclaimer Modal (unchanged) -->
+        <div id="download-disclaimer-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="disclaimer-title" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; padding: var(--sp-4);">
+          <div style="max-width: 500px; max-height: 90vh; overflow-y: auto; background: var(--bg-card); border-radius: 16px; padding: var(--sp-8); text-align: center; margin: auto;">
+            <h3 id="disclaimer-title" style="font-size: 24px; margin-bottom: var(--sp-4);">🦞 Ready to Dive In?</h3>
+            <p style="margin-bottom: var(--sp-4); line-height: 1.6;">
+              You're about to embark on a wonderful journey designing your personal AI agent!
+            </p>
+            <p style="margin-bottom: var(--sp-6); color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+              AI agent technology is experimental. Your bot will have access to your computer — that's what makes it powerful, but also why we recommend the security practices in this guide.
+            </p>
+            <label style="display: flex; align-items: center; justify-content: center; gap: var(--sp-3); margin-bottom: var(--sp-6); cursor: pointer;">
+              <input type="checkbox" id="disclaimer-checkbox" onchange="updateDownloadButton()" style="width: 20px; height: 20px; cursor: pointer;">
+              <span style="font-weight: 600;">Yes, I'm ready to dive in! 🦞</span>
+            </label>
+            <div style="display: flex; gap: var(--sp-4); justify-content: center; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="hideDownloadDisclaimer()">Cancel</button>
+              <a href="openclaw-autosetup.sh" download="install.sh" class="btn btn-primary" id="modal-download-btn" style="opacity: 0.5; pointer-events: none;" onclick="hideDownloadDisclaimer()">
+                Download
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <details class="collapsible">
+          <summary>Advanced: Use curl command instead</summary>
+          <div class="collapsible-content">
+            <p>If you prefer the one-line install, copy this command:</p>
+            <div class="command-block">
+              <button class="btn-copy" onclick="copyCommand(this, 'curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-autosetup.sh | bash')" aria-label="Copy curl install command">Copy</button>
+              <code>curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-autosetup.sh | bash</code>
+            </div>
+            <p>Then skip to "Step 6: Run the Script".</p>
+          </div>
+        </details>
       </div>
-      
-      <!-- Download Disclaimer Modal -->
-      <div id="download-disclaimer-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="disclaimer-title" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; padding: var(--sp-4);">
-        <div style="max-width: 500px; max-height: 90vh; overflow-y: auto; background: var(--bg-card); border-radius: 16px; padding: var(--sp-8); text-align: center; margin: auto;">
-          <h3 id="disclaimer-title" style="font-size: 24px; margin-bottom: var(--sp-4);">🦞 Ready to Dive In?</h3>
-          <p style="margin-bottom: var(--sp-4); line-height: 1.6;">
-            You're about to embark on a wonderful journey designing your personal AI agent!
+
+      <!-- Windows download -->
+      <div data-os-show="windows" class="os-hidden">
+        <div style="text-align: center; margin: var(--sp-8) 0;">
+          <button class="btn btn-primary btn-large" onclick="showWindowsDownloadDisclaimer()" id="win-download-trigger-btn">
+            <span>📥 Download Windows Installer</span>
+          </button>
+          <p style="margin-top: var(--sp-3); color: var(--text-tertiary); font-size: 14px;">
+            openclaw-windows-setup.ps1 · Downloads to your Downloads folder
           </p>
-          <p style="margin-bottom: var(--sp-6); color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
-            AI agent technology is experimental. Your bot will have access to your computer — that's what makes it powerful, but also why we recommend the security practices in this guide.
-          </p>
-          <label style="display: flex; align-items: center; justify-content: center; gap: var(--sp-3); margin-bottom: var(--sp-6); cursor: pointer;">
-            <input type="checkbox" id="disclaimer-checkbox" onchange="updateDownloadButton()" style="width: 20px; height: 20px; cursor: pointer;">
-            <span style="font-weight: 600;">Yes, I'm ready to dive in! 🦞</span>
-          </label>
-          <div style="display: flex; gap: var(--sp-4); justify-content: center; flex-wrap: wrap;">
-            <button class="btn btn-secondary" onclick="hideDownloadDisclaimer()">Cancel</button>
-            <a href="openclaw-autosetup.sh" download="install.sh" class="btn btn-primary" id="modal-download-btn" style="opacity: 0.5; pointer-events: none;" onclick="hideDownloadDisclaimer()">
-              Download
-            </a>
+        </div>
+
+        <!-- Windows Download Modal -->
+        <div id="win-download-modal" class="modal-overlay" role="dialog" aria-modal="true" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; padding: var(--sp-4);">
+          <div style="max-width: 520px; max-height: 90vh; overflow-y: auto; background: var(--bg-card); border-radius: 16px; padding: var(--sp-8); text-align: center; margin: auto;">
+            <h3 style="font-size: 24px; margin-bottom: var(--sp-4);">🦞 Ready to install on Windows?</h3>
+            <p style="margin-bottom: var(--sp-4); line-height: 1.6;">
+              This will download a PowerShell script that automatically installs WSL2, Ubuntu, Node.js, and OpenClaw.
+            </p>
+            <div style="background: var(--accent-subtle); border: 1px solid var(--border-accent); border-radius: var(--r-md); padding: var(--sp-4); margin-bottom: var(--sp-4); text-align: left; font-size: 14px;">
+              <strong>⚠️ After downloading:</strong>
+              <ol style="margin: var(--sp-2) 0 0 var(--sp-4); line-height: 2;">
+                <li>Find the file in your Downloads folder</li>
+                <li><strong>Right-click</strong> it → <strong>Run with PowerShell</strong></li>
+                <li>Click <strong>Yes</strong> when asked for Administrator permission</li>
+              </ol>
+              <p style="margin-top: var(--sp-2); color: var(--text-secondary);">The script takes 20-40 minutes. We'll explain what to do next.</p>
+            </div>
+            <label style="display: flex; align-items: center; justify-content: center; gap: var(--sp-3); margin-bottom: var(--sp-6); cursor: pointer;">
+              <input type="checkbox" id="win-disclaimer-checkbox" onchange="document.getElementById('win-modal-download-btn').style.opacity = this.checked ? '1' : '0.5'; document.getElementById('win-modal-download-btn').style.pointerEvents = this.checked ? 'auto' : 'none';" style="width: 20px; height: 20px; cursor: pointer;">
+              <span style="font-weight: 600;">Yes, I'm ready to dive in! 🦞</span>
+            </label>
+            <div style="display: flex; gap: var(--sp-4); justify-content: center; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="hideWindowsDownloadDisclaimer()">Cancel</button>
+              <a href="openclaw-windows-setup.ps1" download="openclaw-windows-setup.ps1" class="btn btn-primary" id="win-modal-download-btn" style="opacity: 0.5; pointer-events: none;" onclick="hideWindowsDownloadDisclaimer()">
+                Download
+              </a>
+            </div>
           </div>
         </div>
       </div>
 
-      <details class="collapsible">
-        <summary>Advanced: Use curl command instead</summary>
-        <div class="collapsible-content">
-          <p>If you prefer the one-line install, copy this command:</p>
-          <div class="command-block">
-            <button class="btn-copy" onclick="copyCommand(this, 'curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-autosetup.sh | bash')" aria-label="Copy curl install command">Copy</button>
-            <code>curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-autosetup.sh | bash</code>
-          </div>
-          <p>Then skip to "Step 6: Run the Script".</p>
-        </div>
-      </details>
     </div>
     <div class="step-navigation">
       <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
@@ -1528,19 +1699,79 @@
     </div>
   </section>
 
-  <!-- Step 5: Open Terminal -->
+  <!-- Step 5: Open Terminal / Run Installer -->
   <section class="wizard-step" id="step-5" data-step="5">
     <div class="step-header">
       <div class="step-number">Step 5 of 10</div>
-      <h2 class="step-title">Open Terminal</h2>
-      <p class="step-description">Terminal is a built-in Mac app. Here's how to find it.</p>
+      <h2 class="step-title">
+        <span data-os-show="mac">Open Terminal</span>
+        <span data-os-show="windows" class="os-hidden">Run the Installer</span>
+      </h2>
+      <p class="step-description">
+        <span data-os-show="mac">Terminal is a built-in Mac app. Here's how to find it.</span>
+        <span data-os-show="windows" class="os-hidden">Right-click the downloaded file and run it as Administrator.</span>
+      </p>
     </div>
     <div class="step-content">
-      <div class="instruction">
-        <div class="instruction-title">👉 How to open Terminal:</div>
-        <p>1. Hold <kbd>⌘ Command</kbd> and press <kbd>Space</kbd></p>
-        <p>2. Type "Terminal"</p>
-        <p>3. Press <kbd>Enter</kbd></p>
+
+      <!-- Mac instructions (unchanged) -->
+      <div data-os-show="mac">
+        <div class="instruction">
+          <div class="instruction-title">👉 How to open Terminal:</div>
+          <p>1. Hold <kbd>⌘ Command</kbd> and press <kbd>Space</kbd></p>
+          <p>2. Type "Terminal"</p>
+          <p>3. Press <kbd>Enter</kbd></p>
+        </div>
+      </div>
+
+      <!-- Windows: run the installer -->
+      <div data-os-show="windows" class="os-hidden">
+        <div class="instruction warning">
+          <div class="instruction-title">⚠️ Must run as Administrator</div>
+          <p>WSL2 installation requires Administrator access. The script will fail if you open it normally.</p>
+        </div>
+
+        <div class="instruction">
+          <div class="instruction-title">👉 How to run the script:</div>
+          <p>1. Open your <strong>Downloads</strong> folder in File Explorer</p>
+          <p>2. Find <strong>openclaw-windows-setup.ps1</strong></p>
+          <p>3. <strong>Right-click</strong> the file</p>
+          <p>4. Select <strong>"Run with PowerShell"</strong></p>
+          <p>5. When Windows asks "Do you want to allow changes?", click <strong>Yes</strong></p>
+        </div>
+
+        <details class="collapsible" style="margin-top: var(--sp-4);">
+          <summary>🛡️ Seeing a Windows SmartScreen warning?</summary>
+          <div class="collapsible-content">
+            <p>Windows shows this warning for scripts that haven't been digitally signed yet. This is normal for open-source installers.</p>
+            <p style="margin-top: var(--sp-3);"><strong>To proceed safely:</strong></p>
+            <ol style="margin-left: var(--sp-6); line-height: 2; margin-top: var(--sp-2);">
+              <li>Click <strong>"More info"</strong> (small text below the warning)</li>
+              <li>Click <strong>"Run anyway"</strong></li>
+              <li>Click <strong>Yes</strong> when asked for Administrator permission</li>
+            </ol>
+            <p style="margin-top: var(--sp-3); font-size: 14px; color: var(--text-secondary);">
+              <strong>Why is this safe?</strong> This script installs official Microsoft software (WSL2) and Ubuntu from Canonical. The script source code is open at
+              <a href="https://github.com/jeremyknows/clawstarter" target="_blank" style="color: var(--accent);">github.com/jeremyknows/clawstarter</a>.
+            </p>
+          </div>
+        </details>
+
+        <details class="collapsible" style="margin-top: var(--sp-3);">
+          <summary>❓ "Run with PowerShell" not in the right-click menu?</summary>
+          <div class="collapsible-content">
+            <p>Open PowerShell as Administrator manually:</p>
+            <ol style="margin-left: var(--sp-6); line-height: 2; margin-top: var(--sp-2);">
+              <li>Press <kbd>Win</kbd> key, type <strong>PowerShell</strong></li>
+              <li>Right-click "Windows PowerShell" → <strong>Run as Administrator</strong></li>
+              <li>In PowerShell, type:</li>
+            </ol>
+            <div class="command-block" style="margin-top: var(--sp-2);">
+              <button class="btn-copy" onclick="copyCommand(this, 'Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; cd ~\\Downloads; .\\openclaw-windows-setup.ps1')" aria-label="Copy PowerShell command">Copy</button>
+              <code>Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; cd ~\Downloads; .\openclaw-windows-setup.ps1</code>
+            </div>
+          </div>
+        </details>
       </div>
 
       <div class="terminal">
@@ -1575,30 +1806,85 @@
   <section class="wizard-step" id="step-6" data-step="6">
     <div class="step-header">
       <div class="step-number">Step 6 of 10</div>
-      <h2 class="step-title">Run the Script</h2>
-      <p class="step-description">Now we'll run the installer.</p>
+      <h2 class="step-title">
+        <span data-os-show="mac">Run the Script</span>
+        <span data-os-show="windows" class="os-hidden">Complete Setup in Ubuntu</span>
+      </h2>
+      <p class="step-description">
+        <span data-os-show="mac">Now we'll run the installer.</span>
+        <span data-os-show="windows" class="os-hidden">The installer opened Ubuntu. Run one more command to finish.</span>
+      </p>
     </div>
     <div class="step-content">
-      <div class="instruction warning">
-        <div class="instruction-title">⚠️ Don't Close Terminal or Press ⌘C</div>
-        <p>Keep Terminal open until you see <strong>"SUCCESS!"</strong> — closing it or pressing <kbd>⌘ Command</kbd> + <kbd>C</kbd> will cancel the installation.</p>
+
+      <!-- Mac: run bash script -->
+      <div data-os-show="mac">
+        <div class="instruction warning">
+          <div class="instruction-title">⚠️ Don't Close Terminal or Press ⌘C</div>
+          <p>Keep Terminal open until you see <strong>"SUCCESS!"</strong> — closing it or pressing <kbd>⌘ Command</kbd> + <kbd>C</kbd> will cancel the installation.</p>
+        </div>
+
+        <div class="command-block">
+          <button class="btn-copy" onclick="copyCommand(this, 'bash install.sh')" aria-label="Copy bash install.sh command">Copy</button>
+          <code>bash install.sh</code>
+        </div>
+
+        <div class="instruction">
+          <div class="instruction-title">👉 What to do:</div>
+          <p>1. Make sure Terminal is active (click on it)</p>
+          <p>2. Hold <kbd>⌘ Command</kbd> and press <kbd>V</kbd> to paste</p>
+          <p>3. Press <kbd>Enter</kbd></p>
+        </div>
       </div>
 
-      <div class="command-block">
-        <button class="btn-copy" onclick="copyCommand(this, 'bash install.sh')" aria-label="Copy bash install.sh command">Copy</button>
-        <code>bash install.sh</code>
+      <!-- Windows: openclaw onboard in Ubuntu -->
+      <div data-os-show="windows" class="os-hidden">
+        <div class="instruction info" style="margin-bottom: var(--sp-4);">
+          <div class="instruction-title">🐧 You're now in Ubuntu</div>
+          <p>The Ubuntu terminal is open (the black window with <code>username@DESKTOP:~$</code>). This is normal — OpenClaw lives here.</p>
+        </div>
+
+        <p style="margin-bottom: var(--sp-3);">Copy this command and paste it into the Ubuntu terminal, then press <kbd>Enter</kbd>:</p>
+
+        <div class="command-block">
+          <button class="btn-copy" onclick="copyCommand(this, 'openclaw onboard --install-daemon')" aria-label="Copy onboard command">Copy</button>
+          <code>openclaw onboard --install-daemon</code>
+        </div>
+
+        <div class="instruction" style="margin-top: var(--sp-4);">
+          <div class="instruction-title">👉 To paste in Ubuntu terminal:</div>
+          <p>1. Click inside the Ubuntu window</p>
+          <p>2. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> (note: Shift+V, not just V)</p>
+          <p>3. Press <kbd>Enter</kbd></p>
+        </div>
+
+        <div class="instruction warning" style="margin-top: var(--sp-4);">
+          <div class="instruction-title">⚠️ The onboarding wizard will ask questions</div>
+          <p>The wizard will ask for your AI provider API key and a few other settings. For most questions, press <kbd>Enter</kbd> to accept the default.</p>
+          <p style="margin-top: var(--sp-2); font-size: 14px;"><strong>Save the gateway token</strong> it shows you — you'll need it to connect to the dashboard.</p>
+        </div>
+
+        <details class="collapsible" style="margin-top: var(--sp-3);">
+          <summary>❓ Ubuntu didn't open automatically?</summary>
+          <div class="collapsible-content">
+            <p>Open Ubuntu manually:</p>
+            <ol style="margin-left: var(--sp-6); line-height: 2; margin-top: var(--sp-2);">
+              <li>Press the <kbd>Win</kbd> key</li>
+              <li>Type <strong>Ubuntu</strong></li>
+              <li>Click <strong>Ubuntu 22.04</strong></li>
+            </ol>
+            <p style="margin-top: var(--sp-2);">Then run: <code>openclaw onboard --install-daemon</code></p>
+          </div>
+        </details>
       </div>
 
-      <div class="instruction">
-        <div class="instruction-title">👉 What to do:</div>
-        <p>1. Make sure Terminal is active (click on it)</p>
-        <p>2. Hold <kbd>⌘ Command</kbd> and press <kbd>V</kbd> to paste</p>
-        <p>3. Press <kbd>Enter</kbd></p>
-      </div>
     </div>
     <div class="step-navigation">
       <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-      <button class="btn btn-primary btn-large" onclick="nextStep()">Pressed Enter? →</button>
+      <button class="btn btn-primary btn-large" onclick="nextStep()">
+        <span data-os-show="mac">Pressed Enter? →</span>
+        <span data-os-show="windows" class="os-hidden">Onboarding complete? →</span>
+      </button>
     </div>
   </section>
 
@@ -1607,41 +1893,93 @@
     <div class="step-header">
       <div class="step-number">Step 7 of 10</div>
       <h2 class="step-title">Watch It Install</h2>
-      <p class="step-description">The script is running. Here's what you'll see.</p>
+      <p class="step-description">
+        <span data-os-show="mac">The script is running. Here's what you'll see.</span>
+        <span data-os-show="windows" class="os-hidden">The installer is running automatically. Sit tight.</span>
+      </p>
     </div>
     <div class="step-content">
-      <div class="instruction info" style="margin-bottom: var(--sp-6);">
-        <div class="instruction-title">ℹ️ What to Expect</div>
-        <p><strong>The script will ask you to confirm each step.</strong> You'll see prompts like:</p>
-        <div class="terminal" style="margin-top: var(--sp-3); font-size: 13px;">
-          <span style="color: #4ade80;">?</span> Ready to begin? [y/N]:
+
+      <!-- Mac install (unchanged) -->
+      <div data-os-show="mac">
+        <div class="instruction info" style="margin-bottom: var(--sp-6);">
+          <div class="instruction-title">ℹ️ What to Expect</div>
+          <p><strong>The script will ask you to confirm each step.</strong> You'll see prompts like:</p>
+          <div class="terminal" style="margin-top: var(--sp-3); font-size: 13px;">
+            <span style="color: #4ade80;">?</span> Ready to begin? [y/N]:
+          </div>
+          <p style="margin-top: var(--sp-3);">Type <kbd>y</kbd> and press <kbd>Enter</kbd> to continue. You'll do this ~5-6 times during setup.</p>
         </div>
-        <p style="margin-top: var(--sp-3);">Type <kbd>y</kbd> and press <kbd>Enter</kbd> to continue. You'll do this ~5-6 times during setup.</p>
-      </div>
-      
-      <div class="instruction warning" style="font-size: 18px; margin-bottom: var(--sp-6);">
-        <div class="instruction-title" style="font-size: 20px;">🔐 PASSWORD PROMPT HEADS-UP</div>
-        <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">When macOS asks for your password, YOU WON'T SEE ANYTHING when you type.</p>
-        <p style="font-size: 16px;">No dots, no stars, nothing. This is normal! Look for the 🔐 keyhole icon in your menu bar — that means macOS is waiting. Just type your password and press <kbd>Enter</kbd>.</p>
+
+        <div class="instruction warning" style="font-size: 18px; margin-bottom: var(--sp-6);">
+          <div class="instruction-title" style="font-size: 20px;">🔐 PASSWORD PROMPT HEADS-UP</div>
+          <p style="font-size: 18px; font-weight: 700; margin-bottom: var(--sp-3);">When macOS asks for your password, YOU WON'T SEE ANYTHING when you type.</p>
+          <p style="font-size: 16px;">No dots, no stars, nothing. This is normal! Look for the 🔐 keyhole icon in your menu bar — that means macOS is waiting. Just type your password and press <kbd>Enter</kbd>.</p>
+        </div>
+
+        <div class="terminal">
+          <span class="terminal-output">═══════════════════════════════════════════════════════════════</span><br>
+          <span class="terminal-output">Installing Homebrew...</span><br>
+          <span class="terminal-output">═══════════════════════════════════════════════════════════════</span><br>
+          <span class="terminal-output">[Text scrolling by — this is normal]</span>
+        </div>
+
+        <div class="instruction">
+          <div class="instruction-title">⏱️ This takes 2-5 minutes</div>
+          <p>You'll see text scrolling — that's the script installing Homebrew, Node.js, and OpenClaw.</p>
+          <p><strong>Don't close Terminal.</strong> Just wait for the next prompt.</p>
+          <p style="margin-top: var(--sp-2); color: var(--text-secondary); font-size: 14px;">💡 Already have Homebrew or Node.js? The script will detect and skip those steps automatically.</p>
+        </div>
       </div>
 
-      <div class="terminal">
-        <span class="terminal-output">═══════════════════════════════════════════════════════════════</span><br>
-        <span class="terminal-output">Installing Homebrew...</span><br>
-        <span class="terminal-output">═══════════════════════════════════════════════════════════════</span><br>
-        <span class="terminal-output">[Text scrolling by — this is normal]</span>
+      <!-- Windows install wait -->
+      <div data-os-show="windows" class="os-hidden">
+        <div class="instruction info" style="margin-bottom: var(--sp-6);">
+          <div class="instruction-title">ℹ️ What the script is doing</div>
+          <p>The PowerShell window is automatically installing:</p>
+          <ol style="margin-left: var(--sp-6); margin-top: var(--sp-3); line-height: 2;">
+            <li><strong>WSL2</strong> — Windows Subsystem for Linux (Microsoft's official Linux layer)</li>
+            <li><strong>Ubuntu 22.04</strong> — A Linux environment where OpenClaw will run</li>
+            <li><strong>Node.js</strong> — The runtime OpenClaw needs</li>
+            <li><strong>OpenClaw</strong> — Your AI agent</li>
+          </ol>
+          <p style="margin-top: var(--sp-3); color: var(--text-secondary); font-size: 14px;">You don't need to do anything — just leave the PowerShell window open.</p>
+        </div>
+
+        <div class="instruction warning" style="margin-bottom: var(--sp-6);">
+          <div class="instruction-title">⚠️ Your PC may restart automatically</div>
+          <p>If this is the first time WSL2 is installed on your PC, Windows needs a restart to finish. The script will:</p>
+          <ol style="margin-left: var(--sp-6); margin-top: var(--sp-3); line-height: 2;">
+            <li>Tell you a restart is needed</li>
+            <li>Ask if you want to restart now (type <kbd>y</kbd>)</li>
+            <li>Automatically resume after restart — no action needed</li>
+          </ol>
+          <p style="margin-top: var(--sp-3); font-weight: 600;">Save any open work before the restart!</p>
+        </div>
+
+        <div class="instruction">
+          <div class="instruction-title">⏱️ This takes 20-40 minutes</div>
+          <p>Most of the time is downloading Ubuntu (~500MB). The PowerShell window shows progress.</p>
+          <p><strong>Don't close the PowerShell window.</strong> You'll see a success message when it's done.</p>
+        </div>
+
+        <div class="instruction info" style="margin-top: var(--sp-6);">
+          <div class="instruction-title">🐧 When it finishes: Ubuntu will open</div>
+          <p>When the script completes, an Ubuntu terminal will open (black window, different prompt). This is where OpenClaw runs.</p>
+          <div class="terminal" style="margin-top: var(--sp-3); font-size: 13px;">
+            <span class="terminal-prompt">ubuntu@DESKTOP-XYZ:~$</span> <span class="cursor">█</span>
+          </div>
+          <p style="margin-top: var(--sp-3);">↑ This is what you'll see. It's a Linux terminal — totally normal. The next step will walk you through what to type.</p>
+        </div>
       </div>
 
-      <div class="instruction">
-        <div class="instruction-title">⏱️ This takes 2-5 minutes</div>
-        <p>You'll see text scrolling — that's the script installing Homebrew, Node.js, and OpenClaw.</p>
-        <p><strong>Don't close Terminal.</strong> Just wait for the next prompt.</p>
-        <p style="margin-top: var(--sp-2); color: var(--text-secondary); font-size: 14px;">💡 Already have Homebrew or Node.js? The script will detect and skip those steps automatically.</p>
-      </div>
     </div>
     <div class="step-navigation">
       <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
-      <button class="btn btn-primary btn-large" onclick="nextStep()">See "Which AI provider?" →</button>
+      <button class="btn btn-primary btn-large" onclick="nextStep()">
+        <span data-os-show="mac">See "Which AI provider?" →</span>
+        <span data-os-show="windows" class="os-hidden">Script finished? →</span>
+      </button>
     </div>
   </section>
 
@@ -1767,7 +2105,18 @@
       <div class="instruction success">
         <div class="instruction-title">🎉 You're all set!</div>
         <p>Your bot is running! It will ask you personalization questions to learn your preferences.</p>
-        <p style="margin-top: var(--sp-2); font-size: 14px; color: var(--text-secondary);">💡 <strong>If you created a separate user account:</strong> You can now log back into your main account. Your bot keeps running in the background — access it at <code>http://127.0.0.1:18789/</code> from any account on this Mac.</p>
+        <!-- Mac tip -->
+        <p data-os-show="mac" style="margin-top: var(--sp-2); font-size: 14px; color: var(--text-secondary);">💡 <strong>If you created a separate user account:</strong> You can now log back into your main account. Your bot keeps running in the background — access it at <code>http://127.0.0.1:18789/</code> from any account on this Mac.</p>
+        <!-- Windows tip -->
+        <div data-os-show="windows" class="os-hidden" style="margin-top: var(--sp-3); padding: var(--sp-3); background: var(--accent-subtle); border-radius: var(--r-md); font-size: 14px;">
+          <p>💡 <strong>OpenClaw runs inside Ubuntu.</strong> To use it in the future:</p>
+          <ol style="margin-left: var(--sp-4); margin-top: var(--sp-2); line-height: 1.8;">
+            <li>Press <kbd>Win</kbd> key → type <strong>Ubuntu</strong> → open Ubuntu 22.04</li>
+            <li>Run <code>openclaw gateway start</code> if the gateway isn't running</li>
+            <li>Open <code>http://127.0.0.1:18789</code> in your browser</li>
+          </ol>
+          <p style="margin-top: var(--sp-2); color: var(--text-secondary);">Your files live at <code>\\wsl$\Ubuntu\home\[username]\.openclaw\</code> in Windows Explorer.</p>
+        </div>
       </div>
 
       <div class="instruction warning" style="margin-top: var(--sp-6);">
@@ -2178,6 +2527,88 @@ I'm on macOS [your version]. Help me fix it.</code>
 
 <script>
 /* ═══════════════════════════════════════════════════════════
+   OS DETECTION & STATE
+   ══════════════════════════════════════════════════════════ */
+const OSState = {
+  detected: 'mac',
+  selected: 'mac',
+
+  detect() {
+    const ua = navigator.userAgent || '';
+    const platform = navigator.platform || '';
+    if (/Win/i.test(platform) || /Windows/i.test(ua)) {
+      this.detected = 'windows';
+    } else {
+      this.detected = 'mac';
+    }
+    // Restore saved override if any
+    const saved = safeGet('openclaw-os');
+    this.selected = (saved === 'mac' || saved === 'windows') ? saved : this.detected;
+  },
+
+  override(os) {
+    if (os !== 'mac' && os !== 'windows') return;
+    this.selected = os;
+    safeSet('openclaw-os', os);
+    this.apply();
+  },
+
+  apply() {
+    const os = this.selected;
+    document.body.setAttribute('data-os', os);
+
+    // Show/hide OS-conditional elements
+    document.querySelectorAll('[data-os-show]').forEach(el => {
+      const required = el.getAttribute('data-os-show');
+      if (required === os) {
+        el.classList.remove('os-hidden');
+      } else {
+        el.classList.add('os-hidden');
+      }
+    });
+
+    // Update switcher buttons
+    const btnMac = document.getElementById('osBtnMac');
+    const btnWin = document.getElementById('osBtnWin');
+    if (btnMac && btnWin) {
+      btnMac.classList.toggle('active', os === 'mac');
+      btnWin.classList.toggle('active', os === 'windows');
+    }
+
+    // Refresh step counter display; if current step is now hidden, advance to nearest visible
+    if (typeof currentStep !== 'undefined' && typeof getVisibleSteps === 'function') {
+      const visibleSteps = getVisibleSteps();
+      // If current step is not visible for this OS, jump to nearest visible step
+      if (!visibleSteps.includes(currentStep)) {
+        // Find closest visible step (prefer next, fallback prev)
+        const next = visibleSteps.find(s => s > currentStep);
+        const prev = [...visibleSteps].reverse().find(s => s < currentStep);
+        const target = next || prev || visibleSteps[0];
+        if (target) showStep(target);
+        return; // showStep will handle counter refresh
+      }
+      const visIndex = visibleSteps.indexOf(currentStep);
+      const visNum = visIndex + 1;
+      const visTotal = visibleSteps.length;
+      const currentStepEl = document.getElementById('step-' + currentStep);
+      if (currentStepEl) {
+        const stepNumberEl = currentStepEl.querySelector('.step-number');
+        if (stepNumberEl) stepNumberEl.textContent = 'Step ' + visNum + ' of ' + visTotal;
+      }
+      const mobileText = document.getElementById('mobile-progress-text');
+      const mobileFill = document.getElementById('mobile-progress-fill');
+      if (mobileText) mobileText.textContent = 'Step ' + visNum + ' of ' + visTotal;
+      if (mobileFill) mobileFill.style.width = ((visNum / visTotal) * 100) + '%';
+    }
+  },
+
+  init() {
+    this.detect();
+    this.apply();
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════
    STATE MANAGEMENT
    ══════════════════════════════════════════════════════════ */
 let currentStep = 1;
@@ -2255,13 +2686,17 @@ function updateStepIndicators() {
     }
   }
   
-  // Update mobile progress indicator
-  const mobileText = document.getElementById('mobile-progress-text');
-  const mobileFill = document.getElementById('mobile-progress-fill');
-  if (mobileText && mobileFill) {
-    mobileText.textContent = 'Step ' + currentStep + ' of ' + totalSteps;
-    mobileFill.style.width = ((currentStep / totalSteps) * 100) + '%';
+}
+
+/* Returns list of step numbers visible for the current OS */
+function getVisibleSteps() {
+  const steps = [];
+  for (let i = 1; i <= totalSteps; i++) {
+    const el = document.getElementById('step-' + i);
+    const osReq = el ? el.getAttribute('data-os-step') : null;
+    if (!osReq || osReq === OSState.selected) steps.push(i);
   }
+  return steps;
 }
 
 function showStep(stepNum) {
@@ -2280,6 +2715,24 @@ function showStep(stepNum) {
 
   currentStep = stepNum;
   updateStepIndicators();
+
+  // Update "Step X of N" display in the current step header
+  const visibleSteps = getVisibleSteps();
+  const visIndex = visibleSteps.indexOf(stepNum);
+  const visNum = visIndex + 1;
+  const visTotal = visibleSteps.length;
+  const stepNumberEl = step.querySelector('.step-number');
+  if (stepNumberEl) {
+    stepNumberEl.textContent = 'Step ' + visNum + ' of ' + visTotal;
+  }
+
+  // Update mobile progress indicator
+  const mobileText = document.getElementById('mobile-progress-text');
+  const mobileFill = document.getElementById('mobile-progress-fill');
+  if (mobileText && mobileFill) {
+    mobileText.textContent = 'Step ' + visNum + ' of ' + visTotal;
+    mobileFill.style.width = ((visNum / visTotal) * 100) + '%';
+  }
   
   // Mark as completed if not already
   if (!completedSteps.includes(stepNum)) {
@@ -2295,15 +2748,25 @@ function showStep(stepNum) {
 }
 
 function nextStep() {
-  if (currentStep < totalSteps) {
-    showStep(currentStep + 1);
+  let target = currentStep + 1;
+  while (target <= totalSteps) {
+    const el = document.getElementById('step-' + target);
+    const osReq = el ? el.getAttribute('data-os-step') : null;
+    if (!osReq || osReq === OSState.selected) break;
+    target++;
   }
+  if (target <= totalSteps) showStep(target);
 }
 
 function prevStep() {
-  if (currentStep > 1) {
-    showStep(currentStep - 1);
+  let target = currentStep - 1;
+  while (target >= 1) {
+    const el = document.getElementById('step-' + target);
+    const osReq = el ? el.getAttribute('data-os-step') : null;
+    if (!osReq || osReq === OSState.selected) break;
+    target--;
   }
+  if (target >= 1) showStep(target);
 }
 
 function jumpToStep(stepNum) {
@@ -2366,7 +2829,7 @@ function updateChecklistState() {
   // Require checks 1-4 (check 5 is optional - account setup)
   const allRequired = check1?.checked && check2?.checked && check3?.checked && check4?.checked;
   
-  if (nextBtn) {
+  if (nextBtn && OSState.selected === 'mac') {
     if (allRequired) {
       nextBtn.disabled = false;
       nextBtn.style.opacity = '1';
@@ -2379,11 +2842,45 @@ function updateChecklistState() {
   }
 }
 
+function updateWinChecklistState() {
+  const c1 = document.getElementById('win-check-1');
+  const c2 = document.getElementById('win-check-2');
+  const c3 = document.getElementById('win-check-3');
+  const c4 = document.getElementById('win-check-4');
+  const nextBtn = document.getElementById('checklist-next');
+  // Require first 4 (API key is optional)
+  const allRequired = c1?.checked && c2?.checked && c3?.checked && c4?.checked;
+  if (nextBtn && OSState.selected === 'windows') {
+    nextBtn.disabled = !allRequired;
+    nextBtn.style.opacity = allRequired ? '1' : '0.5';
+    nextBtn.style.cursor = allRequired ? 'pointer' : 'not-allowed';
+  }
+}
+
+/* Windows download modal helpers */
+function showWindowsDownloadDisclaimer() {
+  const m = document.getElementById('win-download-modal');
+  if (m) { m.style.display = 'flex'; }
+}
+function hideWindowsDownloadDisclaimer() {
+  const m = document.getElementById('win-download-modal');
+  if (m) { m.style.display = 'none'; }
+}
+// Close Windows modal on backdrop click
+document.addEventListener('click', function(e) {
+  const m = document.getElementById('win-download-modal');
+  if (m && e.target === m) hideWindowsDownloadDisclaimer();
+});
+
 // Initialize checklist state on page load
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', updateChecklistState);
+  document.addEventListener('DOMContentLoaded', () => {
+    updateChecklistState();
+    OSState.init();
+  });
 } else {
   updateChecklistState();
+  OSState.init();
 }
 
 /* ═══════════════════════════════════════════════════════════
