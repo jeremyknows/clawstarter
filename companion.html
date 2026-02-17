@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Step-by-step wizard for setting up OpenClaw on your Mac. One step at a time.">
+<meta name="description" content="Step-by-step wizard for setting up OpenClaw on Mac or Windows. One step at a time.">
 <title>ClawStarter Setup Wizard - Your OpenClaw Setup Guide</title>
 
 <!-- Open Graph / Facebook -->
@@ -17,7 +17,7 @@
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="https://clawstarter.xyz/companion">
 <meta property="twitter:title" content="ClawStarter Setup Wizard - Your OpenClaw Setup Guide">
-<meta property="twitter:description" content="Step-by-step wizard for setting up OpenClaw on your Mac.">
+<meta property="twitter:description" content="Step-by-step wizard for setting up OpenClaw on Mac or Windows.">
 <meta property="twitter:image" content="https://clawstarter.xyz/clawstarter-video-thumbnail.png">
 
 <link rel="icon" type="image/png" href="favicon.png">
@@ -2083,7 +2083,7 @@
 
       <div class="instruction success">
         <div class="instruction-title">🎊 Celebration!</div>
-        <p>Your personal AI is now running on your Mac.</p>
+        <p>Your personal AI is now running.</p>
       </div>
 
       <div class="instruction">
@@ -2859,6 +2859,12 @@ function updateWinChecklistState() {
   const c3 = document.getElementById('win-check-3');
   const c4 = document.getElementById('win-check-4');
   const nextBtn = document.getElementById('checklist-next');
+
+  safeSet('win-check-1', c1?.checked ? '1' : '0');
+  safeSet('win-check-2', c2?.checked ? '1' : '0');
+  safeSet('win-check-3', c3?.checked ? '1' : '0');
+  safeSet('win-check-4', c4?.checked ? '1' : '0');
+
   // Require first 4 (API key is optional)
   const allRequired = c1?.checked && c2?.checked && c3?.checked && c4?.checked;
   if (nextBtn && OSState.selected === 'windows') {
@@ -3038,7 +3044,7 @@ function toggleExpandable(header) {
     completedSteps = JSON.parse(savedCompleted);
   }
   
-  // Load checklist state
+  // Load Mac checklist state
   const check1 = safeGet('check-1') === '1';
   const check2 = safeGet('check-2') === '1';
   const check3 = safeGet('check-3') === '1';
@@ -3047,6 +3053,16 @@ function toggleExpandable(header) {
   if (check2) document.getElementById('check-2').checked = true;
   if (check3) document.getElementById('check-3').checked = true;
   if (check4) document.getElementById('check-4').checked = true;
+
+  // Load Windows checklist state
+  const wc1 = safeGet('win-check-1') === '1';
+  const wc2 = safeGet('win-check-2') === '1';
+  const wc3 = safeGet('win-check-3') === '1';
+  const wc4 = safeGet('win-check-4') === '1';
+  if (wc1) document.getElementById('win-check-1').checked = true;
+  if (wc2) document.getElementById('win-check-2').checked = true;
+  if (wc3) document.getElementById('win-check-3').checked = true;
+  if (wc4) document.getElementById('win-check-4').checked = true;
   
   // Load path selection
   const savedPath = safeGet('clawstarter-path');
