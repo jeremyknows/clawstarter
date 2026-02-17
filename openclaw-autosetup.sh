@@ -26,13 +26,14 @@
 set -euo pipefail
 
 # ─── Constants ───
-readonly SCRIPT_VERSION="2.0.0-secure"
+readonly SCRIPT_VERSION="2.1.0-secure"
 readonly PROGRESS_FILE="$HOME/.openclaw-autosetup-progress"
 readonly CONFIG_FILE="$HOME/.openclaw/openclaw.json"
 readonly MIN_VERSION="2026.1.29"
 readonly REC_VERSION="2026.2.9"
-readonly DEFAULT_MODEL="openrouter/moonshotai/kimi-k2.5"
-readonly FALLBACK_MODEL="anthropic/claude-sonnet-4-5"
+readonly DEFAULT_MODEL="opencode/kimi-k2.5-free"
+readonly FALLBACK_MODEL_1="anthropic/claude-haiku-4-5"
+readonly FALLBACK_MODEL_2="openrouter/qwen/qwen3-coder:free"
 readonly GATEWAY_PORT=18789
 readonly LAUNCH_AGENT_LABEL="ai.openclaw.gateway"
 readonly VERIFY_SCRIPT="$HOME/Downloads/openclaw-verify.sh"
@@ -66,11 +67,13 @@ readonly -a ALLOWED_MODELS=(
     "opencode/kimi-k2.5-free"
     "opencode/glm-4.7-free"
     "openrouter/moonshotai/kimi-k2.5"
+    "openrouter/qwen/qwen3-coder:free"
     "openrouter/anthropic/claude-sonnet-4-5"
     "openrouter/anthropic/claude-opus-4"
     "openrouter/openai/gpt-4o"
     "openrouter/google/gemini-pro"
     "anthropic/claude-sonnet-4-5"
+    "anthropic/claude-haiku-4-5"
     "anthropic/claude-opus-4"
 )
 readonly -a ALLOWED_SECURITY_LEVELS=("low" "medium" "high")
@@ -1241,8 +1244,8 @@ PYEOF
     echo ""
     info "Set spending limits on each provider dashboard before continuing."
     echo ""
-    info "Default model: ${CYAN}${DEFAULT_MODEL}${NC} (budget-friendly)"
-    info "Fallback model: ${CYAN}${FALLBACK_MODEL}${NC}"
+    info "Default model: ${CYAN}${DEFAULT_MODEL}${NC} (free tier)"
+    info "Fallback chain: ${CYAN}${FALLBACK_MODEL_1}${NC} → ${CYAN}${FALLBACK_MODEL_2}${NC}"
     echo ""
 
     if ! pause_for_human "Generate your API keys in a web browser.\n  Have them ready to paste during the onboarding wizard (Step 8).\n  Store them securely (password manager recommended)."; then
@@ -1282,7 +1285,7 @@ step_run_onboard() {
     echo ""
     echo -e "  ${BOLD}Model/Auth:${NC}"
     echo -e "    Default model: ${CYAN}${DEFAULT_MODEL}${NC}"
-    echo -e "    Fallback: ${CYAN}${FALLBACK_MODEL}${NC}"
+    echo -e "    Fallback chain: ${CYAN}${FALLBACK_MODEL_1}${NC} → ${CYAN}${FALLBACK_MODEL_2}${NC}"
     echo -e "    Paste your API key when prompted"
     echo ""
     echo -e "  ${BOLD}Workspace:${NC} Accept default (~/.openclaw/workspace)"
@@ -1330,6 +1333,52 @@ step_run_onboard() {
             warn "Onboarding skipped — config file will not be created"
             info "Note: Subsequent steps may fail without a valid config"
         fi
+    fi
+
+    mark_step "$step_name"
+}
+
+step_configure_model() {
+    local step_name="configure_model"
+    if $RESUME && is_step_done "$step_name"; then
+        info "Skipping (already done): Model configuration"
+        return 0
+    fi
+
+    step_header "Model Configuration"
+
+    if [ ! -f "$CONFIG_FILE" ]; then
+        warn "Config file not found — skipping model configuration"
+        mark_step "$step_name"
+        return 0
+    fi
+
+    info "Setting up standardized model fallback chain..."
+    info "Primary: ${CYAN}${DEFAULT_MODEL}${NC} (free tier)"
+    info "Fallback 1: ${CYAN}${FALLBACK_MODEL_1}${NC} (fast, low-cost)"
+    info "Fallback 2: ${CYAN}${FALLBACK_MODEL_2}${NC} (free tier backup)"
+    echo ""
+
+    # Write the model fallback chain to config
+    local model_config='{"primary": "'"${DEFAULT_MODEL}"'", "fallbacks": ["'"${FALLBACK_MODEL_1}"'", "'"${FALLBACK_MODEL_2}"'"]}'
+
+    # Validate the model values before writing
+    local valid_primary
+    valid_primary=$(validate_model "$DEFAULT_MODEL" 2>/dev/null) || true
+    if [ "$valid_primary" != "OK" ]; then
+        warn "Default model validation failed — using openclaw onboard defaults"
+        mark_step "$step_name"
+        return 0
+    fi
+
+    atomic_config_edit "agents.defaults.model" "$model_config" --type json
+    if [ $? -eq 0 ]; then
+        pass "Model fallback chain configured"
+        info "Your agent will try models in order: free → cheap → free backup"
+        info "This keeps costs at \$0 for most usage"
+    else
+        warn "Could not write model config — openclaw onboard defaults will be used"
+        info "You can set this manually in ~/.openclaw/openclaw.json"
     fi
 
     mark_step "$step_name"
@@ -2551,6 +2600,9 @@ main() {
 
     # Step 11: Onboarding wizard (human checkpoint)
     step_run_onboard
+
+    # Step 11b: Model fallback chain configuration
+    step_configure_model
 
     # Step 12: Workspace scaffolding (copies templates + creates daily log)
     step_scaffold_workspace
