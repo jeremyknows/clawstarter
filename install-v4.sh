@@ -236,81 +236,193 @@ phase_0_check_openclaw_exists() {
   return 1
 }
 
-phase_0_ask_api_key() {
+phase_0_ask_model_setup() {
   log INFO ""
-  log INFO "Setting up your API key"
   echo ""
-  echo "Which API provider are you using?"
-  echo "  1) Anthropic (Claude) — recommended"
-  echo "  2) OpenRouter"
-  echo "  3) OpenCode (local, self-hosted)"
+  echo "═══════════════════════════════════════════════════════"
+  echo ">>> AI Model Setup"
+  echo "═══════════════════════════════════════════════════════"
+  echo ""
+  echo "How do you want to power your AI assistant?"
+  echo ""
+  echo "A) Bring your own API key"
+  echo "   → Works immediately, fast responses (1-2 sec)"
+  echo "   → Anthropic (Claude) or OpenAI (GPT)"
+  echo "   → Requires an account + API key"
+  echo ""
+  echo "B) Local model (no account needed)"
+  echo "   → Downloads Ollama + a 2GB model to your machine"
+  echo "   → No API key, no billing, works offline"
+  echo "   → Takes 10-20 min to download (one-time)"
+  echo "   → Responses may be slower on older hardware"
   echo ""
   
-  read -p "Select provider (1-3): " provider_choice
+  read -r -p "? Choose [A/B]: " MODEL_CHOICE
+  MODEL_CHOICE=$(echo "$MODEL_CHOICE" | tr '[:lower:]' '[:upper:]')
+  
+  if [[ "$MODEL_CHOICE" == "B" ]]; then
+    phase_0_setup_local_model
+  else
+    phase_0_setup_api_key
+  fi
+}
+
+phase_0_setup_api_key() {
+  echo ""
+  echo "Which provider?"
+  echo ""
+  echo "1) Anthropic (Claude) — recommended"
+  echo "   Get key: https://console.anthropic.com"
+  echo "   Keys start with: sk-ant-"
+  echo ""
+  echo "2) OpenAI (GPT)"
+  echo "   Get key: https://platform.openai.com/api-keys"
+  echo "   Keys start with: sk-"
+  echo ""
+  
+  read -r -p "? Choose [1/2]: " provider_choice
+  
   case "$provider_choice" in
     2)
-      API_PROVIDER="openrouter"
-      echo "Get a free key at: https://openrouter.ai/keys"
-      ;;
-    3)
-      API_PROVIDER="opencode"
-      echo "Ensure your OpenCode instance is running locally"
+      API_PROVIDER="openai"
+      PROVIDER_NAME="OpenAI"
+      PROVIDER_URL="https://platform.openai.com/api-keys"
       ;;
     *)
       API_PROVIDER="anthropic"
-      echo "Get a free key at: https://console.anthropic.com/account/keys"
+      PROVIDER_NAME="Anthropic"
+      PROVIDER_URL="https://console.anthropic.com"
       ;;
   esac
   
   echo ""
-  echo "Steps:"
-  echo "  1. Get your API key for $API_PROVIDER"
-  echo "  2. Copy the full key"
-  echo "  3. Paste it below (will be hidden)"
+  echo "→ Open the link above, create an account, generate an API key."
+  echo "→ Set a spending limit on the dashboard (recommended: \$5/month)."
   echo ""
   
-  read -rsp "Paste your API key (hidden): " API_KEY
-  echo ""
+  local attempts=0
+  local max_attempts=3
+  
+  while [[ $attempts -lt $max_attempts ]]; do
+    read -rsp "? Paste your API key: " API_KEY
+    echo ""
+    
+    if [[ -z "$API_KEY" ]]; then
+      log WARN "API key cannot be empty"
+      ((attempts++))
+      continue
+    fi
+    
+    # Validate key prefix
+    local is_valid=false
+    
+    if [[ "$API_PROVIDER" == "anthropic" ]]; then
+      if [[ "$API_KEY" =~ ^sk-ant- ]]; then
+        is_valid=true
+      else
+        log WARN "Invalid Anthropic key (must start with 'sk-ant-')"
+        ((attempts++))
+        continue
+      fi
+    elif [[ "$API_PROVIDER" == "openai" ]]; then
+      # OpenAI keys start with sk- but NOT sk-ant- and NOT sk-or-v1-
+      if [[ "$API_KEY" =~ ^sk- ]] && [[ ! "$API_KEY" =~ ^sk-ant- ]] && [[ ! "$API_KEY" =~ ^sk-or-v1- ]]; then
+        is_valid=true
+      else
+        log WARN "Invalid OpenAI key (must start with 'sk-' but not 'sk-ant-' or 'sk-or-v1-')"
+        ((attempts++))
+        continue
+      fi
+    fi
+    
+    if [[ "$is_valid" == true ]]; then
+      break
+    fi
+  done
   
   if [[ -z "$API_KEY" ]]; then
-    fail "API key required. Please provide your key." 3
+    fail "Valid API key required after 3 attempts" 3
   fi
   
-  # Detect provider from key prefix if not explicitly set (Bug 3 fix)
-  if [[ -z "$API_PROVIDER" ]]; then
-    if [[ "$API_KEY" =~ ^sk-ant- ]]; then
-      API_PROVIDER="anthropic"
-    elif [[ "$API_KEY" =~ ^sk-or-v1- ]]; then
-      API_PROVIDER="openrouter"
-    else
-      API_PROVIDER="anthropic"  # default
-    fi
-  fi
+  log SUCCESS "API key saved for $PROVIDER_NAME (last 4 chars: ...${API_KEY: -4})"
   
-  log SUCCESS "API key saved for $API_PROVIDER (last 4 chars: ...${API_KEY: -4})"
+  # Store the key and set model
+  phase_0_store_api_key
 }
 
-phase_0_write_api_key_config() {
-  log INFO "Writing API key to OpenClaw config..."
+phase_0_setup_local_model() {
+  echo ""
+  echo "→ Installing Ollama (AI model runtime) — ~300MB"
+  echo "→ Downloading qwen2.5:3b model — ~2GB"
+  echo "→ This is a one-time setup. No recurring downloads."
+  echo "→ Estimated time: 10-20 min depending on connection speed."
+  echo ""
   
-  # Bug 3: Actually write the key to config (Bug 3 fix)
-  if ! openclaw config set "auth.${API_PROVIDER}.apiKey" "$API_KEY" 2>/dev/null; then
-    # Fallback: try env variable
-    if [[ "$OS" == "Linux" ]]; then
-      local env_file="$WORKSPACE/.env"
-      {
-        echo "# API Key for $API_PROVIDER"
-        echo "ANTHROPIC_API_KEY=${API_KEY}"
-      } >> "$env_file"
-      chmod 600 "$env_file"
-      log SUCCESS "API key written to .env"
-    else
-      log WARN "Could not write API key to config (will be added to LaunchAgent in Phase 6)"
+  read -r -p "? Continue? [y/N]: " continue_choice
+  if [[ ! "$continue_choice" =~ ^[Yy]$ ]]; then
+    fail "Local model setup cancelled" 3
+  fi
+  
+  log INFO "Installing Ollama..."
+  
+  # Install Ollama based on OS
+  if [[ "$OS" == "macOS" ]]; then
+    # Try official installer first
+    if ! curl -fsSL https://ollama.com/install.sh | sh; then
+      log INFO "Trying Homebrew as fallback..."
+      brew install ollama 2>/dev/null || fail "Could not install Ollama" 3
     fi
   else
-    log SUCCESS "API key written to OpenClaw config"
+    # Linux
+    if ! curl -fsSL https://ollama.com/install.sh | sh; then
+      fail "Could not install Ollama on Linux" 3
+    fi
+  fi
+  
+  log SUCCESS "Ollama installed"
+  
+  log INFO "Starting Ollama service..."
+  ollama serve &>/dev/null &
+  sleep 3
+  
+  log INFO "Downloading qwen2.5:3b model (this may take 10-20 minutes)..."
+  if ! ollama pull qwen2.5:3b; then
+    fail "Could not download model (check internet connection)" 3
+  fi
+  
+  log SUCCESS "Local model ready: qwen2.5:3b"
+  echo "→ No API key needed. Your assistant runs entirely on this machine."
+  
+  # Set local model configuration
+  API_PROVIDER="ollama"
+  phase_0_store_local_model_config
+}
+
+phase_0_store_api_key() {
+  log INFO "Configuring API provider..."
+  
+  # Write to OpenClaw config
+  if [[ "$API_PROVIDER" == "anthropic" ]]; then
+    openclaw config set auth.anthropic.apiKey "$API_KEY" 2>/dev/null || log WARN "Could not set API key in config"
+    openclaw config set agents.defaults.model "anthropic/claude-haiku-4-5" 2>/dev/null || log WARN "Could not set model"
+    log SUCCESS "API key saved. Provider: Anthropic"
+  elif [[ "$API_PROVIDER" == "openai" ]]; then
+    openclaw config set auth.openai.apiKey "$API_KEY" 2>/dev/null || log WARN "Could not set API key in config"
+    openclaw config set agents.defaults.model "openai/gpt-4o-mini" 2>/dev/null || log WARN "Could not set model"
+    log SUCCESS "API key saved. Provider: OpenAI"
   fi
 }
+
+phase_0_store_local_model_config() {
+  log INFO "Configuring local model..."
+  
+  openclaw config set agents.defaults.model "ollama/qwen2.5:3b" 2>/dev/null || log WARN "Could not set model"
+  openclaw config set providers.ollama.baseUrl "http://localhost:11434" 2>/dev/null || log WARN "Could not set Ollama base URL"
+  
+  log SUCCESS "Local model configured: qwen2.5:3b"
+}
+
+
 
 phase_0_ask_always_on() {
   log INFO ""
@@ -334,8 +446,13 @@ phase_0_main() {
     log INFO "(Will skip Phase 1)"
   fi
   
-  phase_0_ask_api_key
-  phase_0_write_api_key_config
+  phase_0_ask_model_setup
+  
+  # Always set gateway mode after model setup
+  log INFO "Setting gateway mode to local..."
+  openclaw config set gateway.mode local 2>/dev/null || log WARN "Could not set gateway.mode"
+  openclaw config set gateway.bind loopback 2>/dev/null || log WARN "Could not set gateway.bind"
+  
   phase_0_ask_always_on
   
   phase_complete "Pre-check & OS Detection"
