@@ -546,8 +546,16 @@ phase_2_sanitize_user_input() {
   # Sanitize USER_NAME: allow alphanumeric, spaces, hyphens, underscores; limit to 50 chars
   USER_NAME=$(echo "$USER_NAME" | tr -dc '[:alnum:] _-' | cut -c1-50)
   
-  # Sanitize USE_CASE: same rules
-  USE_CASE=$(echo "$USE_CASE" | tr -dc '[:alnum:] _-' | cut -c1-50)
+  if [[ -z "$USER_NAME" ]]; then
+    fail "Name must contain at least one letter or number. Special characters and non-Latin scripts are not supported yet." 3
+  fi
+  
+  # Sanitize USE_CASE: allow more punctuation, expand to 100 chars
+  USE_CASE=$(echo "$USE_CASE" | tr -dc '[:alnum:] _\-.,;:()' | cut -c1-100)
+  
+  if [[ -z "$USE_CASE" ]]; then
+    fail "Use case description must contain at least one letter or number." 3
+  fi
   
   log SUCCESS "Input sanitized"
 }
@@ -709,6 +717,23 @@ This takes seconds. It's how you show up informed instead of starting from scrat
 
 ---
 
+## First Session
+
+If today's date matches the \`Setup date\` in MEMORY.md, this is your first session.
+
+**What to do:**
+1. The install script already sent your user a greeting and asked: *"What's one thing you're working on right now?"*
+2. When they reply, acknowledge what they said — show you heard it.
+3. Then ask ONE follow-up question (send as a separate message): *"How do you prefer I communicate? Short answers, or do you like me to explain my reasoning?"*
+4. After they answer, ask a second follow-up: *"When are you usually most active — mornings, afternoons, or evenings?"*
+5. Then get to work. Don't ask more questions — four is enough for day one.
+
+**After Stage 1:** Write what you learned to MEMORY.md under "## Preferences Learned" and "## What I'm Working On".
+
+The first session sets the tone. Be warm, be curious, but be useful fast.
+
+---
+
 ## Follow-Up Check
 
 After reading MEMORY.md, scan for any `FOLLOW_UP:` entries where the date is today or earlier.
@@ -797,7 +822,7 @@ phase_2_generate_memory() {
     return 0
   fi
   
-  cat > "$WORKSPACE/MEMORY.md" << 'MEMORYEOF'
+  cat > "$WORKSPACE/MEMORY.md" << MEMORYEOF
 # MEMORY.md — Shared Memory
 
 > What we've learned together. Grows over time.
@@ -1214,6 +1239,18 @@ phase_5_main() {
 # PHASE 6: SERVICE LAUNCH (LAUNCHD / SYSTEMD)
 #############################################################################
 
+phase_6_write_secrets() {
+  local secrets_file="${WORKSPACE}/.secrets"
+  {
+    echo "ANTHROPIC_API_KEY=${API_KEY}"
+    echo "OPENCLAW_API_KEY=${API_KEY}"
+    echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}"
+    echo "TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}"
+  } > "$secrets_file"
+  chmod 600 "$secrets_file"
+  log SUCCESS "Secrets written to ${secrets_file} (600 perms)"
+}
+
 phase_6_create_service_macos() {
   local service_path="${HOME}/Library/LaunchAgents/ai.openclaw.gateway.plist"
   
@@ -1226,6 +1263,15 @@ phase_6_create_service_macos() {
   
   mkdir -p "$(dirname "$service_path")"
   
+  # Create wrapper script
+  cat > "${WORKSPACE}/start-gateway.sh" << WRAPEOF
+#!/bin/bash
+# shellcheck source=/dev/null
+source "${WORKSPACE}/.secrets" 2>/dev/null || true
+exec openclaw gateway
+WRAPEOF
+  chmod 755 "${WORKSPACE}/start-gateway.sh"
+  
   cat > "$service_path" << PLISTEOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -1236,20 +1282,8 @@ phase_6_create_service_macos() {
   
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/local/bin/openclaw</string>
-    <string>gateway</string>
-    <string>start</string>
+    <string>${WORKSPACE}/start-gateway.sh</string>
   </array>
-  
-  <key>EnvironmentVariables</key>
-  <dict>
-    <key>ANTHROPIC_API_KEY</key>
-    <string>${API_KEY}</string>
-    <key>TELEGRAM_BOT_TOKEN</key>
-    <string>${TELEGRAM_BOT_TOKEN}</string>
-    <key>HOME</key>
-    <string>${HOME}</string>
-  </dict>
   
   <key>WorkingDirectory</key>
   <string>${WORKSPACE}</string>
@@ -1272,7 +1306,7 @@ phase_6_create_service_macos() {
 </plist>
 PLISTEOF
   
-  chmod 644 "$service_path"
+  chmod 600 "$service_path"
   log SUCCESS "LaunchAgent created: $service_path"
   
   # Load service using openclaw or launchctl (Bug 5: direct install, no onboard wizard)
@@ -1364,6 +1398,8 @@ phase_6_start_service() {
 
 phase_6_main() {
   phase_header 6 "Gateway Launch (Service Configuration)"
+  
+  phase_6_write_secrets
   
   if [[ "$OS" == "macOS" ]]; then
     phase_6_create_service_macos
@@ -1579,18 +1615,28 @@ What's one thing you're working on right now that you'd actually want help with?
 
   local send_ok=false
   for attempt in 1 2 3; do
-    sleep 3
     local response
     response=$(curl -s --max-time 15 -X POST \
       "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
       --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
       --data-urlencode "text=${message}")
+    
     if echo "$response" | grep -q '"ok":true'; then
       send_ok=true
       break
     fi
-    log WARN "Attempt ${attempt}/3 failed — retrying in 5s..."
-    sleep 5
+    
+    # Fast-fail on auth errors
+    if echo "$response" | grep -qE '"error_code":(401|403|400)'; then
+      log ERROR "Telegram authentication failed — check your bot token and chat ID"
+      break
+    fi
+    
+    # Retry with delay
+    if [[ "$attempt" -lt 3 ]]; then
+      log WARN "Attempt ${attempt}/3 failed — retrying in 5s..."
+      sleep 5
+    fi
   done
 
   if [[ "$send_ok" == true ]]; then
