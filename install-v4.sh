@@ -269,83 +269,50 @@ phase_0_ask_model_setup() {
 
 phase_0_setup_api_key() {
   echo ""
-  echo "Which provider?"
+  echo " Get an API key from one of these providers:"
   echo ""
-  echo "1) Anthropic (Claude) — recommended"
-  echo "   Get key: https://console.anthropic.com"
-  echo "   Keys start with: sk-ant-"
+  echo "   Anthropic (Claude): https://console.anthropic.com"
+  echo "   OpenAI (GPT):       https://platform.openai.com/api-keys"
   echo ""
-  echo "2) OpenAI (GPT)"
-  echo "   Get key: https://platform.openai.com/api-keys"
-  echo "   Keys start with: sk-"
+  echo " → Create an account, generate a key, set a spending limit (\$5/month recommended)."
+  echo " → We'll auto-detect the provider from your key."
   echo ""
-  
-  read -r -p "? Choose [1/2]: " provider_choice
-  
-  case "$provider_choice" in
-    2)
-      API_PROVIDER="openai"
-      PROVIDER_NAME="OpenAI"
-      PROVIDER_URL="https://platform.openai.com/api-keys"
-      ;;
-    *)
-      API_PROVIDER="anthropic"
-      PROVIDER_NAME="Anthropic"
-      PROVIDER_URL="https://console.anthropic.com"
-      ;;
-  esac
-  
-  echo ""
-  echo "→ Open the link above, create an account, generate an API key."
-  echo "→ Set a spending limit on the dashboard (recommended: \$5/month)."
-  echo ""
-  
+
   local attempts=0
   local max_attempts=3
-  
+
   while [[ $attempts -lt $max_attempts ]]; do
-    read -rsp "? Paste your API key: " API_KEY
+    read -rsp " ? Paste your API key: " API_KEY
     echo ""
-    
+
     if [[ -z "$API_KEY" ]]; then
       log WARN "API key cannot be empty"
       ((attempts++))
       continue
     fi
-    
-    # Validate key prefix
-    local is_valid=false
-    
-    if [[ "$API_PROVIDER" == "anthropic" ]]; then
-      if [[ "$API_KEY" =~ ^sk-ant- ]]; then
-        is_valid=true
-      else
-        log WARN "Invalid Anthropic key (must start with 'sk-ant-')"
-        ((attempts++))
-        continue
-      fi
-    elif [[ "$API_PROVIDER" == "openai" ]]; then
-      # OpenAI keys start with sk- but NOT sk-ant- and NOT sk-or-v1-
-      if [[ "$API_KEY" =~ ^sk- ]] && [[ ! "$API_KEY" =~ ^sk-ant- ]] && [[ ! "$API_KEY" =~ ^sk-or-v1- ]]; then
-        is_valid=true
-      else
-        log WARN "Invalid OpenAI key (must start with 'sk-' but not 'sk-ant-' or 'sk-or-v1-')"
-        ((attempts++))
-        continue
-      fi
-    fi
-    
-    if [[ "$is_valid" == true ]]; then
+
+    # Auto-detect provider from key prefix
+    if [[ "$API_KEY" =~ ^sk-ant- ]]; then
+      API_PROVIDER="anthropic"
+      PROVIDER_NAME="Anthropic (Claude)"
       break
+    elif [[ "$API_KEY" =~ ^sk- ]] && [[ ! "$API_KEY" =~ ^sk-or-v1- ]]; then
+      API_PROVIDER="openai"
+      PROVIDER_NAME="OpenAI (GPT)"
+      break
+    else
+      log WARN "Unrecognized key format. Expected sk-ant-... (Anthropic) or sk-... (OpenAI)"
+      ((attempts++))
+      continue
     fi
   done
-  
+
   if [[ -z "$API_KEY" ]]; then
     fail "Valid API key required after 3 attempts" 3
   fi
-  
-  log SUCCESS "API key saved for $PROVIDER_NAME (last 4 chars: ...${API_KEY: -4})"
-  
+
+  log SUCCESS "Detected provider: $PROVIDER_NAME (key: ...${API_KEY: -4})"
+
   # Store the key and set model
   phase_0_store_api_key
 }
