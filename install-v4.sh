@@ -240,31 +240,78 @@ phase_0_ask_model_setup() {
   log INFO ""
   echo ""
   echo "═══════════════════════════════════════════════════════"
-  echo ">>> AI Model Setup"
+  echo " >>> AI Model Setup"
   echo "═══════════════════════════════════════════════════════"
   echo ""
-  echo "How do you want to power your AI assistant?"
+  echo " How do you want to power your AI assistant?"
   echo ""
-  echo "A) Bring your own API key"
-  echo "   → Works immediately, fast responses (1-2 sec)"
-  echo "   → Anthropic (Claude) or OpenAI (GPT)"
-  echo "   → Requires an account + API key"
+  echo " A) OpenRouter  ← recommended"
+  echo "    → Free models available (account required, no card for free tier)"
+  echo "    → Fast cloud responses, pay only if you use paid models"
+  echo "    → Sign up: https://openrouter.ai"
   echo ""
-  echo "B) Local model (no account needed)"
-  echo "   → Downloads Ollama + a 2GB model to your machine"
-  echo "   → No API key, no billing, works offline"
-  echo "   → Takes 10-20 min to download (one-time)"
-  echo "   → Responses may be slower on older hardware"
+  echo " B) Anthropic or OpenAI"
+  echo "    → Best quality models (Claude, GPT)"
+  echo "    → Requires billing setup (~\$5/month typical)"
+  echo "    → Keys auto-detected from format"
   echo ""
-  
-  read -r -p "? Choose [A/B]: " MODEL_CHOICE
-  MODEL_CHOICE=$(echo "$MODEL_CHOICE" | tr '[:lower:]' '[:upper:]')
-  
-  if [[ "$MODEL_CHOICE" == "B" ]]; then
-    phase_0_setup_local_model
-  else
-    phase_0_setup_api_key
+  echo " C) Local model  (no account, no internet after setup)"
+  echo "    → Downloads Ollama + qwen2.5:3b (~2GB, one-time)"
+  echo "    → Zero ongoing cost, works offline"
+  echo "    → 10-20 min download, slower responses on older hardware"
+  echo ""
+
+  local choice
+  read -r -p " ? Choose [A/B/C]: " choice
+  choice=$(echo "$choice" | tr '[:lower:]' '[:upper:]')
+
+  case "$choice" in
+    B) phase_0_setup_api_key ;;
+    C) phase_0_setup_local_model ;;
+    *) phase_0_setup_openrouter ;;
+  esac
+}
+
+phase_0_setup_openrouter() {
+  echo ""
+  echo " → Go to https://openrouter.ai and create a free account."
+  echo " → Navigate to: Keys → Create Key"
+  echo " → Copy the key (starts with sk-or-v1-)"
+  echo ""
+  echo " Note: Free models (Gemini Flash, Llama, Qwen) work without adding credits."
+  echo "       Credit card only needed if you want paid models."
+  echo ""
+
+  local attempts=0
+  local max_attempts=3
+
+  while [[ $attempts -lt $max_attempts ]]; do
+    read -rsp " ? Paste your OpenRouter key: " API_KEY
+    echo ""
+
+    if [[ -z "$API_KEY" ]]; then
+      log WARN "API key cannot be empty"
+      ((attempts++))
+      continue
+    fi
+
+    if [[ "$API_KEY" =~ ^sk-or-v1- ]]; then
+      API_PROVIDER="openrouter"
+      PROVIDER_NAME="OpenRouter"
+      break
+    else
+      log WARN "Unrecognized key format (expected sk-or-v1-...)"
+      ((attempts++))
+      continue
+    fi
+  done
+
+  if [[ -z "$API_KEY" ]]; then
+    fail "Valid OpenRouter key required after 3 attempts" 3
   fi
+
+  log SUCCESS "OpenRouter key accepted (key: ...${API_KEY: -4})"
+  phase_0_store_api_key
 }
 
 phase_0_setup_api_key() {
@@ -369,14 +416,18 @@ phase_0_store_api_key() {
   log INFO "Configuring API provider..."
   
   # Write to OpenClaw config
-  if [[ "$API_PROVIDER" == "anthropic" ]]; then
+  if [[ "$API_PROVIDER" == "openrouter" ]]; then
+    openclaw config set auth.openrouter.apiKey "$API_KEY" 2>/dev/null || log WARN "Could not set API key in config"
+    openclaw config set agents.defaults.model "openrouter/google/gemini-flash-1.5" 2>/dev/null || log WARN "Could not set model"
+    log SUCCESS "API key saved. Provider: OpenRouter (default model: Gemini Flash — free tier)"
+  elif [[ "$API_PROVIDER" == "anthropic" ]]; then
     openclaw config set auth.anthropic.apiKey "$API_KEY" 2>/dev/null || log WARN "Could not set API key in config"
     openclaw config set agents.defaults.model "anthropic/claude-haiku-4-5" 2>/dev/null || log WARN "Could not set model"
-    log SUCCESS "API key saved. Provider: Anthropic"
+    log SUCCESS "API key saved. Provider: Anthropic (default model: Claude Haiku)"
   elif [[ "$API_PROVIDER" == "openai" ]]; then
     openclaw config set auth.openai.apiKey "$API_KEY" 2>/dev/null || log WARN "Could not set API key in config"
     openclaw config set agents.defaults.model "openai/gpt-4o-mini" 2>/dev/null || log WARN "Could not set model"
-    log SUCCESS "API key saved. Provider: OpenAI"
+    log SUCCESS "API key saved. Provider: OpenAI (default model: GPT-4o mini)"
   fi
 }
 
