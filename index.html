@@ -1204,14 +1204,14 @@
     <a href="https://github.com/jeremyknows/clawstarter" target="_blank">GitHub</a> &middot;
     <a href="https://discord.gg/UCjDDjNcZq" target="_blank">Discord Community</a> &middot;
     <a href="companion.html">Setup Wizard</a> &middot;
-    <a href="openclaw-autosetup.sh" download>Direct Script</a> <span style="color: var(--text-tertiary); font-size: 13px;">(advanced)</span>
+    <a href="install-v4.sh" download>Direct Script</a> <span style="color: var(--text-tertiary); font-size: 13px;">(advanced)</span>
   </p>
 </footer>
 
 <script>
 /* ── Copy Install Command ── */
 function copyInstallCommand() {
-  const command = 'curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/openclaw-autosetup.sh | bash';
+  const command = 'curl -fsSL https://raw.githubusercontent.com/jeremyknows/clawstarter/main/install-v4.sh | bash';
   navigator.clipboard.writeText(command).then(function() {
     const btn = document.getElementById('copyBtn');
     const btnText = document.getElementById('copyBtnText');

@@ -238,29 +238,78 @@ phase_0_check_openclaw_exists() {
 
 phase_0_ask_api_key() {
   log INFO ""
-  log INFO "Setting up your API key for Claude (Anthropic)"
-  log INFO "Get a free key at: https://console.anthropic.com/account/keys"
+  log INFO "Setting up your API key"
   echo ""
-  echo "Steps:"
-  echo "  1. Visit: https://console.anthropic.com/account/keys"
-  echo "  2. Click 'Create Key'"
-  echo "  3. Copy the key (starts with sk-ant-)"
-  echo "  4. Paste it below"
+  echo "Which API provider are you using?"
+  echo "  1) Anthropic (Claude) — recommended"
+  echo "  2) OpenRouter"
+  echo "  3) OpenCode (local, self-hosted)"
   echo ""
   
-  read -s -p "Paste your Anthropic API key (hidden): " API_KEY
+  read -p "Select provider (1-3): " provider_choice
+  case "$provider_choice" in
+    2)
+      API_PROVIDER="openrouter"
+      echo "Get a free key at: https://openrouter.ai/keys"
+      ;;
+    3)
+      API_PROVIDER="opencode"
+      echo "Ensure your OpenCode instance is running locally"
+      ;;
+    *)
+      API_PROVIDER="anthropic"
+      echo "Get a free key at: https://console.anthropic.com/account/keys"
+      ;;
+  esac
+  
+  echo ""
+  echo "Steps:"
+  echo "  1. Get your API key for $API_PROVIDER"
+  echo "  2. Copy the full key"
+  echo "  3. Paste it below (will be hidden)"
+  echo ""
+  
+  read -rsp "Paste your API key (hidden): " API_KEY
   echo ""
   
   if [[ -z "$API_KEY" ]]; then
     fail "API key required. Please provide your key." 3
   fi
   
-  # Basic format validation
-  if [[ ! "$API_KEY" =~ ^sk-ant- ]]; then
-    log WARN "Key doesn't start with 'sk-ant-' (may still be valid, but unusual)"
+  # Detect provider from key prefix if not explicitly set (Bug 3 fix)
+  if [[ -z "$API_PROVIDER" ]]; then
+    if [[ "$API_KEY" =~ ^sk-ant- ]]; then
+      API_PROVIDER="anthropic"
+    elif [[ "$API_KEY" =~ ^sk-or-v1- ]]; then
+      API_PROVIDER="openrouter"
+    else
+      API_PROVIDER="anthropic"  # default
+    fi
   fi
   
-  log SUCCESS "API key saved (last 4 chars: ...${API_KEY: -4})"
+  log SUCCESS "API key saved for $API_PROVIDER (last 4 chars: ...${API_KEY: -4})"
+}
+
+phase_0_write_api_key_config() {
+  log INFO "Writing API key to OpenClaw config..."
+  
+  # Bug 3: Actually write the key to config (Bug 3 fix)
+  if ! openclaw config set "auth.${API_PROVIDER}.apiKey" "$API_KEY" 2>/dev/null; then
+    # Fallback: try env variable
+    if [[ "$OS" == "Linux" ]]; then
+      local env_file="$WORKSPACE/.env"
+      {
+        echo "# API Key for $API_PROVIDER"
+        echo "ANTHROPIC_API_KEY=${API_KEY}"
+      } >> "$env_file"
+      chmod 600 "$env_file"
+      log SUCCESS "API key written to .env"
+    else
+      log WARN "Could not write API key to config (will be added to LaunchAgent in Phase 6)"
+    fi
+  else
+    log SUCCESS "API key written to OpenClaw config"
+  fi
 }
 
 phase_0_ask_always_on() {
@@ -286,6 +335,7 @@ phase_0_main() {
   fi
   
   phase_0_ask_api_key
+  phase_0_write_api_key_config
   phase_0_ask_always_on
   
   phase_complete "Pre-check & OS Detection"
@@ -308,15 +358,37 @@ phase_1_install_nodejs() {
   log INFO "Installing Node.js ${NODEJS_VERSION} LTS..."
   
   if [[ "$OS" == "macOS" ]]; then
+    # Bug 4: Fix Homebrew PATH for non-admin users
     if ! command -v brew &> /dev/null; then
-      fail "Homebrew not found. Please install Homebrew first: https://brew.sh" 3
+      log WARN "Homebrew not found in PATH. Searching common locations..."
+      for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+        if [[ -x "$brew_path" ]]; then
+          export PATH="$(dirname "$brew_path"):$PATH"
+          log SUCCESS "Found Homebrew at: $brew_path"
+          break
+        fi
+      done
+    fi
+    
+    # Verify brew is accessible
+    if ! command -v brew &> /dev/null; then
+      log WARN "Homebrew not accessible. Falling back to NVM for Node installation..."
+      # Try nvm
+      if command -v nvm &> /dev/null; then
+        nvm install "$NODEJS_VERSION" || fail "NVM install failed" 3
+      else
+        fail "Could not find Homebrew or NVM. Please install Node.js manually: https://nodejs.org" 3
+      fi
+      return 0
     fi
     
     log INFO "Using Homebrew to install Node.js..."
     if ! brew install "node@${NODEJS_VERSION}" 2>/dev/null; then
-      log WARN "Homebrew install failed. Trying npm nvm..."
+      log WARN "Homebrew install failed. Trying NVM..."
       # Fallback: try nvm
-      if ! command -v nvm &> /dev/null; then
+      if command -v nvm &> /dev/null; then
+        nvm install "$NODEJS_VERSION" || fail "NVM install failed" 3
+      else
         fail "Could not install Node.js. Please install manually and try again." 3
       fi
     fi
@@ -356,16 +428,33 @@ phase_1_install_openclaw() {
   log SUCCESS "OpenClaw installed: $(openclaw --version)"
 }
 
+phase_1_set_gateway_config() {
+  log INFO "Configuring gateway mode..."
+  
+  # Set gateway mode and bind address programmatically (Bug 2 fix)
+  if ! openclaw config set gateway.mode local; then
+    log WARN "Could not set gateway.mode (may already be set)"
+  fi
+  
+  if ! openclaw config set gateway.bind loopback; then
+    log WARN "Could not set gateway.bind (may already be set)"
+  fi
+  
+  log SUCCESS "Gateway configuration complete"
+}
+
 phase_1_main() {
   if phase_0_check_openclaw_exists; then
     phase_header 1 "OpenClaw + Node 22 LTS Installation"
     log INFO "Skipping installation (already present)"
+    phase_1_set_gateway_config
     phase_complete "OpenClaw Already Installed"
     return 0
   fi
   
   phase_1_install_nodejs
   phase_1_install_openclaw
+  phase_1_set_gateway_config
   phase_complete "OpenClaw + Node 22 LTS Installation"
 }
 
@@ -980,7 +1069,7 @@ phase_5_main() {
 #############################################################################
 
 phase_6_create_service_macos() {
-  local service_path="${HOME}/Library/LaunchAgents/com.openclaw.gateway.plist"
+  local service_path="${HOME}/Library/LaunchAgents/ai.openclaw.gateway.plist"
   
   log INFO "Creating macOS LaunchAgent..."
   
@@ -997,7 +1086,7 @@ phase_6_create_service_macos() {
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.openclaw.gateway</string>
+  <string>ai.openclaw.gateway</string>
   
   <key>ProgramArguments</key>
   <array>
@@ -1038,14 +1127,24 @@ phase_6_create_service_macos() {
 PLISTEOF
   
   chmod 644 "$service_path"
-  log SUCCESS "LaunchAgent created"
+  log SUCCESS "LaunchAgent created: $service_path"
   
-  # Load service
-  log INFO "Loading service..."
-  if launchctl load "$service_path" 2>/dev/null; then
-    log SUCCESS "Service loaded"
+  # Load service using openclaw or launchctl (Bug 5: direct install, no onboard wizard)
+  log INFO "Installing service..."
+  
+  # Try openclaw gateway install first
+  if openclaw gateway install --service launchagent 2>/dev/null; then
+    log SUCCESS "Service installed via openclaw gateway install"
+  elif openclaw gateway install 2>/dev/null; then
+    log SUCCESS "Service installed via openclaw gateway install"
   else
-    log WARN "Could not load service. You can load manually: launchctl load $service_path"
+    log WARN "openclaw gateway install failed, using launchctl directly"
+    # Fall back to manual launchctl load
+    if launchctl load "$service_path" 2>/dev/null; then
+      log SUCCESS "Service loaded via launchctl"
+    else
+      log WARN "Service install failed — you can manually run: launchctl load $service_path"
+    fi
   fi
 }
 
@@ -1140,7 +1239,7 @@ phase_7_check_service() {
   local is_running=false
   
   if [[ "$OS" == "macOS" ]]; then
-    if launchctl list | grep -q "com.openclaw.gateway"; then
+    if launchctl list | grep -q "ai.openclaw.gateway"; then
       is_running=true
     fi
   else
@@ -1155,7 +1254,7 @@ phase_7_check_service() {
   else
     log ERROR "Service is not running"
     if [[ "$OS" == "macOS" ]]; then
-      echo "  Fix: launchctl load ~/Library/LaunchAgents/com.openclaw.gateway.plist"
+      echo "  Fix: launchctl load ~/Library/LaunchAgents/ai.openclaw.gateway.plist"
     else
       echo "  Fix: systemctl --user start openclaw.service"
     fi
