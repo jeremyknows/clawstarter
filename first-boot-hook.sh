@@ -107,4 +107,65 @@ else
 fi
 
 log INFO "first-boot-hook completed"
+
+#############################################################################
+# D7 RETENTION SURVEY
+# Fires once, 7 days after first boot, via Telegram.
+# Requires TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in environment.
+#############################################################################
+
+D7_SENTINEL="${WORKSPACE}/.d7-survey-sent"
+INSTALL_TIMESTAMP_FILE="${WORKSPACE}/.install-timestamp"
+
+# Record install timestamp if not already set
+if [[ ! -f "$INSTALL_TIMESTAMP_FILE" ]]; then
+  date +%s > "$INSTALL_TIMESTAMP_FILE"
+  log INFO "Recorded install timestamp for D7 survey"
+fi
+
+INSTALL_TS=$(cat "$INSTALL_TIMESTAMP_FILE" 2>/dev/null || echo "0")
+NOW_TS=$(date +%s)
+ELAPSED=$(( NOW_TS - INSTALL_TS ))
+SEVEN_DAYS=604800
+
+# Only run if: 7 days have passed AND survey hasn't been sent yet
+if [[ "$ELAPSED" -ge "$SEVEN_DAYS" ]] && [[ ! -f "$D7_SENTINEL" ]]; then
+  log INFO "D7 survey: 7 days elapsed, sending retention survey..."
+
+  # Load user name from workspace if available
+  D7_NAME=""
+  if [[ -f "${WORKSPACE}/workspace/USER.md" ]]; then
+    D7_NAME=$(grep -m1 '^\*\*Name:\*\*' "${WORKSPACE}/workspace/USER.md" 2>/dev/null | sed 's/\*\*Name:\*\* *//' | tr -dc '[:alnum:] _-' | cut -c1-30)
+  fi
+  [[ -z "$D7_NAME" ]] && D7_NAME="hey"
+
+  D7_MESSAGE="Hey ${D7_NAME} — quick check-in from your assistant setup.
+
+It's been about a week. Is your assistant actually being useful?
+
+Reply with one of:
+  great — working well, using it regularly
+  okay — using it sometimes, could be better
+  not really — haven't used it much
+
+Your answer helps improve the experience. No wrong answers."
+
+  if [[ -n "${TELEGRAM_BOT_TOKEN:-}" ]] && [[ -n "${TELEGRAM_CHAT_ID:-}" ]]; then
+    local d7_response
+    d7_response=$(curl -s --max-time 15 -X POST \
+      "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+      --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+      --data-urlencode "text=${D7_MESSAGE}" 2>/dev/null)
+
+    if echo "$d7_response" | grep -q '"ok":true'; then
+      touch "$D7_SENTINEL"
+      log INFO "D7 survey sent successfully"
+    else
+      log WARN "D7 survey send failed (will retry on next boot)"
+    fi
+  else
+    log WARN "D7 survey: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set — skipping"
+  fi
+fi
+
 echo "═══════════════════════════════════════════════════════════════" >> "$LOG_FILE"

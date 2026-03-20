@@ -1,0 +1,42 @@
+# HEARTBEAT.md — Daily Schedule
+
+> Your assistant's active hours and recurring tasks.
+> Edit this file to adjust your assistant's schedule.
+
+---
+
+## Timezone
+
+**{{USER_TZ}}**
+
+## Active Hours
+
+Weekdays: 7am–11pm  
+Weekends: 9am–11pm
+
+_(Your assistant won't send proactive messages outside these hours unless something is urgent)_
+
+## What Runs Automatically (v4.0)
+
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| `health-check` | Every 60 min | Verify gateway is running and responsive |
+
+## Coming in v4.1
+
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| `morning-briefing` | 8am daily | Daily summary of your agenda + open tasks |
+| `memory-checkpoint` | 9pm daily | Save today's important context to memory |
+
+## Manual Triggers
+
+You can ask your assistant to do any of these anytime via Telegram:
+- "What's on my plate today?"
+- "Summarize what we talked about this week"
+- "Remind me about [X] tomorrow at [time]"
+
+---
+
+_Logs at: `~/.openclaw/logs/`_
+_Adjust active hours above to match your actual schedule._
