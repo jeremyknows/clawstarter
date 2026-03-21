@@ -1,154 +1,100 @@
-# Changelog
+# ClawStarter v4 Changelog
 
-All notable changes to ClawStarter will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to ClawStarter v4 (the `curl | bash` installer for OpenClaw on Mac + Linux).
 
 ---
 
-## [2.8.0] - 2026-02-15
+## [v4.0-beta] — 2026-03-21
 
-### 🎉 Major Release — Production-Ready
+### [Sprint 4: Code Review Fixes](./BUILD-SUMMARY-SPRINT4.md)
+- **Fixed:** MEMORY.md heredoc now expands variables ($USER_NAME, $USER_TZ, $USE_CASE)
+- **Fixed:** API key + Telegram token moved to ~/.openclaw/.secrets (600 perms), out of world-readable plist
+- **Fixed:** Empty-string guards after sanitization (fail cleanly if name/use-case stripped to empty)
+- **Fixed:** Telegram retry loop (no sleep before attempt 1, fast-fail on 401/403 auth errors)
+- **Improved:** USE_CASE sanitization relaxed to preserve punctuation (periods, commas, colons, parens)
+- **Added:** First-session onboarding arc to AGENTS.md template (4-question day-1 flow)
+- **Commit:** 72e1075
 
-ClawStarter v2.8.0 is the first production-ready release, validated by 4 cycles of PRISM multi-agent review and live user testing.
+### [Sprint 3: Onboarding Experience](./BUILD-SUMMARY-SPRINT3.md)
+- **Added:** All 5 workspace templates (SOUL.md, USER.md, AGENTS.md with mandatory CIF, MEMORY.md, HEARTBEAT.md)
+- **Added:** D7 retention survey in first-boot-hook.sh (7-day prompt)
+- **Changed:** AGENTS.md from 600+ lines → ~250 lines (simplified for non-technical users)
+- **Added:** Direct AGENTS.md generation in install.sh Phase 2 (was missing entirely)
+- **Added:** {{SETUP_DATE}} variable in templates for first-session detection
+- **Changed:** First-contact message from generic to personalized 4-question arc
+- **Commit:** 5767794
 
-### Added
+### [Sprint 2: Install Script Build](./BUILD-SUMMARY-SPRINT2.md)
+- **Added:** install-v4.sh (41KB, 8 phases, idempotent, fully tested)
+- **Added:** first-boot-hook.sh (runs on first gateway startup, self-installs cron)
+- **Added:** 5 workspace templates (tmpl format)
+- **Added:** seed-jobs/health-check.json (single v4.0 cron job)
+- **Added:** BotFather Option B flow (direct link, token validation, recovery prompts)
+- **Added:** E2E Telegram test in Phase 7 (live message within 30s)
+- **Added:** Input sanitization for USER_NAME and USE_CASE
+- **Fixed:** 5 issues from first hardware test (Homebrew PATH, LaunchAgent, API key capture, sudo handling)
+- **Commit:** 5767794
 
-**Setup Script Improvements:**
-- Gateway token extraction and display after `openclaw doctor` completes
-- Enhanced final verification step with dashboard URL, token, and clear "what's next" instructions
-- Onboarding verification — checks config file exists before continuing, offers retry if missing
-- Intro text explaining Y/Enter prompts and invisible password behavior
-- jq dependency check with auto-install via Homebrew
-- Security warnings about token exposure, git commit risks, and rotation command
-- Token explainer: "Think of it like a password for your bot"
-
-**Documentation:**
-- New `QUICKSTART.md` — ultra-brief 3-step guide (15 minutes)
-- Organized supplementary guides into `docs/` subdirectory
-- Pre-Install Checklist now enforces required checkboxes (can't skip)
-- Config Wizard ESC instruction moved to always-visible warning box
-- User account prerequisite warnings added to README and QUICKSTART
-- Optional security enhancement accordion (Keychain/1Password upgrade path)
-- "First Connection" troubleshooting section in companion.html
-
-**Quality Assurance:**
-- 4 PRISM review cycles (10 specialist perspectives)
-- Step 8 completely rewritten to match actual `openclaw onboard` behavior
-- All file paths and script names verified for accuracy
-
-### Fixed
-
-**Critical Issues (PRISM-Identified):**
-- Script name conflict: All references updated from `openclaw-quickstart-v2.sh` to `openclaw-autosetup.sh`
-- macOS version mismatch: Standardized on macOS 13+ Ventura across all docs
-- User account prerequisite: Added warnings to README, QUICKSTART, and companion.html (prevents #1 drop-off point)
-- Step 8 phantom prompts: Eliminated "Which AI provider? 1/2/3" and "Budget Selection" sections that didn't match actual script behavior
-
-**User Experience:**
-- Pre-Install Checklist button now disabled until required checks completed
-- companion.html Step 8 now accurately describes `openclaw onboard` wizard
-- Password invisibility warning added to Step 7
-- "y + Enter" confirmation guidance added
-
-### Changed
-
-- README references updated to point to current files (not deleted ones)
-- Version bumped from v2.7.0-prism-fixed to v2.8.0
-- Project status: "Production-ready — live tested and PRISM-audited"
-- QUICKSTART simplified from 732 lines to 95 lines (87% reduction)
-- Moved 4 guides to `docs/` subdirectory for clearer organization
-
-### Removed
-
-- Deleted `docs/openclaw-setup-guide.html` (redundant with companion.html)
-- Moved `REVIEW-*.md` files to `archive/reviews/` (internal-only)
-- Moved `JEREMY-VISION-V2.md` and `IMPLEMENTATION-PLAN.md` to `archive/`
-
-### Security
-
-- All credential exposure risks mitigated (per PRISM Security Reviewer)
-- Defense-in-depth architecture documented in SECURITY.md
-- Emergency procedures added for token rotation
-- File permissions verified (`chmod 600` on openclaw.json)
-- Optional Keychain/1Password integration guidance added
-
-### Documentation Quality Metrics
-
-**PRISM Validation:**
-- Accuracy: A- (content matches current script behavior)
-- Completeness: B+ (comprehensive with minor gaps)
-- Clarity: B (multiple entry points well-organized)
-- Security: A (excellent threat model and hardening)
-- UX: B- (good happy path, drop-off points addressed)
-- Professional Polish: A- (mature project quality)
-
-**Estimated User Success Rate:** 80%+ for first-time users
-
-### Known Limitations
-
-- Discord Message Content Intent verification not yet automated (requires manual portal check)
-- Template checksums temporarily disabled pending re-enablement
-- Accessibility improvements (WCAG Level AA compliance) in progress
-- End-to-end user testing with non-technical users ongoing
-
-### Migration Notes
-
-**From v2.7.x:**
-- No breaking changes
-- File paths updated (OPENCLAW-SETUP-GUIDE.md moved to docs/)
-- Script name standardized (use `openclaw-autosetup.sh` going forward)
-
-**Fresh Installation:**
-- Use `companion.html` (recommended) or `QUICKSTART.md` for fastest setup
-- Expect 15-20 minute setup time
-- Gateway token will be displayed — save it somewhere safe
-
-### Credits
-
-**PRISM Review Team:**
-- 4 cycles, 10 specialist perspectives
-- Identified and validated fixes for 4 critical issues
-- Verified production readiness
-
-**Live Testing:**
-- X Spaces test (Feb 15, 2026) — identified token display blocker
-- Fresh Mac user validation pending
-
-### What's Next
-
-**Planned for v2.9.0:**
-- Telegram setup integration (simpler than Discord)
-- Discord Message Content Intent pre-flight check
-- Template checksum re-enablement
-- Automated connection test in final step
-
-**Planned for v3.0.0:**
-- Multi-channel setup wizard
-- Interactive companion page with live gateway status
-- Progress persistence (localStorage)
-- Comprehensive uninstall guide
+### [Sprint 1: Foundation & Planning](./CLAWSTARTER-V4-FOUNDATION.md)
+- **Completed:** 1a (inventory), 1b (script audit), 1c (doctrine map), 1d (foundation doc), 1e (PRISM review)
+- **Completed:** Two PRISM rounds (1st: VPS-era, 2nd: local-install pivot)
+- **Locked:** 10 open questions (macOS 12+, Ubuntu only, free+OSS, closed beta ~4wk, etc.)
+- **Decided:** Major pivot from hosted VPS to local `curl | bash` install
+- **Key finding:** ops-seed.sh from v3 was 85% reusable, streamlined for v4
+- **Deliverables:** inventory-raw.md, script-progression-map.md, doctrine-map.md, FOUNDATION.md
 
 ---
 
-## [2.7.0] - 2026-02-10
+## Roadmap
 
-Initial release with security hardening and PRISM business strategy review.
-
-### Added
-- OpenClaw automated setup script
-- Interactive companion page
-- Foundation Playbook template
-- Security threat model
-- 11/20 PRISM reviews complete
-
-### Security
-- Keychain isolation
-- Input validation
-- Atomic file operations
+- **Phase:** Closed beta (4 weeks, 10–20 testers), starting 2026-03-21
+- **Target:** 70%+ first-try success rate, time-to-first-message ≤5 min
+- **GA:** ~4–6 weeks post-beta (assuming clean beta results)
+- **See:** [ROADMAP.md](./ROADMAP.md)
 
 ---
 
-[2.8.0]: https://github.com/jeremyknows/clawstarter/compare/v2.7.0...v2.8.0
-[2.7.0]: https://github.com/jeremyknows/clawstarter/releases/tag/v2.7.0
+## Known Issues (Before Beta)
+
+None — all Sprint 4 code review issues resolved.
+
+---
+
+## Known Limitations (v4.0)
+
+- **macOS:** 12+ (Monterey) only. Intel + Apple Silicon both tested.
+- **Linux:** Ubuntu 20.04 LTS+ only. Not tested on Fedora, Debian, Arch (post-GA consideration).
+- **Offline:** Local model (qwen2.5:3b) uses ~2GB disk. Alternatively, API key (Anthropic/OpenAI/OpenRouter).
+- **Single workspace:** One user = one ~/.openclaw/ directory. Multi-workspace support deferred to v4.1+.
+- **Discord setup:** Separate manual guide (not in install script). Telegram is primary.
+
+---
+
+## Previous Versions (Archive)
+
+- **v2.8.0** (last v2 release) — see archive/legacy/ and archive/old-versions/
+- **v3.x** — unsupervised wild sprint, generated extensive GTM/marketing research (see archive/reviews/, docs/strategy/)
+
+---
+
+## Contributors & Attribution
+
+- **Jeremy Knows** — Vision, product decisions, testing
+- **Watson** — Script architecture, template design, QA automation, PRISM orchestration
+- **Subagents** — Specialized review & build roles (see Sprint files for details)
+
+---
+
+## Resources
+
+- [Getting Started](./QUICKSTART.md)
+- [Foundation & Architecture](./CLAWSTARTER-V4-FOUNDATION.md)
+- [Roadmap](./ROADMAP.md)
+- [GTM Strategy](./docs/strategy/) (research & positioning)
+- [GitHub](https://github.com/jeremyknows/clawstarter)
+
+---
+
+**Status:** Ready for closed beta  
+**Last Updated:** 2026-03-21  
+**Maintainer:** Jeremy Knows (@jeremyknows)

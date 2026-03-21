@@ -1,68 +1,135 @@
-# OpenClaw Setup Guide — Roadmap
+# ClawStarter v4 Roadmap
 
-> Maintainer roadmap — not a user-facing document.
-
----
-
-## Completed (Security Hardening)
-
-These items were implemented across `openclaw-autosetup.sh` and `openclaw-verify.sh`:
-
-- [x] **C1: Shell injection fix** — All 22 Python-embedded blocks rewritten to use `sys.argv` + `<< 'PYEOF'` single-quoted heredocs (prevents arbitrary code execution via crafted filenames/values)
-- [x] **C2/C3: Secrets migration** — New `step_harden_secrets()` function migrates 7 known secret paths from plaintext to `${VAR_NAME}` env var references, stores values in LaunchAgent plist
-- [x] **H1: mDNS/Bonjour disable** — `OPENCLAW_DISABLE_BONJOUR=1` added to plist EnvironmentVariables
-- [x] **H2: Explorer profile browser deny** — `tools.deny: ["browser"]` applied to Explorer access profile
-- [x] **H3: requireMention defaults** — Primary Discord channel gets `false`, all others get `true`
-- [x] **H4: Cryptographic gateway token** — `openssl rand -hex 32` generates 64-char hex token if missing or weak (<32 chars)
-- [x] **H5: FileVault check** — New section 13 in verify.sh checks `fdesetup status`
-- [x] **M5: Backup file permissions** — `cp -p` preserves permissions on config backups
-- [x] **Discord config builder** — Rewritten with sys.argv, input validation for numeric IDs
-- [x] **Step count updates** — Full: 19 steps (was 18), Minimal: 17 (was 16)
-- [x] **Completion message** — Added Foundation Playbook Phase 1 reminder + gateway rewrite gotcha warning
+**Status:** Sprint 4 complete, ready for closed beta.  
+**Last Updated:** 2026-03-21  
+**Vision:** A zero-friction `curl | bash` installer for OpenClaw. Telegram-first, local install, 10-minute setup.
 
 ---
 
-## Remaining: Open-Source Readiness
+## Current Phase — Closed Beta (~4 weeks, starting now)
 
-### Must-do before first public release
+**Goal:** Real hardware testing with 10–20 non-technical testers. Focus: Does the script work end-to-end? Are instructions clear?
 
-- [x] **Doc content gap: security features** — All 6 security features documented across all 5 doc files, voice-adapted per audience (Session 5)
-- [x] **Remove review artifacts** — `.gitignore` updated; `REVIEW-*.md` and `IMPLEMENTATION-PLAN.md` excluded from repo (Session 5)
-- [x] **Git identity + repo setup** — Pushed to `github.com/jeremyknows/openclaw-for-beginners` (private), 4 commits on main (Session 5)
-- [x] **Browser QA testing** — HTML structure verified: 11 pages, localStorage persistence, theme toggle, copy with textarea fallback, 36 callout boxes (Session 6 — visual testing pending)
-- [ ] **Fresh Mac QA** — Run `openclaw-autosetup.sh` end-to-end on a clean macOS install
-- [ ] **Run `openclaw-verify.sh`** on the target Mac after autosetup
-- [x] **Cross-file consistency audit** — Completed via `/multi-document-consistency-audit` skill. No critical issues (spec's "explorer, admin, default" was wrong — all files correctly use "Explorer, Guarded, Restricted"). Minor CVE wording inconsistencies noted. Report: `CONSISTENCY-AUDIT.md` (Session 6)
+### Beta Deliverables
+- [ ] **Test pool recruited** — 10–20 willing participants (preferably outside OpenClaw core team)
+- [ ] **Pre-beta guide written** — clear expectations, how to report issues, what we're measuring
+- [ ] **First-run analytics** — track: install success rate, time to first message, user retention day 1 + day 7
+- [ ] **Issue triage** — P0 blockers vs. UX paper cuts
+- [ ] **Weekly builds** — hot fixes as issues surface
 
-### Should-do before v1.0
-
-- [x] **CONTRIBUTING.md** — Contributor guidelines, cross-file consistency patterns, code style (Session 6)
-- [x] **SECURITY.md** — Threat model, known limitations, CVE references, security checklist (Session 6)
-- [x] **workspace-scaffold-prompt.md** — Added "skip this if you ran autosetup" header (Session 6)
-- [ ] **Foundation Playbook TOC** — Add table of contents with anchors (it's 1,500 lines)
+### Success Criteria (Beta Complete)
+- **70%+ install success rate** on both macOS 12+ and Ubuntu 20.04+ (first attempt, no rework)
+- **Time-to-first-message ≤ 5 minutes** after completing install
+- **No P0 security issues** discovered
+- **5+ users with 7-day retention** (they come back and use it)
 
 ---
 
-## Deferred Items
+## Post-Beta: Feature Parity + Polish (Weeks 5–8)
 
-| Item | Priority | Notes |
-|------|----------|-------|
-| Tailscale remote access guidance | P1 | How to SSH/VNC into the bot Mac securely from anywhere |
-| Mem0 / Cognee memory plugins | P2 | Long-term memory integrations for agent sessions |
-| Model routing / cost optimization guide | P2 | When to use which model, cost projections, routing strategies |
-| DigitalOcean 1-click deployment | P2 | Cloud alternative to running on a physical Mac |
-| Command allowlists | P2 | Granular control over which shell commands agents can execute |
-| iOS companion app documentation | P2 | Mobile monitoring and quick-reply setup |
-| Firewall verification in `openclaw-verify.sh` | P2 | Add check: `socketfilterfw --getglobalstate` should report "enabled" |
-| Split Foundation Playbook | P2 | Phase 1 (security, mandatory) separate from Phases 2-8 (optional) |
-| Shorten file names | P3 | Drop `OPENCLAW-` prefix for cleaner tree (controversial — may break existing references) |
-| Deduplicate AGENTS.md/SOUL.md safety rules | P3 | Both contain overlapping safety boundaries |
+### Windows Support (Optional, v4.1+)
+- PowerShell equivalent of install-v4.sh
+- Deferred post-beta decision based on demand
+
+### Onboarding Experience Refinement
+- User feedback on first-session questions (4-question limit)
+- PRISM validation on revised AGENTS.md template
+- First-win experience testing (proactive task/suggestion in day 1)
+
+### Documentation + Marketing
+- Blog post on "building an installer in 2026" (transparency, learnings)
+- Positioning document (competitor differentiation)
+- Get started guide (different from technical QUICKSTART)
 
 ---
 
-## Known Limitations
+## GA Release (Week 9+)
 
-- **autosetup.sh installs software on admin before creating bot user.** This is by design — Homebrew's initial install requires admin privileges, and `/opt/homebrew` is accessible to all users on Apple Silicon. The bot user inherits these tools after account switch.
-- **OpenAI tier in HTML guide uses placeholder model names.** The model IDs have not been ground-truthed against a live OpenAI-routed deployment. Users selecting the OpenAI provider should verify model availability on their account.
-- **Gateway rewrites `${VAR_NAME}` back to plaintext.** OpenClaw resolves env var references and writes resolved values back to `openclaw.json` on restart. The LaunchAgent plist is the canonical secret store. This is OpenClaw behavior, not a script bug.
-- **Discord `requireMention` for primary channel defaults to `false`.** This means the bot responds to every message in its primary channel without being @mentioned. Users with busy primary channels should consider setting it to `true`.
+### Criteria
+- **Closed beta resolved all P0/P1 issues**
+- **Independent test on fresh macOS/Ubuntu user = success**
+- **Marketing materials live** (landing page updated, docs deployed)
+- **GitHub Releases + notarization** ready for curl | bash distribution
+- **Homebrew tap** available (macOS)
+
+### Launch Activities
+- Announcement to OpenClaw Discord
+- Tweet/social in @jeremyknows voice
+- Email to early waitlist (if any)
+- Follow "Community-First, Build in Public" GTM strategy (see docs/strategy/go-to-market.md)
+
+---
+
+## Post-Launch: Sustain + Expand (Month 2+)
+
+### Maintenance
+- **Quarterly security audits** (as dependency versions update)
+- **Version bump schedule** (aligned with OpenClaw releases)
+- **Passive support** (GitHub Issues, small fixes)
+
+### Revenue Exploration (if applicable)
+- See docs/strategy/monetization.md
+- Not primary focus — initial goal is adoption + trust-building
+
+### Optional Expansion
+- **Skill packs** — "ClawStarter Creator Bundle," "ClawStarter for Founders," etc.
+- **Distribution partnerships** — ProductHunt, Indie Hackers, etc.
+- **Localization** — non-English markets (if demand exists)
+
+---
+
+## Philosophy
+1. **No premature complexity** — only add what users ask for
+2. **Test ruthlessly** — document real user behavior before scaling
+3. **Stay opinionated** — ClawStarter has a POV (Telegram first, local install, personalized)
+4. **Be transparent** — share wins and failures publicly
+
+---
+
+## Known Constraints
+- **macOS 12+ only** (Monterey; earlier versions at own risk, not supported)
+- **Ubuntu 20.04+ only** (LTS versions, not rolling releases)
+- **Offline first** — local model (qwen2.5:3b) recommended to avoid API key friction
+- **Single workspace per user** — no multi-workspace in v4
+
+---
+
+## Success Metrics (Track Weekly During Beta)
+
+| Metric | Target | How We Measure |
+|--------|--------|-----------------|
+| Install success (first try) | 70%+ | Count completions vs. attempts |
+| Time to first message | ≤5 min | User reports or logs |
+| Day-1 retention | 5+ users | Come back same day? |
+| Day-7 retention | 3+ users | Still using after 1 week? |
+| User satisfaction | NPS 8+ | Brief post-install survey |
+| No P0 security issues | 0 | Security audit + user reports |
+
+---
+
+## Decisions Locked (Sprint 1)
+
+See data/sprints/clawstarter-v4-sprint1-goals.json for all Q&A.
+
+- macOS 12+ (Monterey)
+- Ubuntu 20.04+ only
+- Always-on machine optional (document both modes)
+- Free + open-source (no immediate monetization)
+- install.sh --upgrade (not npm)
+- Discord setup separate guide, not in script
+- ~/.openclaw (standard location)
+- Checkpoint/resume on partial failure
+- Cost visibility deferred to v4.1
+- Closed beta ~4 weeks, 10–20 testers
+
+---
+
+## Questions for Jeremy (if any arise during beta)
+
+TBD — log new decisions here as they come up.
+
+---
+
+**Owner:** Jeremy Knows  
+**Next Review:** After first 5 beta installations complete  
+**Links:** [Sprint 1 Plan](./FOUNDATION.md) | [Sprint 2 Build](./BUILD-SUMMARY-SPRINT2.md) | [Sprint 3 UX](./BUILD-SUMMARY-SPRINT3.md) | [Sprint 4 Fixes](./review-agent-findings.md)
